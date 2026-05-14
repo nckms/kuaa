@@ -3,6 +3,7 @@
   "private": true,
   "workspaces": ["apps/*"],
   "scripts": {
+    "start": "node apps/api/dist/index.js",
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/api",

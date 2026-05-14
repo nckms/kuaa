@@ -1,0 +1,8 @@
+{
+  "build": {
+    "cmd": "npm run build && npx prisma generate && npx prisma migrate deploy"
+  },
+  "deploy": {
+    "cmd": "node dist/index.js"
+  }
+}
