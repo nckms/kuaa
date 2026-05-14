@@ -37,9 +37,7 @@ export function errorHandler(
     statusCode,
   }
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.error('[Error]', err)
-  }
+  console.error('[Error]', err.message, err.stack)
 
   res.status(statusCode).json(response)
 }
