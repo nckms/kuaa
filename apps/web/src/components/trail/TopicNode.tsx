@@ -10,34 +10,33 @@ interface TopicNodeProps {
 
 function Stars({ masteryLevel }: { masteryLevel: number }) {
   const count = masteryLevel >= 5 ? 3 : masteryLevel >= 4 ? 2 : masteryLevel >= 2 ? 1 : 0
+  if (count === 0) return null
   return (
-    <div className="flex gap-0.5 mt-1 justify-center">
-      {[1, 2, 3].map((i) => (
-        <span key={i} className="text-xs" style={{ color: i <= count ? '#FFDC5C' : '#d1d5db' }}>
-          ★
-        </span>
+    <div style={{ display: 'flex', gap: 2, justifyContent: 'center', marginTop: 4 }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <span key={i} style={{ color: '#FFDC5C', fontSize: 14 }}>⭐</span>
       ))}
     </div>
   )
 }
 
 function ProgressRing({ masteryLevel }: { masteryLevel: number }) {
-  const r = 26
+  const size = 72
+  const r = 30
   const circumference = 2 * Math.PI * r
   const offset = circumference - (masteryLevel / 5) * circumference
   return (
-    <svg className="absolute inset-0 -rotate-90" width="64" height="64" viewBox="0 0 64 64">
-      <circle cx="32" cy="32" r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
+    <svg
+      style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}
+      width={size} height={size} viewBox={`0 0 ${size} ${size}`}
+    >
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
       <circle
-        cx="32"
-        cy="32"
-        r={r}
-        fill="none"
-        stroke="#531A61"
-        strokeWidth="4"
+        cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#531A61" strokeWidth="4"
         strokeDasharray={circumference}
         strokeDashoffset={offset}
         strokeLinecap="round"
+        style={{ transition: 'stroke-dashoffset 0.6s ease' }}
       />
     </svg>
   )
@@ -50,83 +49,68 @@ export default function TopicNode({ topic, icon, isActive, onClick }: TopicNodeP
   const isInProgress = progress.unlocked && !progress.completed && progress.sessionsCount > 0
   const isAvailable = progress.unlocked && !progress.completed && progress.sessionsCount === 0
 
-  function handleClick() {
-    if (!isLocked) onClick(topic)
-  }
-
   const activeRing: React.CSSProperties = isActive
-    ? { outline: '3px solid #FFDC5C', outlineOffset: '3px', borderRadius: '50%' }
+    ? { outline: '3px solid #FFDC5C', outlineOffset: '4px', borderRadius: '50%', boxShadow: '0 0 0 6px rgba(255,220,92,.25)' }
     : {}
+
+  const nodeSize = 72
 
   if (isLocked) {
     return (
-      <div className="flex flex-col items-center" title="Complete o tópico anterior para desbloquear">
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: '#f3f4f6', border: '2px solid #d1d5db', cursor: 'not-allowed' }}
-        >
-          <span className="text-2xl text-gray-400">🔒</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} title="Complete o tópico anterior para desbloquear">
+        <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'not-allowed' }}>
+          <span style={{ fontSize: 24, filter: 'grayscale(1)', opacity: 0.5 }}>🔒</span>
         </div>
-        <p className="text-xs text-gray-400 mt-1 text-center max-w-[72px] leading-tight">{topic.name}</p>
+        <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 6, textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: 'Arial, sans-serif' }}>{topic.name}</p>
       </div>
     )
   }
 
   if (isCompleted) {
     return (
-      <div className="flex flex-col items-center cursor-pointer" onClick={handleClick} style={activeRing}>
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: '#531A61' }}
-        >
-          <span className="text-white text-2xl font-bold">✓</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
+        <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', backgroundColor: '#531A61', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ color: '#fff', fontSize: 28, fontWeight: 900 }}>✓</span>
         </div>
         <Stars masteryLevel={progress.masteryLevel} />
-        <p className="text-xs text-gray-600 mt-1 text-center max-w-[72px] leading-tight">{topic.name}</p>
+        <p style={{ fontSize: 13, color: '#531A61', marginTop: 6, textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: 'Arial, sans-serif', fontWeight: 500 }}>{topic.name}</p>
       </div>
     )
   }
 
   if (isInProgress) {
     return (
-      <div className="flex flex-col items-center cursor-pointer" onClick={handleClick} style={activeRing}>
-        <div className="relative w-16 h-16">
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: '#f3eaf7' }}
-          >
-            <span className="text-2xl">{icon}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
+        <div style={{ position: 'relative', width: nodeSize, height: nodeSize }}>
+          <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', backgroundColor: '#f3eaf7', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', inset: 0 }}>
+            <span style={{ fontSize: 24 }}>{icon}</span>
           </div>
           <ProgressRing masteryLevel={progress.masteryLevel} />
         </div>
-        <p className="text-xs text-gray-600 mt-1 text-center max-w-[72px] leading-tight">{topic.name}</p>
+        <p style={{ fontSize: 13, color: '#531A61', marginTop: 6, textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: 'Arial, sans-serif', fontWeight: 500 }}>{topic.name}</p>
       </div>
     )
   }
 
   if (isAvailable) {
     return (
-      <div className="flex flex-col items-center" onClick={handleClick} style={{ cursor: 'pointer', ...activeRing }}>
-        <div className="relative">
-          <span
-            className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-            style={{ backgroundColor: '#FFDC5C', color: '#531A61' }}
-          >
-            NOVO
-          </span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
+        <div style={{ position: 'relative' }}>
+          <span style={{
+            position: 'absolute', top: -20, left: '50%', transform: 'translateX(-50%)',
+            backgroundColor: '#FFDC5C', color: '#531A61', fontSize: 10, fontWeight: 700,
+            padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap',
+            fontFamily: 'Arial, sans-serif', letterSpacing: '.04em',
+          }}>NOVO</span>
           <motion.div
-            className="w-16 h-16 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: '#531A61' }}
-            animate={{ scale: [1, 1.05, 1] }}
+            style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', background: 'linear-gradient(135deg, #531A61, #840033)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(83,26,97,.4)' }}
+            animate={{ scale: [1, 1.06, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <span className="text-2xl">{icon}</span>
+            <span style={{ fontSize: 28 }}>{icon}</span>
           </motion.div>
         </div>
-        <p className="text-xs text-white font-medium mt-2 text-center max-w-[72px] leading-tight"
-           style={{ color: '#531A61' }}>
-          {topic.name}
-        </p>
+        <p style={{ fontSize: 13, color: '#531A61', marginTop: 10, textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: 'Arial, sans-serif', fontWeight: 500 }}>{topic.name}</p>
       </div>
     )
   }

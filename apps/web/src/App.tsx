@@ -10,10 +10,9 @@ import SelectVestibular from './pages/Onboarding/SelectVestibular'
 import TrailPage from './pages/Trail/TrailPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardPage from './pages/Dashboard/DashboardPage'
-import IndicePage from './pages/Indice/IndicePage'
-import MonitoresPage from './pages/Monitores/MonitoresPage'
-import SimuladoPage from './pages/Quiz/SimuladoPage'
-
+import ProfilePage from './pages/Profile/ProfilePage'
+import RankingPage from './pages/Ranking/RankingPage'
+import QuizPage from './pages/Quiz/QuizPage'
 
 function TrailIndex() {
   const navigate = useNavigate()
@@ -30,8 +29,8 @@ function TrailIndex() {
   }, [firstVestibularSlug, isHydrating, navigate])
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-400 text-sm">Carregando trilha…</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#faf3e3' }}>
+      <p style={{ color: '#9ca3af', fontSize: 14 }}>Carregando trilha…</p>
     </div>
   )
 }
@@ -54,11 +53,9 @@ function AppRoutes() {
         <Route path="/trilha" element={<TrailIndex />} />
         <Route path="/trilha/:vestibularSlug" element={<TrailPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/indice" element={<IndicePage />} />
-        <Route path="/monitores" element={<MonitoresPage />} />
-        <Route path="/quiz/:topicId" element={<SimuladoPage />} />
-        <Route path="/perfil" element={<IndicePage />} />
-        <Route path="/ranking" element={<MonitoresPage />} />
+        <Route path="/quiz/:topicId" element={<QuizPage />} />
+        <Route path="/perfil" element={<ProfilePage />} />
+        <Route path="/ranking" element={<RankingPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

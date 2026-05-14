@@ -1,6 +1,7 @@
 import type { TrailSubject, TrailTopic } from '../../types/trail'
 import { getIcon } from '../../utils/iconMap'
 import TopicNode from './TopicNode'
+import ProgressBar from '../ui/ProgressBar'
 
 interface SubjectSectionProps {
   subject: TrailSubject
@@ -14,51 +15,38 @@ export default function SubjectSection({ subject, activeTopicId, onTopicClick }:
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   return (
-    <div className="pb-8">
-      {/* Header da matéria */}
-      <div className="flex items-center gap-3 mb-2 px-4">
-        <span className="text-2xl">{getIcon(subject.iconSlug)}</span>
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-base" style={{ color: '#531A61' }}>
-              {subject.name}
-            </h3>
-            <span className="text-xs text-gray-500">
-              {completedCount}/{totalCount} tópicos
-            </span>
-          </div>
-          {/* Barra de progresso */}
-          <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ backgroundColor: '#531A61', width: `${progressPercent}%` }}
-            />
+    <div style={{ paddingBottom: 40 }}>
+      {/* Header matéria */}
+      <div style={{ padding: '24px 24px 16px', maxWidth: 480, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+          <span style={{ fontSize: 40 }}>{getIcon(subject.iconSlug)}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <h3 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: '#1a1a1a' }}>{subject.name}</h3>
+              <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: 'Arial, sans-serif' }}>{completedCount}/{totalCount} tópicos</span>
+            </div>
+            <ProgressBar value={progressPercent} color="vinho" size="sm" />
           </div>
         </div>
       </div>
 
-      {/* Caminho vertical com nós */}
-      <div className="flex flex-col items-center gap-0 mt-6 px-4">
+      {/* Trilha de nós */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0' }}>
         {subject.topics.map((topic, index) => {
-          const prevCompleted = index === 0 || subject.topics[index - 1].progress.completed
-          return (
-            <div key={topic.id} className="flex flex-col items-center">
-              {/* Linha de conexão acima (exceto primeiro) */}
-              {index > 0 && (
-                <div
-                  className="w-0.5 h-8"
-                  style={{
-                    borderLeft: `2px dashed ${prevCompleted ? '#531A61' : '#e5e7eb'}`,
-                  }}
-                />
-              )}
+          const prevTopic = index > 0 ? subject.topics[index - 1] : null
+          const connectorColor = prevTopic?.progress.completed
+            ? (topic.progress.unlocked ? '#531A61' : '#e5e7eb')
+            : '#e5e7eb'
+          const offset = index % 2 === 0 ? -32 : 32
 
-              {/* Nó com zigue-zague */}
-              <div
-                style={{
-                  transform: `translateX(${index % 2 === 0 ? '-20px' : '20px'})`,
-                }}
-              >
+          return (
+            <div key={topic.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {/* Conector */}
+              {index > 0 && (
+                <div style={{ width: 2, height: 40, borderLeft: `2px dashed ${connectorColor}` }} />
+              )}
+              {/* Nó com zigzag */}
+              <div style={{ transform: `translateX(${offset}px)` }}>
                 <TopicNode
                   topic={topic}
                   icon={getIcon(subject.iconSlug)}
