@@ -1,3 +1,37 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --k-roxo: #531A61;
+  --k-roxo-deep: #2a0d33;
+  --k-vinho: #840033;
+  --k-vinho-deep: #4a001c;
+  --k-amarelo: #FFDC5C;
+  --k-amarelo-soft: #fff1b7;
+  --k-creme: #faf3e3;
+  --k-creme-2: #f4e9cf;
+  --k-tinta: #1a0a1f;
+  --k-tinta-2: #3a2540;
+  --k-tinta-3: #6b566f;
+  --k-line: rgba(26,10,31,.08);
+  --k-line-2: rgba(26,10,31,.14);
+  --k-shadow-sm: 0 1px 0 rgba(26,10,31,.04), 0 6px 16px -10px rgba(26,10,31,.18);
+  --k-shadow-md: 0 2px 0 rgba(26,10,31,.04), 0 24px 48px -28px rgba(26,10,31,.24);
+}
+
+.k-display { font-family: 'Unbounded', sans-serif; letter-spacing: -0.025em; }
+.k-num { font-family: 'Unbounded', sans-serif; font-weight: 700; letter-spacing: -0.045em; line-height: 0.92; }
+.k-body { font-family: 'Questrial', Arial, sans-serif; }
+
+.k-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  border-radius: 999px; padding: 6px 12px;
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  font-family: 'Unbounded', sans-serif; font-weight: 500;
+}
+.k-pill.amber { background: #FFDC5C; color: #2a0d33; }
+.k-pill.wine { background: #840033; color: #fff; }
+.k-pill.grape { background: #531A61; color: #fff; }
+.k-pill.ghost { background: rgba(26,10,31,.06); color: #3a2540; }
+.k-pill.ghost-dark { background: rgba(255,255,255,.08); color: #fff; }

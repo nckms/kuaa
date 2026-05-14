@@ -9,18 +9,11 @@ import Register from './pages/Auth/Register'
 import SelectVestibular from './pages/Onboarding/SelectVestibular'
 import TrailPage from './pages/Trail/TrailPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import DashboardPage from './pages/Dashboard/DashboardPage'
+import IndicePage from './pages/Indice/IndicePage'
+import MonitoresPage from './pages/Monitores/MonitoresPage'
+import SimuladoPage from './pages/Quiz/SimuladoPage'
 
-function Placeholder({ label }: { label: string }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center font-sans">
-      <div className="text-center">
-        <p className="text-5xl mb-4">🦅</p>
-        <h1 className="text-2xl font-bold" style={{ color: '#531A61' }}>{label}</h1>
-        <p className="text-gray-500 mt-2 text-sm">Em breve…</p>
-      </div>
-    </div>
-  )
-}
 
 function TrailIndex() {
   const navigate = useNavigate()
@@ -60,9 +53,12 @@ function AppRoutes() {
         <Route path="/onboarding" element={<SelectVestibular />} />
         <Route path="/trilha" element={<TrailIndex />} />
         <Route path="/trilha/:vestibularSlug" element={<TrailPage />} />
-        <Route path="/quiz/:topicId" element={<Placeholder label="Quiz em breve" />} />
-        <Route path="/perfil" element={<Placeholder label="Perfil (em breve)" />} />
-        <Route path="/ranking" element={<Placeholder label="Ranking (em breve)" />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/indice" element={<IndicePage />} />
+        <Route path="/monitores" element={<MonitoresPage />} />
+        <Route path="/quiz/:topicId" element={<SimuladoPage />} />
+        <Route path="/perfil" element={<IndicePage />} />
+        <Route path="/ranking" element={<MonitoresPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
