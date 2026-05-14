@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuthStore } from '../../stores/auth.store'
+import KuaaLogo from '../../components/ui/KuaaLogo'
+import AsaGlyph from '../../components/ui/AsaGlyph'
 import type { AuthResponse } from '../../types/user'
 
 interface FormState {
@@ -66,70 +68,104 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center font-sans px-4" style={{ backgroundColor: '#f5f3ff' }}>
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <span className="text-3xl font-bold" style={{ color: '#531A61' }}>🦅 KUAA</span>
-          <p className="text-gray-500 mt-2 text-sm">Entre na sua conta</p>
+    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Questrial', Arial, sans-serif" }}>
+
+      {/* Left brand panel */}
+      <div
+        style={{ flex: '0 0 420px', backgroundColor: '#1a0a1f', display: 'flex', flexDirection: 'column', padding: '48px 44px', position: 'relative', overflow: 'hidden' }}
+        className="hidden lg:flex"
+      >
+        <div style={{ position: 'absolute', right: -60, bottom: -60, opacity: 0.07, color: '#fff', pointerEvents: 'none' }}>
+          <AsaGlyph size={360} tone="mono" />
         </div>
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              E-mail
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
-              style={{ borderColor: errors.email ? '#840033' : '#d1d5db', focusRingColor: '#531A61' } as React.CSSProperties}
-            />
-            {errors.email && <p className="text-xs mt-1" style={{ color: '#840033' }}>{errors.email}</p>}
+        <KuaaLogo size={38} dark showTagline />
+
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingBottom: 48 }}>
+          <div className="k-pill ghost-dark" style={{ marginBottom: 24 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#FFDC5C', flexShrink: 0 }} />
+            100% gratuito
           </div>
+          <h2 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 30, color: '#fff', letterSpacing: '-.03em', lineHeight: 1.1, marginBottom: 16 }}>
+            Bem-vindo<br />de volta.
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 15, lineHeight: 1.7 }}>
+            Continue sua jornada rumo à aprovação. Cada sessão conta.
+          </p>
+        </div>
 
-          <div className="mb-6">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Senha
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={form.password}
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
-              style={{ borderColor: errors.password ? '#840033' : '#d1d5db' } as React.CSSProperties}
-            />
-            {errors.password && <p className="text-xs mt-1" style={{ color: '#840033' }}>{errors.password}</p>}
-          </div>
-
-          {errors.general && (
-            <div className="mb-4 text-sm text-center py-2 rounded-lg" style={{ backgroundColor: '#fff0f3', color: '#840033' }}>
-              {errors.general}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl font-bold text-sm transition hover:opacity-90 disabled:opacity-60"
-            style={{ backgroundColor: '#531A61', color: '#FFFFFF' }}
-          >
-            {loading ? 'Entrando…' : 'Entrar'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Não tem conta?{' '}
-          <Link to="/cadastro" className="font-medium" style={{ color: '#531A61' }}>
-            Cadastre-se grátis
-          </Link>
+        <p style={{ color: 'rgba(255,255,255,.2)', fontSize: 12, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+          Para escolas públicas brasileiras
         </p>
+      </div>
+
+      {/* Right form panel */}
+      <div style={{ flex: 1, backgroundColor: '#faf3e3', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px' }}>
+        <div style={{ width: '100%', maxWidth: 400 }}>
+
+          {/* Mobile logo */}
+          <div className="lg:hidden" style={{ marginBottom: 40 }}>
+            <KuaaLogo size={38} />
+          </div>
+
+          <h1 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 24, color: '#1a0a1f', letterSpacing: '-.03em', marginBottom: 8 }}>
+            Entrar
+          </h1>
+          <p style={{ color: '#6b566f', fontSize: 14, marginBottom: 36 }}>
+            Não tem conta?{' '}
+            <Link to="/cadastro" style={{ color: '#531A61', fontWeight: 600, textDecoration: 'none' }}>
+              Cadastre-se grátis
+            </Link>
+          </p>
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div style={{ marginBottom: 20 }}>
+              <label htmlFor="email" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#3a2540', marginBottom: 6, letterSpacing: '.02em' }}>
+                E-mail
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={handleChange}
+                style={{ width: '100%', border: `1.5px solid ${errors.email ? '#840033' : 'rgba(26,10,31,.14)'}`, borderRadius: 12, padding: '12px 16px', fontSize: 15, backgroundColor: '#fff', outline: 'none', fontFamily: "'Questrial', Arial, sans-serif", boxSizing: 'border-box', color: '#1a0a1f' }}
+              />
+              {errors.email && <p style={{ color: '#840033', fontSize: 12, marginTop: 6 }}>{errors.email}</p>}
+            </div>
+
+            <div style={{ marginBottom: 28 }}>
+              <label htmlFor="password" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#3a2540', marginBottom: 6, letterSpacing: '.02em' }}>
+                Senha
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                value={form.password}
+                onChange={handleChange}
+                style={{ width: '100%', border: `1.5px solid ${errors.password ? '#840033' : 'rgba(26,10,31,.14)'}`, borderRadius: 12, padding: '12px 16px', fontSize: 15, backgroundColor: '#fff', outline: 'none', fontFamily: "'Questrial', Arial, sans-serif", boxSizing: 'border-box', color: '#1a0a1f' }}
+              />
+              {errors.password && <p style={{ color: '#840033', fontSize: 12, marginTop: 6 }}>{errors.password}</p>}
+            </div>
+
+            {errors.general && (
+              <div style={{ marginBottom: 20, backgroundColor: 'rgba(132,0,51,.08)', border: '1px solid rgba(132,0,51,.2)', borderRadius: 10, padding: '12px 16px', color: '#840033', fontSize: 14, textAlign: 'center' }}>
+                {errors.general}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{ width: '100%', padding: '15px', borderRadius: 999, fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 13, backgroundColor: loading ? 'rgba(83,26,97,.5)' : '#531A61', color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '-.02em', transition: 'opacity .15s' }}
+            >
+              {loading ? 'Entrando…' : 'Entrar'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )
