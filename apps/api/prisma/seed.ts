@@ -201,16 +201,13 @@ function xpReward(order: number): number {
 }
 
 async function main() {
-  console.log('🌱 Iniciando seed do banco Kuaa…')
+  const existing = await prisma.vestibular.count()
+  if (existing > 0) {
+    console.log(`🌱 Seed ignorado — banco já possui ${existing} vestibulares.`)
+    return
+  }
 
-  await prisma.userTopicProgress.deleteMany()
-  await prisma.userAnswer.deleteMany()
-  await prisma.quizSession.deleteMany()
-  await prisma.question.deleteMany()
-  await prisma.topic.deleteMany()
-  await prisma.subject.deleteMany()
-  await prisma.enrollment.deleteMany()
-  await prisma.vestibular.deleteMany()
+  console.log('🌱 Iniciando seed do banco Kuaa…')
 
   for (const vest of DATA) {
     const { subjects: subjectData, ...vestData } = vest
