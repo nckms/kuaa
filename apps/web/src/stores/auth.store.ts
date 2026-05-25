@@ -65,23 +65,50 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   hydrate: async () => {
-    const accessToken = localStorage.getItem('kuaa_token')
-    if (!accessToken) {
+    const storedRefresh = localStorage.getItem('kuaa_refresh_token')
+    let accessToken = localStorage.getItem('kuaa_token')
+
+    if (!accessToken && !storedRefresh) {
       set({ isHydrating: false })
       return
     }
 
-    try {
-      const [userRes, enrollRes] = await Promise.all([
+    async function fetchWithToken(token: string) {
+      return Promise.all([
         axios.get<User>(`${BASE_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: { Authorization: `Bearer ${token}` },
         }),
         axios.get<EnrollmentApiItem[]>(`${BASE_URL}/enrollments/me`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: { Authorization: `Bearer ${token}` },
         }),
       ])
+    }
 
-      const refreshToken = localStorage.getItem('kuaa_refresh_token')
+    try {
+      let userRes: Awaited<ReturnType<typeof axios.get<User>>>
+      let enrollRes: Awaited<ReturnType<typeof axios.get<EnrollmentApiItem[]>>>
+
+      try {
+        ;[userRes, enrollRes] = await fetchWithToken(accessToken ?? '')
+      } catch (firstErr) {
+        // access token expirado — tenta refresh antes de deslogar
+        if (
+          axios.isAxiosError(firstErr) &&
+          firstErr.response?.status === 401 &&
+          storedRefresh
+        ) {
+          const refreshRes = await axios.post<{ accessToken: string }>(
+            `${BASE_URL}/auth/refresh`,
+            { refreshToken: storedRefresh },
+          )
+          accessToken = refreshRes.data.accessToken
+          localStorage.setItem('kuaa_token', accessToken)
+          ;[userRes, enrollRes] = await fetchWithToken(accessToken)
+        } else {
+          throw firstErr
+        }
+      }
+
       const enrollments: StoredEnrollment[] = enrollRes.data.map((item) => ({
         id: item.enrollment.id,
         vestibularId: item.enrollment.vestibularId,
@@ -91,7 +118,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         user: userRes.data,
         accessToken,
-        refreshToken,
+        refreshToken: storedRefresh,
         isAuthenticated: true,
         enrollments,
         firstVestibularSlug: enrollments[0]?.vestibular.slug ?? null,
