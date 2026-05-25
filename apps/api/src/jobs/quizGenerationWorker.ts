@@ -2,6 +2,7 @@ import { Worker, Job } from 'bullmq'
 import { redis } from '../lib/redis'
 import { prisma } from '../lib/prisma'
 import { openai } from '../lib/openai'
+import { getBullMQConnection } from '../lib/bullmqConnection'
 import type { GenerationJobData, GeneratedQuestion } from '../modules/quiz/quiz.types'
 import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
@@ -102,11 +103,6 @@ ${data.recentErrorTopics.length > 0 ? `Tópicos com dificuldade recente (reforç
   return validated.questions as GeneratedQuestion[]
 }
 
-const redisConnection = {
-  host: (process.env.REDIS_URL ?? 'redis://localhost:6379').replace('redis://', '').split(':')[0],
-  port: parseInt((process.env.REDIS_URL ?? 'redis://localhost:6379').replace('redis://', '').split(':')[1] ?? '6379'),
-}
-
 const worker = new Worker<GenerationJobData>(
   'quiz-generation',
   async (job: Job<GenerationJobData>) => {
@@ -139,7 +135,7 @@ const worker = new Worker<GenerationJobData>(
     }
   },
   {
-    connection: redisConnection,
+    connection: getBullMQConnection(),
     concurrency: 3,
   },
 )

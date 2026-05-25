@@ -3,15 +3,11 @@ import { prisma } from '../../lib/prisma'
 import { redis } from '../../lib/redis'
 import { makeError } from '../../utils/errors'
 import { computeNewLevel } from '../../services/adaptive/DifficultyEngine'
+import { getBullMQConnection } from '../../lib/bullmqConnection'
 import type { GenerateInput, AnswerInput } from './quiz.schemas'
 import type { AnswerResult, SessionSummary, AchievementData, QuestionOption, ReviewQuestion } from './quiz.types'
 
-const redisConnection = {
-  host: (process.env.REDIS_URL ?? 'redis://localhost:6379').replace('redis://', '').split(':')[0],
-  port: parseInt((process.env.REDIS_URL ?? 'redis://localhost:6379').replace('redis://', '').split(':')[1] ?? '6379'),
-}
-
-const quizQueue = new Queue('quiz-generation', { connection: redisConnection })
+const quizQueue = new Queue('quiz-generation', { connection: getBullMQConnection() })
 
 class QuizService {
   async generate(userId: string, input: GenerateInput): Promise<{ jobId: string; sessionId: string }> {
