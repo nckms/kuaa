@@ -68,7 +68,7 @@ export default function QuizPage() {
 
   if (isLoading || !session) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif' }}>
         <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 16 }}>Carregando sessão...</p>
       </div>
     )
@@ -76,9 +76,9 @@ export default function QuizPage() {
 
   if (isError) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, fontFamily: 'Inter, Arial, sans-serif' }}>
         <p style={{ color: '#fca5a5', fontSize: 16 }}>Erro ao carregar a sessão.</p>
-        <button onClick={() => navigate(-1)} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontFamily: 'Arial, sans-serif' }}>Voltar</button>
+        <button onClick={() => navigate(-1)} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, Arial, sans-serif' }}>Voltar</button>
       </div>
     )
   }
@@ -125,7 +125,7 @@ export default function QuizPage() {
   const isAlreadyAnswered = !!prevResult && !isConfirmed
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Arial, sans-serif', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', flexDirection: 'column' }}>
 
       {/* Header */}
       <div style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'rgba(26,8,38,.95)', borderBottom: '1px solid rgba(255,255,255,.08)', padding: '14px 24px' }}>
@@ -143,12 +143,12 @@ export default function QuizPage() {
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <button
               onClick={() => setShowFinishModal(true)}
-              style={{ background: 'none', border: '1px solid rgba(255,255,255,.25)', color: 'rgba(255,255,255,.6)', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Arial, sans-serif' }}
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,.25)', color: 'rgba(255,255,255,.6)', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Inter, Arial, sans-serif' }}
             >Pausar</button>
             <button
               onClick={() => setShowFinishModal(true)}
               disabled={finishMutation.isPending}
-              style={{ backgroundColor: '#840033', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Arial, sans-serif', fontWeight: 600 }}
+              style={{ backgroundColor: '#840033', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Inter, Arial, sans-serif', fontWeight: 600 }}
             >{finishMutation.isPending ? 'Finalizando...' : 'Finalizar'}</button>
           </div>
         </div>
@@ -169,7 +169,7 @@ export default function QuizPage() {
                 if (next.has(currentQ.id)) next.delete(currentQ.id); else next.add(currentQ.id)
                 return next
               })}
-              style={{ background: 'none', border: '1px solid rgba(255,255,255,.2)', color: markedForReview.has(currentQ.id) ? '#FFDC5C' : 'rgba(255,255,255,.6)', padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'Arial, sans-serif' }}
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,.2)', color: markedForReview.has(currentQ.id) ? '#FFDC5C' : 'rgba(255,255,255,.6)', padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'Inter, Arial, sans-serif' }}
             >
               {markedForReview.has(currentQ.id) ? 'Marcada' : 'Marcar p/ revisão'}
             </button>
@@ -213,7 +213,7 @@ export default function QuizPage() {
             <button
               onClick={handleConfirm}
               disabled={answerMutation.isPending}
-              style={{ width: '100%', padding: 15, marginTop: 20, borderRadius: 12, backgroundColor: '#840033', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: 'Arial, sans-serif' }}
+              style={{ width: '100%', padding: 15, marginTop: 20, borderRadius: 12, backgroundColor: '#840033', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: 'Inter, Arial, sans-serif' }}
             >
               {answerMutation.isPending ? 'Verificando...' : 'Confirmar resposta'}
             </button>
@@ -241,7 +241,7 @@ export default function QuizPage() {
                   <button
                     onClick={handleNext}
                     disabled={finishMutation.isPending}
-                    style={{ backgroundColor: currentIndex < total - 1 ? '#531A61' : '#840033', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Arial, sans-serif' }}
+                    style={{ backgroundColor: currentIndex < total - 1 ? '#531A61' : '#840033', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}
                   >
                     {finishMutation.isPending ? 'Finalizando...' : currentIndex < total - 1 ? 'Próxima questão' : 'Ver resultado'}
                   </button>
@@ -288,7 +288,7 @@ export default function QuizPage() {
                 if (ans) bg = ans.isCorrect ? '#531A61' : '#840033'
                 return (
                   <button key={q.id} onClick={() => goToQuestion(i)}
-                    style={{ width: 32, height: 32, borderRadius: '50%', border: isCurrent ? '2px solid #FFDC5C' : isMarked ? '2px solid rgba(255,220,92,.4)' : '2px solid transparent', backgroundColor: bg, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'Arial, sans-serif' }}
+                    style={{ width: 32, height: 32, borderRadius: '50%', border: isCurrent ? '2px solid #FFDC5C' : isMarked ? '2px solid rgba(255,220,92,.4)' : '2px solid transparent', backgroundColor: bg, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, Arial, sans-serif' }}
                   >{i + 1}</button>
                 )
               })}
@@ -320,7 +320,7 @@ export default function QuizPage() {
             <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
               <motion.div
                 initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
-                style={{ backgroundColor: '#fff', borderRadius: 24, padding: 28, maxWidth: 380, width: '100%', fontFamily: 'Arial, sans-serif' }}
+                style={{ backgroundColor: '#fff', borderRadius: 24, padding: 28, maxWidth: 380, width: '100%', fontFamily: 'Inter, Arial, sans-serif' }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <h3 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 22, color: '#1a1a1a', marginBottom: 8 }}>Finalizar sessão?</h3>
@@ -329,10 +329,10 @@ export default function QuizPage() {
                   {answeredCount < total && ` As ${total - answeredCount} restantes serão puladas.`}
                 </p>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <button onClick={() => setShowFinishModal(false)} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1.5px solid #e5e7eb', backgroundColor: 'transparent', color: '#6b7280', cursor: 'pointer', fontSize: 14, fontFamily: 'Arial, sans-serif' }}>
+                  <button onClick={() => setShowFinishModal(false)} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1.5px solid #e5e7eb', backgroundColor: 'transparent', color: '#6b7280', cursor: 'pointer', fontSize: 14, fontFamily: 'Inter, Arial, sans-serif' }}>
                     Continuar
                   </button>
-                  <button onClick={handleFinish} disabled={finishMutation.isPending} style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', backgroundColor: '#840033', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Arial, sans-serif' }}>
+                  <button onClick={handleFinish} disabled={finishMutation.isPending} style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', backgroundColor: '#840033', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}>
                     {finishMutation.isPending ? 'Finalizando...' : 'Finalizar'}
                   </button>
                 </div>

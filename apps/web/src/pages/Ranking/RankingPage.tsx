@@ -34,13 +34,13 @@ export default function RankingPage() {
 
   return (
     <AppLayout>
-      <div style={{ padding: '32px 24px 80px', fontFamily: 'Arial, sans-serif', maxWidth: 680, margin: '0 auto' }}>
+      <div style={{ padding: '32px 24px 80px', fontFamily: 'Inter, Arial, sans-serif', maxWidth: 680, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
           <h1 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 28, color: '#531A61' }}>🏆 Ranking</h1>
           <div style={{ display: 'flex', gap: 6 }}>
             {(['semanal', 'geral'] as const).map((t) => (
               <button key={t} onClick={() => setTab(t)}
-                style={{ padding: '7px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'Arial, sans-serif', backgroundColor: tab === t ? '#531A61' : 'transparent', color: tab === t ? '#fff' : '#9ca3af' }}>
+                style={{ padding: '7px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif', backgroundColor: tab === t ? '#531A61' : 'transparent', color: tab === t ? '#fff' : '#9ca3af' }}>
                 {t === 'semanal' ? 'Semanal' : 'Geral'}
               </button>
             ))}
@@ -48,7 +48,7 @@ export default function RankingPage() {
         </div>
 
         {/* Pódio */}
-        <div style={{ backgroundColor: '#531A61', borderRadius: 24, padding: 28, marginBottom: 20 }}>
+        <div style={{ background: 'linear-gradient(135deg, #2a0d33 0%, #531A61 100%)', borderRadius: 24, padding: 28, marginBottom: 20, boxShadow: 'var(--shadow-md)' }}>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 20 }}>
             {podiumOrder.map((entry) => {
               if (!entry) return null
@@ -72,7 +72,7 @@ export default function RankingPage() {
           {rest.map((entry) => {
             const isMe = user?.name.split(' ')[0] === entry.name.split(' ')[0]
             return (
-              <div key={entry.pos} style={{ backgroundColor: isMe ? 'rgba(83,26,97,.08)' : '#fff', borderRadius: 16, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 14, border: isMe ? '1.5px solid rgba(83,26,97,.2)' : '1.5px solid transparent' }}>
+              <div key={entry.pos} style={{ backgroundColor: isMe ? 'rgba(83,26,97,.07)' : 'var(--surface)', borderRadius: 16, padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 14, border: isMe ? '1.5px solid rgba(179,71,217,.25)' : '1.5px solid var(--line-soft)', boxShadow: 'var(--shadow-xs)' }}>
                 <span style={{ width: 28, fontSize: 14, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>{entry.pos}</span>
                 <Avatar initial={entry.initial} size={36} bg="#531A61" />
                 <div style={{ flex: 1 }}>

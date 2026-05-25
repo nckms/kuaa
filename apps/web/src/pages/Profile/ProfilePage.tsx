@@ -76,7 +76,7 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
-      <div style={{ padding: '32px 24px 80px', fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ padding: '32px 24px 80px', fontFamily: 'Inter, Arial, sans-serif', background: 'var(--bg)' }}>
 
         {/* Hero card amarelo */}
         <div style={{ backgroundColor: '#FFDC5C', borderRadius: 24, padding: '28px 32px', marginBottom: 20 }}>
@@ -134,7 +134,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Info do usuário */}
-        <div style={{ backgroundColor: '#fff', borderRadius: 24, padding: 28 }}>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
             <h2 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: '#1a1a1a' }}>Informações</h2>
             {!isEditing && (

@@ -8,12 +8,12 @@ interface Props {
   rightSidebar?: React.ReactNode
 }
 
-const WingGlyph = ({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) => (
-  <svg width={size} height={size * 0.857} viewBox="0 0 28 24" fill="none" aria-hidden="true">
-    <path d="M2 20 C6 12 14 8 26 4 C20 10 18 16 20 22 C14 18 8 18 2 20Z" fill={color} opacity="0.9"/>
-    <path d="M2 20 C8 16 14 14 20 22 C14 22 8 22 2 20Z" fill={color} opacity="0.5"/>
-  </svg>
-)
+const navItems = [
+  { label: 'Trilha',     icon: 'bi-map',          match: '/trilha'    },
+  { label: 'Dashboard',  icon: 'bi-house-fill',    match: '/dashboard' },
+  { label: 'Ranking',    icon: 'bi-trophy-fill',   match: '/ranking'   },
+  { label: 'Perfil',     icon: 'bi-person-fill',   match: '/perfil'    },
+]
 
 export default function AppLayout({ children, rightSidebar }: Props) {
   const { pathname } = useLocation()
@@ -21,7 +21,6 @@ export default function AppLayout({ children, rightSidebar }: Props) {
   const { user, logout, firstVestibularSlug } = useAuthStore()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
-  // Close drawer on navigation
   useEffect(() => { setDrawerOpen(false) }, [pathname])
 
   async function handleLogout() {
@@ -31,28 +30,48 @@ export default function AppLayout({ children, rightSidebar }: Props) {
 
   const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/onboarding'
 
-  const navItems = [
-    { label: 'Trilha', icon: '📚', href: trailHref, match: '/trilha' },
-    { label: 'Dashboard', icon: '📊', href: '/dashboard', match: '/dashboard' },
-    { label: 'Ranking', icon: '🏆', href: '/ranking', match: '/ranking' },
-    { label: 'Perfil', icon: '👤', href: '/perfil', match: '/perfil' },
-  ]
+  const resolvedNav = navItems.map((item) => ({
+    ...item,
+    href: item.match === '/trilha' ? trailHref : item.match,
+  }))
 
   const SidebarContent = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px 16px' }}>
-      {/* Logo */}
-      <Link to={trailHref} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', marginBottom: 40 }}>
-        <div style={{ width: 36, height: 36, backgroundColor: '#FFDC5C', borderRadius: 10, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-          <WingGlyph size={20} color="#531A61" />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px 14px', gap: 2 }}>
+
+      {/* Brand */}
+      <Link
+        to={trailHref}
+        style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', padding: '6px 10px', marginBottom: 22 }}
+      >
+        <div style={{
+          width: 34, height: 34,
+          background: 'linear-gradient(135deg, #b347d9, #531A61)',
+          borderRadius: 10, display: 'grid', placeItems: 'center', flexShrink: 0,
+          boxShadow: '0 0 0 1px rgba(179,71,217,.4), 0 0 16px -4px rgba(179,71,217,.5)',
+        }}>
+          <svg width="18" height="16" viewBox="0 0 28 24" fill="none" aria-hidden="true">
+            <path d="M2 20 C6 12 14 8 26 4 C20 10 18 16 20 22 C14 18 8 18 2 20Z" fill="#FFDC5C" opacity="0.95"/>
+            <path d="M2 20 C8 16 14 14 20 22 C14 22 8 22 2 20Z" fill="#FFDC5C" opacity="0.55"/>
+          </svg>
         </div>
-        <span style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 18, color: '#fff', letterSpacing: '-0.04em' }}>
-          kuaa<span style={{ color: '#FFDC5C' }}>.</span>
-        </span>
+        <div>
+          <span style={{ fontFamily: "'Unbounded', cursive", fontWeight: 700, fontSize: 17, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
+            kuaa<span style={{ color: '#FFDC5C' }}>.</span>
+          </span>
+          <span style={{ display: 'block', fontSize: 9, color: 'rgba(255,255,255,.4)', letterSpacing: '.18em', textTransform: 'uppercase', fontFamily: 'Inter, Arial, sans-serif', marginTop: 2 }}>
+            DS v2
+          </span>
+        </div>
       </Link>
 
-      {/* Nav */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-        {navItems.map((item) => {
+      {/* Nav section label */}
+      <div style={{ fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', padding: '0 10px 6px', fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}>
+        Navegação
+      </div>
+
+      {/* Nav items */}
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+        {resolvedNav.map((item) => {
           const isActive = pathname.startsWith(item.match)
           return (
             <Link
@@ -60,29 +79,79 @@ export default function AppLayout({ children, rightSidebar }: Props) {
               to={item.href}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
-                padding: '11px 14px', borderRadius: 12,
-                backgroundColor: isActive ? 'rgba(255,255,255,.15)' : 'transparent',
-                color: isActive ? '#fff' : 'rgba(255,255,255,.6)',
-                textDecoration: 'none', fontSize: 14, fontFamily: 'Arial, sans-serif',
-                fontWeight: isActive ? 600 : 400, transition: 'background-color .15s',
+                padding: '11px 14px', borderRadius: 14,
+                background: isActive
+                  ? 'linear-gradient(135deg, #b347d9 0%, rgba(179,71,217,.55) 100%)'
+                  : 'transparent',
+                boxShadow: isActive
+                  ? '0 6px 18px -6px rgba(179,71,217,.55)'
+                  : 'none',
+                color: isActive ? '#fff' : 'rgba(255,255,255,.58)',
+                textDecoration: 'none',
+                fontSize: 14,
+                fontFamily: 'Inter, Arial, sans-serif',
+                fontWeight: isActive ? 600 : 500,
+                transition: 'all .15s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.06)'
+                  ;(e.currentTarget as HTMLElement).style.color = '#fff'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLElement).style.background = 'transparent'
+                  ;(e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.58)'
+                }
               }}
             >
-              <span style={{ fontSize: 18 }}>{item.icon}</span>
+              <i className={`bi ${item.icon}`} style={{ fontSize: 18, width: 20, textAlign: 'center' }} />
               <span>{item.label}</span>
             </Link>
           )
         })}
       </nav>
 
-      {/* Footer user */}
+      {/* Footer */}
       {user && (
-        <div style={{ borderTop: '1px solid rgba(255,255,255,.1)', paddingTop: 16 }}>
-          <p style={{ color: '#fff', fontSize: 14, fontWeight: 700, marginBottom: 2, fontFamily: 'Arial, sans-serif' }}>{user.name}</p>
-          <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 12, marginBottom: 12, fontFamily: 'Arial, sans-serif' }}>{user.email}</p>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', paddingTop: 16, marginTop: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: '50%',
+              background: 'conic-gradient(from 180deg, #b347d9, #FFDC5C, #840033, #b347d9)',
+              padding: 2, flexShrink: 0,
+            }}>
+              <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#531A61', display: 'grid', placeItems: 'center' }}>
+                <span style={{ fontFamily: "'Unbounded', cursive", fontWeight: 700, fontSize: 12, color: '#fff' }}>
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            </div>
+            <div style={{ overflow: 'hidden', flex: 1 }}>
+              <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, margin: 0, fontFamily: 'Inter, Arial, sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</p>
+              <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, margin: 0, fontFamily: 'Inter, Arial, sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</p>
+            </div>
+          </div>
           <button
             onClick={handleLogout}
-            style={{ background: 'none', border: '1px solid rgba(255,255,255,.25)', color: 'rgba(255,255,255,.7)', fontSize: 13, borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontFamily: 'Arial, sans-serif', width: '100%' }}
+            style={{
+              background: 'transparent', border: '1px solid rgba(255,255,255,.14)',
+              color: 'rgba(255,255,255,.5)', fontSize: 12, borderRadius: 999,
+              padding: '8px 16px', cursor: 'pointer',
+              fontFamily: 'Inter, Arial, sans-serif', width: '100%',
+              transition: 'all .15s',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,59,140,.5)'
+              ;(e.currentTarget as HTMLButtonElement).style.color = '#ff3b8c'
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,.14)'
+              ;(e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,.5)'
+            }}
           >
+            <i className="bi bi-box-arrow-right" style={{ marginRight: 6 }} />
             Sair
           </button>
         </div>
@@ -91,29 +160,37 @@ export default function AppLayout({ children, rightSidebar }: Props) {
   )
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: '#faf3e3' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--bg)' }}>
 
-      {/* Sidebar esquerda — desktop */}
+      {/* Sidebar — desktop */}
       <aside
         className="hidden lg:block"
-        style={{ width: 240, backgroundColor: '#531A61', flexShrink: 0, overflowY: 'auto' }}
+        style={{
+          width: 240, flexShrink: 0, overflowY: 'auto',
+          background: 'var(--dark-deeper, #1a0826)',
+          borderRight: '1px solid rgba(255,255,255,.04)',
+        }}
       >
         <SidebarContent />
       </aside>
 
-      {/* Mobile overlay + drawer */}
+      {/* Mobile drawer overlay */}
       <AnimatePresence>
         {drawerOpen && (
           <>
             <motion.div
-              style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(42,13,51,.6)', zIndex: 40 }}
+              style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(26,8,38,.65)', zIndex: 40, backdropFilter: 'blur(4px)' }}
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setDrawerOpen(false)}
             />
             <motion.aside
-              style={{ position: 'fixed', left: 0, top: 0, bottom: 0, width: 260, backgroundColor: '#531A61', zIndex: 50, overflowY: 'auto' }}
+              style={{
+                position: 'fixed', left: 0, top: 0, bottom: 0, width: 260,
+                background: '#1a0826', zIndex: 50, overflowY: 'auto',
+                borderRight: '1px solid rgba(255,255,255,.06)',
+              }}
               initial={{ x: -260 }} animate={{ x: 0 }} exit={{ x: -260 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 220 }}
             >
               <SidebarContent />
             </motion.aside>
@@ -122,44 +199,84 @@ export default function AppLayout({ children, rightSidebar }: Props) {
       </AnimatePresence>
 
       {/* Mobile top bar */}
-      <div className="lg:hidden" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 56, backgroundColor: '#531A61', zIndex: 30, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px' }}>
-        <button onClick={() => setDrawerOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 22, lineHeight: 1 }}>☰</button>
-        <span style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 16, color: '#fff', letterSpacing: '-0.04em' }}>kuaa<span style={{ color: '#FFDC5C' }}>.</span></span>
-        <div style={{ width: 32 }} />
+      <div
+        className="lg:hidden"
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, height: 56,
+          background: '#1a0826', zIndex: 30,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
+          borderBottom: '1px solid rgba(255,255,255,.06)',
+        }}
+      >
+        <button
+          onClick={() => setDrawerOpen(true)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.8)', fontSize: 20, lineHeight: 1, padding: 4 }}
+        >
+          <i className="bi bi-list" />
+        </button>
+        <span style={{ fontFamily: "'Unbounded', cursive", fontWeight: 700, fontSize: 15, color: '#fff', letterSpacing: '-0.04em' }}>
+          kuaa<span style={{ color: '#FFDC5C' }}>.</span>
+        </span>
+        <div style={{ width: 28 }} />
       </div>
 
       {/* Main content */}
-      <main style={{ flex: 1, overflowY: 'auto', paddingTop: 0 }} className="lg:pt-0 pt-14">
+      <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }} className="lg:pt-0 pt-14">
         {children}
       </main>
 
-      {/* Sidebar direita — desktop */}
+      {/* Right sidebar — desktop */}
       {rightSidebar && (
         <aside
           className="hidden lg:block"
-          style={{ width: 280, backgroundColor: '#fff', borderLeft: '1px solid #f3f4f6', flexShrink: 0, overflowY: 'auto' }}
+          style={{
+            width: 300, flexShrink: 0, overflowY: 'auto',
+            background: 'var(--surface)',
+            borderLeft: '1px solid var(--line-soft)',
+          }}
         >
           {rightSidebar}
         </aside>
       )}
 
-      {/* BottomNav — mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 lg:hidden" style={{ backgroundColor: '#fff', borderTop: '1px solid #f3f4f6', zIndex: 20 }}>
-        <div style={{ display: 'flex' }}>
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.match)
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0 8px', gap: 2, textDecoration: 'none', color: isActive ? '#531A61' : '#9ca3af', fontSize: 11, fontFamily: 'Arial, sans-serif', fontWeight: isActive ? 600 : 400 }}
-              >
-                <span style={{ fontSize: 20 }}>{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-        </div>
+      {/* Bottom nav — mobile, floating pill */}
+      <nav
+        className="fixed lg:hidden"
+        style={{
+          bottom: 14, left: 14, right: 14,
+          background: '#1a0826',
+          borderRadius: 24,
+          boxShadow: '0 10px 15px -3px rgba(83,26,97,.12), 0 30px 50px -12px rgba(83,26,97,.22)',
+          zIndex: 20,
+          display: 'flex',
+          padding: '8px 6px',
+        }}
+      >
+        {resolvedNav.map((item) => {
+          const isActive = pathname.startsWith(item.match)
+          return (
+            <Link
+              key={item.href}
+              to={item.href}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', padding: '6px 8px', gap: 3,
+                textDecoration: 'none', borderRadius: 16,
+                background: isActive
+                  ? 'linear-gradient(135deg, #b347d9, rgba(179,71,217,.65))'
+                  : 'transparent',
+                color: isActive ? '#fff' : 'rgba(255,255,255,.48)',
+                fontSize: 10.5,
+                fontFamily: 'Inter, Arial, sans-serif',
+                fontWeight: isActive ? 600 : 500,
+                transition: 'all .15s',
+              }}
+            >
+              <i className={`bi ${item.icon}`} style={{ fontSize: 20 }} />
+              <span>{item.label}</span>
+            </Link>
+          )
+        })}
       </nav>
     </div>
   )

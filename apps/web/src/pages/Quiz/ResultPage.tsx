@@ -46,10 +46,10 @@ export default function ResultPage() {
 
   if (!summary) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
           <p style={{ color: 'rgba(255,255,255,.6)', marginBottom: 16 }}>Resultado não encontrado.</p>
-          <button onClick={() => navigate('/trilha')} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontFamily: 'Arial, sans-serif' }}>Voltar à trilha</button>
+          <button onClick={() => navigate('/trilha')} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, Arial, sans-serif' }}>Voltar à trilha</button>
         </div>
       </div>
     )
@@ -58,7 +58,7 @@ export default function ResultPage() {
   const { topicName, vestibularSlug, correct, wrong, isPerfect, accuracy, newMasteryLevel, newAchievements, levelUp, newLevel, questions } = summary
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Arial, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         style={{ maxWidth: 520, width: '90%', textAlign: 'center', padding: '60px 24px' }}
@@ -129,13 +129,13 @@ export default function ResultPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32 }}>
             <button
               onClick={() => navigate(`/revisao/${sessionId}`, { state: { questions, topicName, vestibularSlug, correct, total: correct + wrong + summary.skipped, accuracy } })}
-              style={{ width: '100%', padding: 14, borderRadius: 12, backgroundColor: 'transparent', border: '1.5px solid rgba(255,255,255,.25)', color: '#fff', cursor: 'pointer', fontSize: 15, fontFamily: 'Arial, sans-serif' }}
+              style={{ width: '100%', padding: 14, borderRadius: 12, backgroundColor: 'transparent', border: '1.5px solid rgba(255,255,255,.25)', color: '#fff', cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, Arial, sans-serif' }}
             >
               Revisar respostas
             </button>
             <button
               onClick={() => navigate(`/trilha/${vestibularSlug}`)}
-              style={{ width: '100%', padding: 14, borderRadius: 12, backgroundColor: '#840033', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 15, fontWeight: 600, fontFamily: 'Arial, sans-serif' }}
+              style={{ width: '100%', padding: 14, borderRadius: 12, backgroundColor: '#840033', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 15, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}
             >
               Voltar à trilha
             </button>

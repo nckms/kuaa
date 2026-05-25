@@ -8,31 +8,35 @@ import { useTrail } from '../../hooks/useTrail'
 function BarChart({ days }: { days: number[] }) {
   const max = Math.max(...days, 1)
   const DAY_LABELS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM']
-  const todayIdx = (new Date().getDay() + 6) % 7 // 0=SEG
+  const todayIdx = (new Date().getDay() + 6) % 7
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 80 }}>
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 90 }}>
       {days.map((val, i) => {
-        const heightPct = max > 0 ? (val / max) * 100 : 8
+        const heightPct = max > 0 ? (val / max) * 100 : 6
         const isToday = i === todayIdx
         const isHighest = val === max && val > 0
 
         return (
           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%', justifyContent: 'flex-end' }}>
             {isHighest && val > 0 && (
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#531A61', fontFamily: 'Arial, sans-serif' }}>{val}h</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#b347d9', fontFamily: 'Inter, Arial, sans-serif' }}>{val}h</span>
             )}
             <div
               style={{
-                width: '100%', maxWidth: 32,
-                height: `${Math.max(heightPct, 8)}%`,
-                borderRadius: 6,
-                background: isHighest ? 'linear-gradient(180deg, #531A61, #840033)' : '#f3eaf7',
-                border: isToday ? '2px solid #FFDC5C' : '2px solid transparent',
+                width: '100%', maxWidth: 28,
+                height: `${Math.max(heightPct, 6)}%`,
+                borderRadius: 8,
+                background: isHighest
+                  ? 'linear-gradient(180deg, #b347d9, #531A61)'
+                  : 'var(--roxo-light, #f3eaf7)',
+                boxShadow: isHighest ? '0 0 0 1px rgba(179,71,217,.3), 0 4px 16px -4px rgba(179,71,217,.5)' : 'none',
+                outline: isToday ? '2px solid #FFDC5C' : 'none',
+                outlineOffset: 1,
                 transition: 'height 0.4s ease',
               }}
             />
-            <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'Arial, sans-serif', letterSpacing: '.04em' }}>{DAY_LABELS[i]}</span>
+            <span style={{ fontSize: 10, color: 'var(--muted, #6b7280)', fontFamily: 'Inter, Arial, sans-serif', letterSpacing: '.04em' }}>{DAY_LABELS[i]}</span>
           </div>
         )
       })}
@@ -42,13 +46,13 @@ function BarChart({ days }: { days: number[] }) {
 
 function AgendaCard({ borderColor, label, sublabel, time, badge }: { borderColor: string; label: string; sublabel: string; time: string; badge?: string }) {
   return (
-    <div style={{ borderLeft: `3px solid ${borderColor}`, backgroundColor: '#fff', borderRadius: '0 12px 12px 0', padding: '14px 16px', minWidth: 200 }}>
-      <p style={{ fontSize: 11, color: '#9ca3af', fontFamily: 'Arial, sans-serif', marginBottom: 4 }}>{time}</p>
-      <p style={{ fontSize: 15, fontWeight: 600, color: '#1a1a1a', fontFamily: "'Questrial', sans-serif", marginBottom: 4 }}>{label}</p>
+    <div style={{ borderLeft: `3px solid ${borderColor}`, backgroundColor: 'var(--surface, #fff)', borderRadius: '0 16px 16px 0', padding: '14px 18px', minWidth: 210, boxShadow: 'var(--shadow-xs)' }}>
+      <p style={{ fontSize: 11, color: 'var(--muted, #6b7280)', fontFamily: 'Inter, Arial, sans-serif', marginBottom: 4, fontWeight: 500 }}>{time}</p>
+      <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text, #1a1a1a)', fontFamily: "'Questrial', sans-serif", marginBottom: 6 }}>{label}</p>
       {badge ? (
-        <span style={{ display: 'inline-block', backgroundColor: '#840033', color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 999, fontFamily: 'Arial, sans-serif', letterSpacing: '.04em', textTransform: 'uppercase' }}>{badge}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: '#840033', color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 999, fontFamily: 'Inter, Arial, sans-serif', letterSpacing: '.06em', textTransform: 'uppercase' }}>{badge}</span>
       ) : (
-        <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: 'Arial, sans-serif' }}>{sublabel}</span>
+        <span style={{ fontSize: 12, color: 'var(--muted, #6b7280)', fontFamily: 'Inter, Arial, sans-serif' }}>{sublabel}</span>
       )}
     </div>
   )
@@ -86,13 +90,13 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div style={{ padding: '32px 28px 80px', minHeight: '100%', fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ padding: '32px 28px 80px', minHeight: '100%', fontFamily: 'Inter, Arial, sans-serif', background: 'var(--bg)' }}>
 
         {/* ROW 1 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, marginBottom: 20 }} className="dashboard-grid">
 
           {/* Hero card */}
-          <div style={{ backgroundColor: '#fff', borderRadius: 24, padding: 28, boxShadow: '0 1px 0 rgba(26,10,31,.04), 0 6px 16px -10px rgba(26,10,31,.1)' }}>
+          <div style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
             <p style={{ fontSize: 11, color: '#9ca3af', letterSpacing: '.1em', marginBottom: 8 }}>{dayName}, {dateStr}</p>
             <h1 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 26, color: '#1a1a1a', marginBottom: 6, lineHeight: 1.2 }}>
               {user ? `Bom dia, ${user.name.split(' ')[0]}.` : 'Bom dia!'}
@@ -122,9 +126,10 @@ export default function DashboardPage() {
 
             <Link
               to={nextTopic ? `/quiz/${nextTopic.id}` : trailHref}
-              style={{ display: 'inline-block', marginTop: 20, backgroundColor: '#840033', color: '#fff', padding: '11px 22px', borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: 'none', fontFamily: 'Arial, sans-serif' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20, backgroundColor: '#840033', color: '#fff', padding: '12px 24px', borderRadius: 999, fontSize: 14, fontWeight: 600, textDecoration: 'none', fontFamily: 'Inter, Arial, sans-serif', boxShadow: '0 4px 12px -3px rgba(132,0,51,.4)' }}
             >
-              Continuar de onde parei →
+              <i className="bi bi-arrow-right" />
+              Continuar de onde parei
             </Link>
           </div>
 
@@ -154,7 +159,7 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, marginBottom: 20 }} className="dashboard-grid">
 
           {/* Gráfico semanal */}
-          <div style={{ backgroundColor: '#fff', borderRadius: 24, padding: 28, boxShadow: '0 1px 0 rgba(26,10,31,.04), 0 6px 16px -10px rgba(26,10,31,.1)' }}>
+          <div style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <div>
                 <p style={{ fontSize: 11, color: '#9ca3af', letterSpacing: '.1em', textTransform: 'uppercase' }}>FOCO · SEMANA</p>
@@ -163,9 +168,11 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', gap: 6 }}>
                 {(['7d', 'mes', 'tri'] as const).map((p) => (
                   <button key={p} onClick={() => setChartPeriod(p)}
-                    style={{ padding: '5px 12px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'Arial, sans-serif', letterSpacing: '.06em',
-                      backgroundColor: chartPeriod === p ? '#531A61' : 'transparent',
-                      color: chartPeriod === p ? '#fff' : '#9ca3af',
+                    style={{ padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif', letterSpacing: '.06em',
+                      backgroundColor: chartPeriod === p ? '#1a0826' : 'transparent',
+                      color: chartPeriod === p ? '#fff' : 'var(--muted)',
+                      boxShadow: chartPeriod === p ? '0 2px 8px -2px rgba(26,8,38,.25)' : 'none',
+                      transition: 'all .15s',
                     }}>
                     {p === '7d' ? '7 DIAS' : p === 'mes' ? 'MÊS' : 'TRIM.'}
                   </button>
@@ -231,7 +238,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ROW 3 — Agenda */}
-        <div style={{ backgroundColor: '#fff', borderRadius: 24, padding: 28, boxShadow: '0 1px 0 rgba(26,10,31,.04), 0 6px 16px -10px rgba(26,10,31,.1)' }}>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 18, color: '#1a1a1a' }}>Sua agenda · hoje</p>
             <p style={{ fontSize: 13, color: '#9ca3af' }}>📅 {now.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</p>

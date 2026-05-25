@@ -19,11 +19,11 @@ export default function SubjectSection({ subject, activeTopicId, onTopicClick }:
       {/* Header matéria */}
       <div style={{ padding: '24px 24px 16px', maxWidth: 480, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-          <span style={{ fontSize: 40 }}>{getIcon(subject.iconSlug)}</span>
+          <span style={{ fontSize: 36 }}>{getIcon(subject.iconSlug)}</span>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <h3 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: '#1a1a1a' }}>{subject.name}</h3>
-              <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: 'Arial, sans-serif' }}>{completedCount}/{totalCount} tópicos</span>
+              <h3 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: 'var(--text)' }}>{subject.name}</h3>
+              <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'Inter, Arial, sans-serif', fontWeight: 500 }}>{completedCount}/{totalCount}</span>
             </div>
             <ProgressBar value={progressPercent} color="vinho" size="sm" />
           </div>

@@ -22,7 +22,7 @@ export default function ReviewPage() {
       <AppLayout>
         <div style={{ padding: 32, textAlign: 'center' }}>
           <p style={{ color: '#9ca3af' }}>Dados da revisão não encontrados.</p>
-          <button onClick={() => navigate(-1)} style={{ marginTop: 16, backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 10, cursor: 'pointer', fontFamily: 'Arial, sans-serif' }}>Voltar</button>
+          <button onClick={() => navigate(-1)} style={{ marginTop: 16, backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, Arial, sans-serif' }}>Voltar</button>
         </div>
       </AppLayout>
     )
@@ -32,7 +32,7 @@ export default function ReviewPage() {
 
   return (
     <AppLayout>
-      <div style={{ fontFamily: 'Arial, sans-serif', paddingBottom: 80 }}>
+      <div style={{ fontFamily: 'Inter, Arial, sans-serif', paddingBottom: 80 }}>
 
         {/* Header */}
         <div style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#fff', borderBottom: '1px solid #f3f4f6', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -91,7 +91,7 @@ export default function ReviewPage() {
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTop: '1px solid #f3f4f6', padding: '14px 24px', display: 'flex', justifyContent: 'flex-end', zIndex: 10 }}>
           <button
             onClick={() => navigate(`/trilha/${vestibularSlug}`)}
-            style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontWeight: 600, fontFamily: 'Arial, sans-serif' }}
+            style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}
           >
             Voltar à trilha
           </button>
