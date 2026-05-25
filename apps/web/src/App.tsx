@@ -12,7 +12,10 @@ import ProtectedRoute from './components/ProtectedRoute'
 import DashboardPage from './pages/Dashboard/DashboardPage'
 import ProfilePage from './pages/Profile/ProfilePage'
 import RankingPage from './pages/Ranking/RankingPage'
+import QuizLoadingPage from './pages/Quiz/QuizLoadingPage'
 import QuizPage from './pages/Quiz/QuizPage'
+import ResultPage from './pages/Quiz/ResultPage'
+import ReviewPage from './pages/Quiz/ReviewPage'
 
 function TrailIndex() {
   const navigate = useNavigate()
@@ -30,17 +33,14 @@ function TrailIndex() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#faf3e3' }}>
-      <p style={{ color: '#9ca3af', fontSize: 14 }}>Carregando trilha…</p>
+      <p style={{ color: '#9ca3af', fontSize: 14 }}>Carregando trilha...</p>
     </div>
   )
 }
 
 function AppRoutes() {
   const hydrate = useAuthStore((state) => state.hydrate)
-
-  useEffect(() => {
-    hydrate()
-  }, [hydrate])
+  useEffect(() => { hydrate() }, [hydrate])
 
   return (
     <Routes>
@@ -53,7 +53,10 @@ function AppRoutes() {
         <Route path="/trilha" element={<TrailIndex />} />
         <Route path="/trilha/:vestibularSlug" element={<TrailPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/quiz/:topicId" element={<QuizPage />} />
+        <Route path="/quiz/loading/:sessionId" element={<QuizLoadingPage />} />
+        <Route path="/quiz/:sessionId" element={<QuizPage />} />
+        <Route path="/resultado/:sessionId" element={<ResultPage />} />
+        <Route path="/revisao/:sessionId" element={<ReviewPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
         <Route path="/ranking" element={<RankingPage />} />
       </Route>

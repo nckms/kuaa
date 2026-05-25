@@ -1,60 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-
-interface Option { id: string; text: string }
-interface Question { id: string; body: string; options: Option[]; correctId: string; explanation: string }
-
-const MOCK_SESSION = {
-  topicName: 'Interpretação e Análise de Texto',
-  vestibularName: 'FUVEST',
-  questions: [
-    {
-      id: 'q1',
-      body: 'A partir da leitura do trecho, é correto afirmar que o autor valoriza, sobretudo:',
-      options: [
-        { id: 'A', text: 'A visão objetivista da realidade social.' },
-        { id: 'B', text: 'A problematização da relação entre linguagem e poder.' },
-        { id: 'C', text: 'Os aspectos históricos em detrimento do texto.' },
-        { id: 'D', text: 'A análise estrutural em detrimento do conteúdo.' },
-        { id: 'E', text: 'Uma perspectiva exclusivamente formalista.' },
-      ],
-      correctId: 'B',
-      explanation: 'O autor questiona as estruturas de poder presentes na linguagem, evidenciando como o discurso reflete e reproduz relações sociais.',
-    },
-    {
-      id: 'q2',
-      body: 'Qual recurso expressivo predomina no trecho apresentado?',
-      options: [
-        { id: 'A', text: 'Antítese.' },
-        { id: 'B', text: 'Hipérbole.' },
-        { id: 'C', text: 'Ironia.' },
-        { id: 'D', text: 'Metonímia.' },
-        { id: 'E', text: 'Eufemismo.' },
-      ],
-      correctId: 'C',
-      explanation: 'O uso da ironia é perceptível quando o autor utiliza elogios aparentes para criticar a postura descrita.',
-    },
-    {
-      id: 'q3',
-      body: 'Ao analisar o texto, percebe-se que o narrador adota uma posição:',
-      options: [
-        { id: 'A', text: 'Neutra e imparcial diante dos fatos.' },
-        { id: 'B', text: 'Engajada e crítica em relação ao tema.' },
-        { id: 'C', text: 'Nostálgica e sentimental.' },
-        { id: 'D', text: 'Indiferente às questões sociais.' },
-        { id: 'E', text: 'Técnica e descritiva.' },
-      ],
-      correctId: 'B',
-      explanation: 'O narrador demonstra claramente seu engajamento ao utilizar termos que evidenciam posicionamento crítico.',
-    },
-  ] as Question[],
-}
+import { useSession, useAnswer, useFinish } from '../../hooks/useQuiz'
+import ProgressBar from '../../components/ui/ProgressBar'
+import type { AnswerResult } from '../../types/quiz'
 
 const WingGlyph = () => (
-  <svg width="20" height="17" viewBox="0 0 28 24" fill="none" style={{ color: '#FFDC5C' }}>
-    <path d="M2 20 C6 12 14 8 26 4 C20 10 18 16 20 22 C14 18 8 18 2 20Z" fill="currentColor" opacity="0.9"/>
-    <path d="M2 20 C8 16 14 14 20 22 C14 22 8 22 2 20Z" fill="currentColor" opacity="0.5"/>
+  <svg width="20" height="17" viewBox="0 0 28 24" fill="none">
+    <path d="M2 20 C6 12 14 8 26 4 C20 10 18 16 20 22 C14 18 8 18 2 20Z" fill="#FFDC5C" opacity="0.9"/>
+    <path d="M2 20 C8 16 14 14 20 22 C14 22 8 22 2 20Z" fill="#FFDC5C" opacity="0.5"/>
   </svg>
 )
 
@@ -64,170 +18,232 @@ function formatTime(seconds: number): string {
   return `${m}:${s}`
 }
 
+const MOTIVATIONAL_CORRECT = [
+  'Excelente! Continue assim.',
+  'Correto! Você está no caminho certo.',
+  'Muito bem! Conhecimento que abre asas.',
+  'Perfeito! Siga em frente.',
+  'Ótimo! Você domina este conteúdo.',
+]
+
+const MOTIVATIONAL_WRONG = [
+  'Não desanime! Leia a explicação com atenção.',
+  'Erro faz parte do aprendizado. Siga em frente!',
+  'Continue! Cada erro é uma oportunidade de aprender.',
+]
+
 export default function QuizPage() {
+  const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
-  const { questions, topicName, vestibularName } = MOCK_SESSION
-  const total = questions.length
+
+  const { data: session, isLoading, isError } = useSession(sessionId)
+  const answerMutation = useAnswer(sessionId ?? '')
+  const finishMutation = useFinish(sessionId ?? '')
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
-  const [confirmedAnswer, setConfirmedAnswer] = useState(false)
-  const [answeredMap, setAnsweredMap] = useState<Record<string, { selectedId: string; isCorrect: boolean }>>({})
+  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null)
+  const [isConfirmed, setIsConfirmed] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(50 * 60)
   const [markedForReview, setMarkedForReview] = useState<Set<string>>(new Set())
-  const [timeLeft, setTimeLeft] = useState(3000)
-  const [isFinished, setIsFinished] = useState(false)
+  const [answeredMap, setAnsweredMap] = useState<Record<string, AnswerResult>>({})
+  const [showFinishModal, setShowFinishModal] = useState(false)
+  const [questionStartTime, setQuestionStartTime] = useState(Date.now())
+  const [motivationalMsg, setMotivationalMsg] = useState('')
 
   useEffect(() => {
-    if (isFinished) return
     const interval = setInterval(() => setTimeLeft((t) => Math.max(0, t - 1)), 1000)
     return () => clearInterval(interval)
-  }, [isFinished])
+  }, [])
 
   const goToQuestion = useCallback((idx: number) => {
     setCurrentIndex(idx)
     setSelectedOption(null)
-    setConfirmedAnswer(false)
+    setAnswerResult(null)
+    setIsConfirmed(false)
+    setQuestionStartTime(Date.now())
   }, [])
 
-  function handleConfirm() {
-    if (!selectedOption) return
-    const q = questions[currentIndex]
-    const isCorrect = selectedOption === q.correctId
-    setAnsweredMap((prev) => ({ ...prev, [q.id]: { selectedId: selectedOption, isCorrect } }))
-    setConfirmedAnswer(true)
+  useEffect(() => { goToQuestion(0) }, [session, goToQuestion])
+
+  if (isLoading || !session) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial, sans-serif' }}>
+        <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 16 }}>Carregando sessão...</p>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, fontFamily: 'Arial, sans-serif' }}>
+        <p style={{ color: '#fca5a5', fontSize: 16 }}>Erro ao carregar a sessão.</p>
+        <button onClick={() => navigate(-1)} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontFamily: 'Arial, sans-serif' }}>Voltar</button>
+      </div>
+    )
+  }
+
+  const { questions, topicName, subjectName, vestibularName } = session
+  const total = questions.length
+  const currentQ = questions[currentIndex]
+  const answeredCount = Object.keys(answeredMap).length
+
+  async function handleConfirm() {
+    if (!selectedOption || !currentQ) return
+    const timeSpentMs = Date.now() - questionStartTime
+    try {
+      const result = await answerMutation.mutateAsync({
+        questionId: currentQ.id,
+        optionId: selectedOption,
+        timeSpentMs,
+      })
+      setAnswerResult(result)
+      setIsConfirmed(true)
+      setAnsweredMap((prev) => ({ ...prev, [currentQ.id]: result }))
+      if (result.isCorrect) {
+        setMotivationalMsg(MOTIVATIONAL_CORRECT[Math.floor(Math.random() * MOTIVATIONAL_CORRECT.length)])
+      } else {
+        setMotivationalMsg(MOTIVATIONAL_WRONG[Math.floor(Math.random() * MOTIVATIONAL_WRONG.length)])
+      }
+    } catch (err) {
+      console.error('Erro ao responder:', err)
+    }
   }
 
   function handleNext() {
     if (currentIndex < total - 1) {
       goToQuestion(currentIndex + 1)
     } else {
-      setIsFinished(true)
+      finishMutation.mutate()
     }
   }
 
-  function toggleMark() {
-    const q = questions[currentIndex]
-    setMarkedForReview((prev) => {
-      const next = new Set(prev)
-      if (next.has(q.id)) next.delete(q.id); else next.add(q.id)
-      return next
-    })
-  }
+  const handleFinish = () => finishMutation.mutate()
 
-  const corretas = Object.values(answeredMap).filter((a) => a.isCorrect).length
-  const erradas = Object.values(answeredMap).filter((a) => !a.isCorrect).length
-  const xpMock = corretas * 15
-
-  if (isFinished) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial, sans-serif' }}>
-        <motion.div
-          style={{ maxWidth: 480, width: '90%', textAlign: 'center', padding: 40 }}
-          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-        >
-          <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
-            <WingGlyph />
-          </motion.div>
-          <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 64, fontWeight: 700, color: '#FFDC5C', letterSpacing: '-0.045em', lineHeight: 0.9, marginTop: 20, marginBottom: 16 }}>+{xpMock} XP</div>
-          <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 24, color: '#fff', marginBottom: 28 }}>Sessão concluída!</p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginBottom: 32 }}>
-            <span style={{ color: '#10b981', fontSize: 16, fontWeight: 700 }}>✓ {corretas} corretas</span>
-            <span style={{ color: '#840033', fontSize: 16, fontWeight: 700 }}>✗ {erradas} erradas</span>
-            <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 16 }}>⏱ {formatTime(3000 - timeLeft)}</span>
-          </div>
-          <button onClick={() => navigate(-1)} style={{ width: '100%', padding: 16, borderRadius: 12, backgroundColor: '#840033', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: 'Arial, sans-serif' }}>
-            Voltar à trilha →
-          </button>
-        </motion.div>
-      </div>
-    )
-  }
-
-  const currentQ = questions[currentIndex]
-  const answered = answeredMap[currentQ.id]
+  const prevResult = answeredMap[currentQ?.id ?? '']
+  const displayResult = isConfirmed ? answerResult : prevResult ?? null
+  const isAlreadyAnswered = !!prevResult && !isConfirmed
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Arial, sans-serif', display: 'flex', flexDirection: 'column' }}>
 
       {/* Header */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: '#2a0d33', borderBottom: '1px solid rgba(255,255,255,.08)', padding: '14px 24px' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 20 }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'rgba(26,8,38,.95)', borderBottom: '1px solid rgba(255,255,255,.08)', padding: '14px 24px' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <WingGlyph />
-            <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 14 }}>{vestibularName} · {topicName}</span>
+            <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 13 }}>{vestibularName} · {topicName}</span>
           </div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-            <div style={{ width: '100%', maxWidth: 400, height: 6, backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 999, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${((currentIndex + 1) / total) * 100}%`, background: 'linear-gradient(90deg, #840033, #531A61)', borderRadius: 999, transition: 'width 0.4s ease' }} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: '100%', maxWidth: 400 }}>
+              <ProgressBar value={(answeredCount / total) * 100} color="vinho" size="sm" />
             </div>
-            <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 12 }}>{currentIndex + 1} / {total}</span>
+            <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 11 }}>{currentIndex + 1} / {total}</span>
           </div>
-          <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-            <button style={{ background: 'none', border: '1px solid rgba(255,255,255,.3)', color: 'rgba(255,255,255,.6)', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Arial, sans-serif' }}>‖ pausar</button>
-            <button onClick={() => setIsFinished(true)} style={{ backgroundColor: '#840033', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Arial, sans-serif', fontWeight: 600 }}>finalizar entrega →</button>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button
+              onClick={() => setShowFinishModal(true)}
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,.25)', color: 'rgba(255,255,255,.6)', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Arial, sans-serif' }}
+            >Pausar</button>
+            <button
+              onClick={() => setShowFinishModal(true)}
+              disabled={finishMutation.isPending}
+              style={{ backgroundColor: '#840033', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Arial, sans-serif', fontWeight: 600 }}
+            >{finishMutation.isPending ? 'Finalizando...' : 'Finalizar'}</button>
           </div>
         </div>
       </div>
 
-      {/* Conteúdo */}
-      <div style={{ flex: 1, maxWidth: 900, margin: '0 auto', width: '100%', padding: '32px 24px 80px', display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }} className="quiz-grid">
+      {/* Content */}
+      <div style={{ flex: 1, maxWidth: 960, margin: '0 auto', width: '100%', padding: '32px 24px 80px', display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }} className="quiz-grid">
 
-        {/* Coluna esquerda — questão */}
+        {/* Questão */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 11, color: '#FFDC5C', letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 700 }}>QUESTÃO {currentIndex + 1} DE {total}</span>
-            <button onClick={toggleMark} style={{ background: 'none', border: '1px solid rgba(255,255,255,.2)', color: 'rgba(255,255,255,.6)', padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'Arial, sans-serif' }}>
-              {markedForReview.has(currentQ.id) ? '✓ Marcada' : 'MARCAR P/ REVISÃO'}
+            <span style={{ fontSize: 11, color: '#FFDC5C', letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 700 }}>
+              QUESTÃO {currentIndex + 1} DE {total}
+            </span>
+            <button
+              onClick={() => setMarkedForReview((prev) => {
+                const next = new Set(prev)
+                if (next.has(currentQ.id)) next.delete(currentQ.id); else next.add(currentQ.id)
+                return next
+              })}
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,.2)', color: markedForReview.has(currentQ.id) ? '#FFDC5C' : 'rgba(255,255,255,.6)', padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'Arial, sans-serif' }}
+            >
+              {markedForReview.has(currentQ.id) ? 'Marcada' : 'Marcar p/ revisão'}
             </button>
           </div>
-          <p style={{ fontSize: 18, color: '#fff', lineHeight: 1.7, marginBottom: 28 }}>{currentQ.body}</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 16 }}>{subjectName} · Nível {currentQ.difficulty}/5</p>
+          <p style={{ fontSize: 18, color: '#fff', lineHeight: 1.8 }}>{currentQ.body}</p>
 
           {/* Opções */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 24 }}>
             {currentQ.options.map((opt) => {
               const isSelected = selectedOption === opt.id
-              const isConfirmedCorrect = confirmedAnswer && opt.id === currentQ.correctId
-              const isConfirmedWrong = confirmedAnswer && isSelected && opt.id !== currentQ.correctId
+              const res = displayResult
+              const isConfirmedCorrect = res && opt.id === res.correctOptionId
+              const isConfirmedWrong = res && isSelected && !res.isCorrect && opt.id === selectedOption
+              const isDisabled = isConfirmed || isAlreadyAnswered
 
               let bg = 'rgba(255,255,255,.05)'
               let border = '1.5px solid rgba(255,255,255,.12)'
               let letterColor = '#FFDC5C'
-              if (isSelected && !confirmedAnswer) { bg = 'rgba(83,26,97,.5)'; border = '1.5px solid #531A61' }
+              const textOpacity = res && opt.id !== res.correctOptionId && opt.id !== selectedOption ? 0.45 : 1
+
+              if (isSelected && !isDisabled) { bg = 'rgba(83,26,97,.5)'; border = '1.5px solid #531A61' }
               if (isConfirmedCorrect) { bg = 'rgba(6,78,59,.4)'; border = '1.5px solid #10b981'; letterColor = '#10b981' }
               if (isConfirmedWrong) { bg = 'rgba(132,0,51,.4)'; border = '1.5px solid #840033'; letterColor = '#840033' }
 
               return (
                 <div
                   key={opt.id}
-                  onClick={() => { if (!confirmedAnswer) setSelectedOption(opt.id) }}
-                  style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 18px', borderRadius: 14, backgroundColor: bg, border, cursor: confirmedAnswer ? 'default' : 'pointer', transition: 'all 0.15s' }}
+                  onClick={() => { if (!isDisabled) setSelectedOption(opt.id) }}
+                  style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 18px', borderRadius: 14, backgroundColor: bg, border, cursor: isDisabled ? 'default' : 'pointer', transition: 'all 0.15s', opacity: textOpacity }}
                 >
-                  <span style={{ fontSize: 14, fontWeight: 700, color: letterColor, width: 20, flexShrink: 0, marginTop: 1 }}>{opt.id}</span>
-                  <span style={{ fontSize: 15, color: 'rgba(255,255,255,.9)', lineHeight: 1.5 }}>{opt.text}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: letterColor, width: 22, flexShrink: 0, marginTop: 1 }}>{opt.id}</span>
+                  <span style={{ fontSize: 15, color: '#fff', lineHeight: 1.5, flex: 1 }}>{opt.text}</span>
                 </div>
               )
             })}
           </div>
 
           {/* Botão confirmar */}
-          {selectedOption && !confirmedAnswer && (
-            <button onClick={handleConfirm} style={{ width: '100%', padding: 15, marginTop: 20, borderRadius: 12, backgroundColor: '#840033', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: 'Arial, sans-serif' }}>
-              Confirmar resposta
+          {selectedOption && !isConfirmed && !isAlreadyAnswered && (
+            <button
+              onClick={handleConfirm}
+              disabled={answerMutation.isPending}
+              style={{ width: '100%', padding: 15, marginTop: 20, borderRadius: 12, backgroundColor: '#840033', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: 'Arial, sans-serif' }}
+            >
+              {answerMutation.isPending ? 'Verificando...' : 'Confirmar resposta'}
             </button>
           )}
 
           {/* Explicação */}
           <AnimatePresence>
-            {confirmedAnswer && (
+            {(isConfirmed || isAlreadyAnswered) && displayResult && (
               <motion.div
-                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 style={{ marginTop: 20, backgroundColor: 'rgba(255,255,255,.06)', borderLeft: '3px solid #FFDC5C', borderRadius: '0 14px 14px 0', padding: 16 }}
               >
-                <p style={{ fontSize: 13, color: '#FFDC5C', fontWeight: 700, marginBottom: 8 }}>✦ Explicação</p>
-                <p style={{ fontSize: 15, color: 'rgba(255,255,255,.8)', lineHeight: 1.6 }}>{answered?.isCorrect === false ? '✗ Incorreto. ' : '✓ Correto! '}{currentQ.explanation}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, color: '#FFDC5C', fontWeight: 700 }}>Explicação</span>
+                  {displayResult.xpDelta > 0 && (
+                    <span style={{ backgroundColor: 'rgba(255,220,92,.2)', color: '#FFDC5C', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 999 }}>+{displayResult.xpDelta} XP</span>
+                  )}
+                </div>
+                <p style={{ fontSize: 13, color: displayResult.isCorrect ? '#10b981' : '#fca5a5', marginBottom: 8 }}>
+                  {motivationalMsg}
+                </p>
+                <p style={{ fontSize: 15, color: 'rgba(255,255,255,.8)', lineHeight: 1.6 }}>{displayResult.explanation}</p>
+
                 <div style={{ textAlign: 'right', marginTop: 12 }}>
-                  <button onClick={handleNext} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Arial, sans-serif' }}>
-                    {currentIndex < total - 1 ? 'Próxima questão →' : 'Ver resultado →'}
+                  <button
+                    onClick={handleNext}
+                    disabled={finishMutation.isPending}
+                    style={{ backgroundColor: currentIndex < total - 1 ? '#531A61' : '#840033', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Arial, sans-serif' }}
+                  >
+                    {finishMutation.isPending ? 'Finalizando...' : currentIndex < total - 1 ? 'Próxima questão' : 'Ver resultado'}
                   </button>
                 </div>
               </motion.div>
@@ -235,13 +251,15 @@ export default function QuizPage() {
           </AnimatePresence>
         </div>
 
-        {/* Coluna direita — painel */}
+        {/* Painel lateral */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Cronômetro */}
           <div style={{ backgroundColor: '#FFDC5C', borderRadius: 20, padding: 20 }}>
             <p style={{ fontSize: 11, color: 'rgba(83,26,97,.6)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 6 }}>TEMPO RESTANTE</p>
-            <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 44, fontWeight: 700, color: '#531A61', letterSpacing: '-0.04em', lineHeight: 1 }}>{formatTime(timeLeft)}</div>
-            <p style={{ fontSize: 12, color: 'rgba(83,26,97,.6)', marginTop: 6 }}>{formatTime(timeLeft)} RESTAM · {formatTime(3000)} TOTAL</p>
+            <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 40, fontWeight: 700, color: timeLeft < 300 ? '#840033' : '#531A61', letterSpacing: '-0.04em', lineHeight: 1 }}>
+              {formatTime(timeLeft)}
+            </div>
+            {timeLeft < 300 && <p style={{ color: '#840033', fontSize: 12, marginTop: 6, fontWeight: 700 }}>Menos de 5 minutos!</p>}
           </div>
 
           {/* Progresso */}
@@ -249,7 +267,7 @@ export default function QuizPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <div>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', letterSpacing: '.1em', textTransform: 'uppercase' }}>RESPONDIDAS</p>
-                <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginTop: 4 }}>{Object.keys(answeredMap).length}/{total}</p>
+                <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginTop: 4 }}>{answeredCount}/{total}</p>
               </div>
               <div>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', letterSpacing: '.1em', textTransform: 'uppercase' }}>MARCADAS</p>
@@ -258,44 +276,74 @@ export default function QuizPage() {
             </div>
           </div>
 
-          {/* Navegar */}
+          {/* Navegar questões */}
           <div style={{ backgroundColor: 'rgba(255,255,255,.06)', borderRadius: 20, padding: 20 }}>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', marginBottom: 12 }}>Navegar questões</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
               {questions.map((q, i) => {
                 const ans = answeredMap[q.id]
-                const isCurrentQ = i === currentIndex
+                const isCurrent = i === currentIndex
                 const isMarked = markedForReview.has(q.id)
                 let bg = 'rgba(255,255,255,.08)'
                 if (ans) bg = ans.isCorrect ? '#531A61' : '#840033'
                 return (
-                  <button
-                    key={q.id}
-                    onClick={() => goToQuestion(i)}
-                    style={{
-                      width: 32, height: 32, borderRadius: '50%', border: isCurrentQ ? '2px solid #FFDC5C' : isMarked ? '2px solid rgba(255,220,92,.4)' : '2px solid transparent',
-                      backgroundColor: bg, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'Arial, sans-serif',
-                    }}
+                  <button key={q.id} onClick={() => goToQuestion(i)}
+                    style={{ width: 32, height: 32, borderRadius: '50%', border: isCurrent ? '2px solid #FFDC5C' : isMarked ? '2px solid rgba(255,220,92,.4)' : '2px solid transparent', backgroundColor: bg, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'Arial, sans-serif' }}
                   >{i + 1}</button>
                 )
               })}
             </div>
           </div>
 
-          {/* Respira */}
-          <div style={{ backgroundColor: 'rgba(255,220,92,.08)', borderRadius: 20, padding: 16 }}>
-            <p style={{ fontSize: 12, color: '#FFDC5C', fontWeight: 700, marginBottom: 6 }}>✦ RESPIRA</p>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', lineHeight: 1.5 }}>
-              Você no ritmo certo — 1min por questão é o seu melhor desta semana.
-            </p>
+          {/* Corações */}
+          <div style={{ backgroundColor: 'rgba(255,255,255,.06)', borderRadius: 20, padding: 16 }}>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 8 }}>Corações restantes</p>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {Array.from({ length: 5 }).map((_, i) => {
+                const hearts = answerResult?.heartsRemaining ?? 5
+                return <span key={i} style={{ fontSize: 20, color: i < hearts ? '#840033' : 'rgba(255,255,255,.15)' }}>♥</span>
+              })}
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Modal finalizar */}
+      <AnimatePresence>
+        {showFinishModal && (
+          <>
+            <motion.div
+              style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,.6)', zIndex: 40 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowFinishModal(false)}
+            />
+            <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
+                style={{ backgroundColor: '#fff', borderRadius: 24, padding: 28, maxWidth: 380, width: '100%', fontFamily: 'Arial, sans-serif' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 22, color: '#1a1a1a', marginBottom: 8 }}>Finalizar sessão?</h3>
+                <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24 }}>
+                  {answeredCount} de {total} questões respondidas.
+                  {answeredCount < total && ` As ${total - answeredCount} restantes serão puladas.`}
+                </p>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button onClick={() => setShowFinishModal(false)} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1.5px solid #e5e7eb', backgroundColor: 'transparent', color: '#6b7280', cursor: 'pointer', fontSize: 14, fontFamily: 'Arial, sans-serif' }}>
+                    Continuar
+                  </button>
+                  <button onClick={handleFinish} disabled={finishMutation.isPending} style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', backgroundColor: '#840033', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Arial, sans-serif' }}>
+                    {finishMutation.isPending ? 'Finalizando...' : 'Finalizar'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
       <style>{`
-        @media (max-width: 768px) {
-          .quiz-grid { grid-template-columns: 1fr !important; }
-        }
+        @media (max-width: 768px) { .quiz-grid { grid-template-columns: 1fr !important; } }
       `}</style>
     </div>
   )

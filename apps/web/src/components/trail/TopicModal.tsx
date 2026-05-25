@@ -1,8 +1,8 @@
-import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { TrailTopic, TrailSubject } from '../../types/trail'
 import { getIcon } from '../../utils/iconMap'
 import ProgressBar from '../ui/ProgressBar'
+import { useGenerateQuiz } from '../../hooks/useQuiz'
 
 interface TopicModalProps {
   topic: TrailTopic | null
@@ -11,19 +11,19 @@ interface TopicModalProps {
 }
 
 export default function TopicModal({ topic, subject, onClose }: TopicModalProps) {
-  const navigate = useNavigate()
+  const generateMutation = useGenerateQuiz()
 
   function getButtonLabel(): string {
     if (!topic) return ''
-    if (topic.progress.sessionsCount === 0) return 'Iniciar tópico →'
-    if (topic.progress.completed) return 'Revisar tópico →'
-    return 'Continuar tópico →'
+    if (topic.progress.sessionsCount === 0) return 'Iniciar tópico'
+    if (topic.progress.completed) return 'Revisar tópico'
+    return 'Continuar tópico'
   }
 
-  function handleStart() {
+  async function handleStart() {
     if (!topic) return
-    navigate(`/quiz/${topic.id}`)
     onClose()
+    generateMutation.mutate({ topicId: topic.id, count: 5 })
   }
 
   return (
@@ -53,11 +53,10 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
 
               <h2 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 22, color: '#1a1a1a', marginBottom: 16 }}>{topic.name}</h2>
 
-              {/* Stats chips */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
                 <span style={{ backgroundColor: 'rgba(255,220,92,.2)', color: '#531A61', fontSize: 13, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>⚡ +{topic.xpReward} XP</span>
-                <span style={{ backgroundColor: '#f3eaf7', color: '#531A61', fontSize: 13, padding: '5px 12px', borderRadius: 999 }}>📊 Nível {topic.progress.masteryLevel}/5</span>
-                <span style={{ backgroundColor: '#f3f4f6', color: '#6b7280', fontSize: 13, padding: '5px 12px', borderRadius: 999 }}>🎯 {topic.progress.sessionsCount} sessões</span>
+                <span style={{ backgroundColor: '#f3eaf7', color: '#531A61', fontSize: 13, padding: '5px 12px', borderRadius: 999 }}>Nível {topic.progress.masteryLevel}/5</span>
+                <span style={{ backgroundColor: '#f3f4f6', color: '#6b7280', fontSize: 13, padding: '5px 12px', borderRadius: 999 }}>{topic.progress.sessionsCount} sessões</span>
               </div>
 
               <ProgressBar value={topic.progress.masteryLevel / 5 * 100} color="roxo" size="sm" />
@@ -67,9 +66,10 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
 
               <button
                 onClick={handleStart}
-                style={{ width: '100%', padding: '15px', borderRadius: 12, backgroundColor: '#840033', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: 'Arial, sans-serif' }}
+                disabled={generateMutation.isPending}
+                style={{ width: '100%', padding: '15px', borderRadius: 12, backgroundColor: generateMutation.isPending ? '#9ca3af' : '#840033', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: generateMutation.isPending ? 'not-allowed' : 'pointer', fontFamily: 'Arial, sans-serif' }}
               >
-                {getButtonLabel()}
+                {generateMutation.isPending ? 'Gerando questões...' : getButtonLabel()}
               </button>
               <p style={{ fontSize: 12, color: '#9ca3af', textAlign: 'center', marginTop: 10 }}>
                 Você ganha +{topic.xpReward} XP ao completar

@@ -230,6 +230,20 @@ async function main() {
     }
   }
 
+  // Seed achievements
+  const existingAchievements = await prisma.achievement.count()
+  if (existingAchievements === 0) {
+    await prisma.achievement.createMany({
+      data: [
+        { slug: 'first_flight', name: 'Primeiro Voo', description: 'Complete sua primeira sessão de quiz', iconSlug: 'wing', xpBonus: 10 },
+        { slug: 'perfect_wing', name: 'Asa Perfeita', description: 'Complete uma sessão com 100% de acerto', iconSlug: 'star', xpBonus: 20 },
+        { slug: 'week_streak', name: 'Semana Consistente', description: 'Mantenha uma sequência de 7 dias', iconSlug: 'fire', xpBonus: 30 },
+        { slug: 'century', name: 'Centenário', description: 'Responda 100 questões no total', iconSlug: 'lightning', xpBonus: 25 },
+      ],
+    })
+    console.log('✅ Achievements criados')
+  }
+
   console.log('\n🦅 Seed concluído com sucesso!')
 }
 

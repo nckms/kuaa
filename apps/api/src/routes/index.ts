@@ -4,6 +4,7 @@ import { usersRouter } from '../modules/users/users.routes'
 import { vestibularesRouter } from '../modules/vestibulares/vestibulares.routes'
 import { enrollmentsRouter } from '../modules/enrollments/enrollments.routes'
 import { trailRouter } from '../modules/trail/trail.routes'
+import { quizRouter } from '../modules/quiz/quiz.routes'
 
 export const router = Router()
 
@@ -20,3 +21,4 @@ router.use('/users', usersRouter)
 router.use('/vestibulares', vestibularesRouter)
 router.use('/enrollments', enrollmentsRouter)
 router.use('/trail', trailRouter)
+router.use('/quiz', quizRouter)
