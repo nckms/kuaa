@@ -20,10 +20,12 @@ export interface SessionData {
   vestibularSlug: string
   questions: QuizQuestion[]
   answeredIds: string[]
+  answeredResults: Array<AnswerResult & { questionId: string }>
 }
 
 export interface AnswerResult {
   isCorrect: boolean
+  selectedOptionId: string
   correctOptionId: string
   explanation: string
   xpDelta: number

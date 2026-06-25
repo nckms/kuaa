@@ -42,7 +42,8 @@ function generateMockQuestions(data: GenerationJobData): GeneratedQuestion[] {
 }
 
 async function generateWithAI(data: GenerationJobData): Promise<GeneratedQuestion[]> {
-  const hasApiKey = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 10
+  const apiKey = process.env.OPENAI_API_KEY?.trim()
+  const hasApiKey = !!apiKey && apiKey.startsWith('sk-') && apiKey.length > 20
 
   if (!hasApiKey) {
     console.log('[QuizWorker] OPENAI_API_KEY não configurada — usando questões mockadas')

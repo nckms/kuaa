@@ -25,6 +25,7 @@ export interface GenerationJobData {
 
 export interface AnswerResult {
   isCorrect: boolean
+  selectedOptionId: string
   correctOptionId: string
   explanation: string
   xpDelta: number

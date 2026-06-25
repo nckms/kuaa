@@ -46,6 +46,18 @@ export function useSession(sessionId: string | undefined) {
   })
 }
 
+export function useSessionSummary(sessionId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ['quizSummary', sessionId],
+    queryFn: async () => {
+      const res = await api.get<SessionSummary>(`/quiz/${sessionId}/summary`)
+      return res.data
+    },
+    enabled: !!sessionId && enabled,
+    retry: false,
+  })
+}
+
 export function useAnswer(sessionId: string) {
   const queryClient = useQueryClient()
 
@@ -75,6 +87,7 @@ export function useFinish(sessionId: string) {
       queryClient.invalidateQueries({ queryKey: ['trail'] })
       queryClient.invalidateQueries({ queryKey: ['user'] })
       queryClient.invalidateQueries({ queryKey: ['enrollments'] })
+      queryClient.setQueryData(['quizSummary', sessionId], data)
       navigate(`/resultado/${sessionId}`, { state: data, replace: true })
     },
   })

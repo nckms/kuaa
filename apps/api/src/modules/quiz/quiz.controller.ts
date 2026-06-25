@@ -31,6 +31,14 @@ export async function getSession(req: Request, res: Response, next: NextFunction
   } catch (err) { next(err) }
 }
 
+export async function getSummary(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const sessionId = Array.isArray(req.params['sessionId']) ? req.params['sessionId'][0] : req.params['sessionId']
+    const result = await quizService.getSummary(req.userId!, sessionId)
+    res.json(result)
+  } catch (err) { next(err) }
+}
+
 export async function answer(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const input = AnswerSchema.parse(req.body)

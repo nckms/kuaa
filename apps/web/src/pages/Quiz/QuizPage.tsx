@@ -64,7 +64,14 @@ export default function QuizPage() {
     setQuestionStartTime(Date.now())
   }, [])
 
-  useEffect(() => { goToQuestion(0) }, [session, goToQuestion])
+  useEffect(() => {
+    if (!session) return
+    const restored = Object.fromEntries(
+      (session.answeredResults ?? []).map((answer) => [answer.questionId, answer]),
+    )
+    setAnsweredMap(restored)
+    goToQuestion(0)
+  }, [session, goToQuestion])
 
   if (isLoading || !session) {
     return (
@@ -99,7 +106,7 @@ export default function QuizPage() {
       })
       setAnswerResult(result)
       setIsConfirmed(true)
-      setAnsweredMap((prev) => ({ ...prev, [currentQ.id]: result }))
+      setAnsweredMap((prev) => ({ ...prev, [currentQ.id]: { ...result, selectedOptionId: selectedOption } }))
       if (result.isCorrect) {
         setMotivationalMsg(MOTIVATIONAL_CORRECT[Math.floor(Math.random() * MOTIVATIONAL_CORRECT.length)])
       } else {
@@ -183,7 +190,9 @@ export default function QuizPage() {
               const isSelected = selectedOption === opt.id
               const res = displayResult
               const isConfirmedCorrect = res && opt.id === res.correctOptionId
-              const isConfirmedWrong = res && isSelected && !res.isCorrect && opt.id === selectedOption
+              const chosenOptionId = res?.selectedOptionId ?? selectedOption
+              const isRestoredSelected = !!res && opt.id === chosenOptionId
+              const isConfirmedWrong = res && isRestoredSelected && !res.isCorrect
               const isDisabled = isConfirmed || isAlreadyAnswered
 
               let bg = 'rgba(255,255,255,.05)'
@@ -191,7 +200,7 @@ export default function QuizPage() {
               let letterColor = '#FFDC5C'
               const textOpacity = res && opt.id !== res.correctOptionId && opt.id !== selectedOption ? 0.45 : 1
 
-              if (isSelected && !isDisabled) { bg = 'rgba(83,26,97,.5)'; border = '1.5px solid #531A61' }
+              if ((isSelected || isRestoredSelected) && !isDisabled) { bg = 'rgba(83,26,97,.5)'; border = '1.5px solid #531A61' }
               if (isConfirmedCorrect) { bg = 'rgba(6,78,59,.4)'; border = '1.5px solid #10b981'; letterColor = '#10b981' }
               if (isConfirmedWrong) { bg = 'rgba(132,0,51,.4)'; border = '1.5px solid #840033'; letterColor = '#840033' }
 
@@ -233,7 +242,7 @@ export default function QuizPage() {
                   )}
                 </div>
                 <p style={{ fontSize: 13, color: displayResult.isCorrect ? '#10b981' : '#fca5a5', marginBottom: 8 }}>
-                  {motivationalMsg}
+                  {motivationalMsg || (displayResult.isCorrect ? 'Resposta correta.' : 'Revise este ponto antes de seguir.')}
                 </p>
                 <p style={{ fontSize: 15, color: 'rgba(255,255,255,.8)', lineHeight: 1.6 }}>{displayResult.explanation}</p>
 

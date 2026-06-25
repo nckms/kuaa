@@ -8,10 +8,10 @@ export const usersRouter = Router()
 
 const UpdateMeSchema = z.object({
   name: z.string().min(2).max(100).optional(),
-  school: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().length(2).optional(),
-  avatarUrl: z.string().url().optional(),
+  school: z.string().nullable().optional(),
+  city: z.string().nullable().optional(),
+  state: z.string().length(2).nullable().optional(),
+  avatarUrl: z.string().url().nullable().optional(),
 })
 
 const safeSelect = {

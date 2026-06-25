@@ -1,6 +1,7 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import type { ReviewQuestion } from '../../types/quiz'
+import { useSessionSummary } from '../../hooks/useQuiz'
 
 interface LocationState {
   questions: ReviewQuestion[]
@@ -14,10 +15,29 @@ interface LocationState {
 export default function ReviewPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  useParams<{ sessionId: string }>()
-  const state = location.state as LocationState | null
+  const { sessionId } = useParams<{ sessionId: string }>()
+  const routeState = location.state as LocationState | null
+  const { data: summary, isLoading, isError } = useSessionSummary(sessionId, !routeState)
+  const state: LocationState | null = routeState ?? (summary ? {
+    questions: summary.questions,
+    topicName: summary.topicName,
+    vestibularSlug: summary.vestibularSlug,
+    correct: summary.correct,
+    total: summary.correct + summary.wrong + summary.skipped,
+    accuracy: summary.accuracy,
+  } : null)
 
-  if (!state || !state.questions) {
+  if (isLoading && !state) {
+    return (
+      <AppLayout>
+        <div style={{ padding: 32, textAlign: 'center' }}>
+          <p style={{ color: '#9ca3af' }}>Carregando revisao...</p>
+        </div>
+      </AppLayout>
+    )
+  }
+
+  if (!state || !state.questions || isError) {
     return (
       <AppLayout>
         <div style={{ padding: 32, textAlign: 'center' }}>

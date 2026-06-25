@@ -7,6 +7,7 @@ import { makeError } from '../../utils/errors'
 import { computeNewLevel } from '../../services/adaptive/DifficultyEngine'
 import type { GenerateInput, AnswerInput } from './quiz.schemas'
 import type { AnswerResult, SessionSummary, AchievementData, QuestionOption, ReviewQuestion, GenerationJobData } from './quiz.types'
+import { generateFallbackQuestions } from './fallbackQuestions'
 
 const OptionSchema = z.object({
   id: z.enum(['A', 'B', 'C', 'D', 'E']),
@@ -31,33 +32,9 @@ const quizQueue = {
   },
 }
 
-function generateFallbackQuestions(data: {
-  topicName: string
-  vestibularName: string
-  userMasteryLevel: number
-  questionCount: number
-}): Array<{
-  body: string
-  options: QuestionOption[]
-  explanation: string
-  difficulty: number
-}> {
-  return Array.from({ length: data.questionCount }, (_, i) => ({
-    body: `[QUESTAO DEMONSTRACAO ${i + 1}] Sobre o topico "${data.topicName}": qual das afirmativas a seguir esta correta segundo os principais conceitos estudados?`,
-    options: [
-      { id: 'A', text: 'A primeira alternativa apresenta um exemplo introdutorio do tema.', isCorrect: false },
-      { id: 'B', text: 'A segunda alternativa corresponde ao conceito principal do topico.', isCorrect: true },
-      { id: 'C', text: 'A terceira alternativa mistura conceitos de areas distintas.', isCorrect: false },
-      { id: 'D', text: 'A quarta alternativa apresenta uma informacao parcialmente correta.', isCorrect: false },
-      { id: 'E', text: 'A quinta alternativa contradiz as definicoes fundamentais.', isCorrect: false },
-    ],
-    explanation: `Esta e uma questao de demonstracao sobre "${data.topicName}". A alternativa B esta correta pois representa o conceito central do topico conforme o programa do ${data.vestibularName}. Em uma sessao real, esta explicacao pode ser gerada por IA com detalhes especificos sobre o conteudo.`,
-    difficulty: Math.min(5, data.userMasteryLevel + 1),
-  }))
-}
-
 async function generateQuestions(data: GenerationJobData): Promise<ReturnType<typeof generateFallbackQuestions>> {
-  const hasApiKey = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 10
+  const apiKey = process.env.OPENAI_API_KEY?.trim()
+  const hasApiKey = !!apiKey && apiKey.startsWith('sk-') && apiKey.length > 20
 
   if (!hasApiKey) return generateFallbackQuestions(data)
 
@@ -254,7 +231,7 @@ class QuizService {
           },
         },
         generatedQuestions: { where: { active: true }, orderBy: { createdAt: 'asc' } },
-        answers: { select: { questionId: true } },
+        answers: { include: { question: true }, orderBy: { answeredAt: 'asc' } },
       },
     })
 
@@ -287,6 +264,20 @@ class QuizService {
       vestibularSlug: session.topic.subject.vestibular.slug,
       questions,
       answeredIds: session.answers.map((a) => a.questionId),
+      answeredResults: session.answers.map((answer) => {
+        const options = answer.question.options as unknown as QuestionOption[]
+        const correctOption = options.find((option) => option.isCorrect)
+        return {
+          questionId: answer.questionId,
+          selectedOptionId: answer.optionId,
+          isCorrect: answer.isCorrect,
+          correctOptionId: correctOption?.id ?? answer.optionId,
+          explanation: answer.question.explanation,
+          xpDelta: 0,
+          heartsRemaining: 0,
+          masteryLevel: 0,
+        }
+      }),
     }
   }
 
@@ -363,6 +354,7 @@ class QuizService {
 
     return {
       isCorrect,
+      selectedOptionId: optionId,
       correctOptionId: correctOption.id,
       explanation: question.explanation,
       xpDelta,
@@ -551,6 +543,64 @@ class QuizService {
       newAchievements,
       levelUp,
       newLevel: levelUp ? newLevel : currentLevel,
+      questions: reviewQuestions,
+    }
+  }
+
+  async getSummary(userId: string, sessionId: string): Promise<SessionSummary> {
+    const session = await prisma.quizSession.findUnique({
+      where: { id: sessionId },
+      include: {
+        user: { select: { level: true } },
+        answers: {
+          include: { question: true },
+          orderBy: { answeredAt: 'asc' },
+        },
+        topic: {
+          include: {
+            subject: { include: { vestibular: true } },
+          },
+        },
+        generatedQuestions: { where: { active: true }, orderBy: { createdAt: 'asc' } },
+      },
+    })
+
+    if (!session) throw makeError('Sessao nao encontrada', 404, 'NOT_FOUND')
+    if (session.userId !== userId) throw makeError('Acesso negado', 403, 'FORBIDDEN')
+    if (!session.finishedAt) throw makeError('Sessao ainda nao finalizada', 409, 'SESSION_NOT_FINISHED')
+
+    const totalQuestions = session.generatedQuestions.length || session.correct + session.wrong + session.skipped
+    const accuracy = totalQuestions > 0 ? session.correct / totalQuestions : 0
+    const progress = await prisma.userTopicProgress.findUnique({
+      where: { userId_topicId: { userId, topicId: session.topicId } },
+    })
+
+    const reviewQuestions: ReviewQuestion[] = session.answers.map((answer) => {
+      const options = answer.question.options as unknown as QuestionOption[]
+      return {
+        id: answer.question.id,
+        body: answer.question.body,
+        options,
+        userAnswerId: answer.optionId,
+        isCorrect: answer.isCorrect,
+        explanation: answer.question.explanation,
+      }
+    })
+
+    return {
+      sessionId,
+      topicName: session.topic.name,
+      vestibularSlug: session.topic.subject.vestibular.slug,
+      xpEarned: session.xpEarned,
+      correct: session.correct,
+      wrong: session.wrong,
+      skipped: session.skipped,
+      isPerfect: session.isPerfect,
+      accuracy,
+      newMasteryLevel: progress?.masteryLevel ?? 0,
+      newAchievements: [],
+      levelUp: false,
+      newLevel: session.user.level,
       questions: reviewQuestions,
     }
   }

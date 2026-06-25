@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import ProgressBar from '../../components/ui/ProgressBar'
@@ -69,7 +69,6 @@ export default function DashboardPage() {
   const { data: trail } = useTrail(firstVestibularSlug ?? '')
   const navigate = useNavigate()
   const generateQuiz = useGenerateQuiz()
-  const [chartPeriod, setChartPeriod] = useState<'7d' | 'mes' | 'tri'>('7d')
 
   const allTopics = useMemo(
     () => trail?.subjects.flatMap((subject) => subject.topics.map((topic) => ({ ...topic, subjectName: subject.name }))) ?? [],
@@ -201,25 +200,7 @@ export default function DashboardPage() {
                 <p style={{ fontSize: 11, color: '#9ca3af', letterSpacing: '.1em', textTransform: 'uppercase' }}>FOCO · SEMANA</p>
                 <p style={{ fontSize: 20, fontWeight: 700, color: '#1a1a1a', fontFamily: "'Questrial', sans-serif", marginTop: 2 }}>{weekAnsweredQuestions} questao(oes) respondida(s)</p>
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {(['7d', 'mes', 'tri'] as const).map((period) => (
-                  <button key={period} onClick={() => setChartPeriod(period)}
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: 999,
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: '.06em',
-                      backgroundColor: chartPeriod === period ? '#1a0826' : 'transparent',
-                      color: chartPeriod === period ? '#fff' : 'var(--muted)',
-                      boxShadow: chartPeriod === period ? '0 2px 8px -2px rgba(26,8,38,.25)' : 'none',
-                    }}>
-                    {period === '7d' ? '7 DIAS' : period === 'mes' ? 'MES' : 'TRIM.'}
-                  </button>
-                ))}
-              </div>
+              <span style={{ padding: '6px 14px', borderRadius: 999, fontSize: 11, fontWeight: 700, letterSpacing: '.06em', backgroundColor: '#1a0826', color: '#fff' }}>7 DIAS</span>
             </div>
 
             <div style={{ marginTop: 24 }}>

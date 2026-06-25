@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import type { SessionSummary } from '../../types/quiz'
 import ProgressBar from '../../components/ui/ProgressBar'
+import { useSessionSummary } from '../../hooks/useQuiz'
 
 const WingGlyph = () => (
   <svg width="56" height="48" viewBox="0 0 28 24" fill="none">
@@ -37,14 +38,24 @@ export default function ResultPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const summary = location.state as SessionSummary | null
+  const routeSummary = location.state as SessionSummary | null
+  const { data: fetchedSummary, isLoading, isError } = useSessionSummary(sessionId, !routeSummary)
+  const summary = routeSummary ?? fetchedSummary ?? null
 
   const [animating, setAnimating] = useState(false)
   useEffect(() => { const t = setTimeout(() => setAnimating(true), 300); return () => clearTimeout(t) }, [])
 
   const xpCount = useCountUp(summary?.xpEarned ?? 0, 1200, animating)
 
-  if (!summary) {
+  if (isLoading && !summary) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif' }}>
+        <p style={{ color: 'rgba(255,255,255,.65)' }}>Carregando resultado...</p>
+      </div>
+    )
+  }
+
+  if (!summary || isError) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
