@@ -3,6 +3,7 @@ export interface TopicProgress {
   unlocked: boolean
   completed: boolean
   sessionsCount: number
+  answeredQuestionsCount: number
   lastSeenAt: string | null
 }
 
@@ -30,7 +31,14 @@ export interface TrailData {
   summary: {
     totalTopics: number
     unlockedTopics: number
+    answeredTopics: number
+    inProgressTopics: number
     completedTopics: number
+    totalSessions: number
+    finishedSessions: number
+    answeredQuestions: number
+    studyTimeMs: number
+    weeklyAnsweredQuestions: number[]
     totalXpEarned: number
   }
 }

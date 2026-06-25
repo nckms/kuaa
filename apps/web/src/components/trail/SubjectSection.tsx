@@ -11,8 +11,14 @@ interface SubjectSectionProps {
 
 export default function SubjectSection({ subject, activeTopicId, onTopicClick }: SubjectSectionProps) {
   const completedCount = subject.topics.filter((t) => t.progress.completed).length
+  const answeredCount = subject.topics.filter((t) => t.progress.sessionsCount > 0 || t.progress.answeredQuestionsCount > 0).length
   const totalCount = subject.topics.length
-  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+  const progressScore = subject.topics.reduce((sum, topic) => {
+    if (topic.progress.completed) return sum + 1
+    if (topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0) return sum + 0.5
+    return sum
+  }, 0)
+  const progressPercent = totalCount > 0 ? Math.round((progressScore / totalCount) * 100) : 0
 
   return (
     <div style={{ paddingBottom: 40 }}>
@@ -26,6 +32,9 @@ export default function SubjectSection({ subject, activeTopicId, onTopicClick }:
               <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'Inter, Arial, sans-serif', fontWeight: 500 }}>{completedCount}/{totalCount}</span>
             </div>
             <ProgressBar value={progressPercent} color="vinho" size="sm" />
+            {answeredCount > 0 && (
+              <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 5 }}>{answeredCount} topico(s) respondido(s)</p>
+            )}
           </div>
         </div>
       </div>

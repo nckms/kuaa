@@ -89,10 +89,10 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
         <div>
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.1em' }}>Progresso da trilha</p>
           <p style={{ fontFamily: "'Unbounded', cursive", fontSize: 32, fontWeight: 700, color: '#531A61', letterSpacing: '-0.04em', lineHeight: 1 }}>
-            {trail.summary.completedTopics}/{trail.summary.totalTopics}
+            {trail.summary.answeredTopics}/{trail.summary.totalTopics}
           </p>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>tópicos concluídos</p>
-          <ProgressBar value={trail.summary.totalTopics > 0 ? Math.round(trail.summary.completedTopics / trail.summary.totalTopics * 100) : 0} color="roxo" />
+          <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>topicos respondidos · {trail.summary.completedTopics} concluidos</p>
+          <ProgressBar value={trail.summary.totalTopics > 0 ? Math.round(((trail.summary.completedTopics + trail.summary.inProgressTopics * 0.5) / trail.summary.totalTopics) * 100) : 0} color="roxo" />
         </div>
       )}
 
@@ -128,7 +128,12 @@ export default function TrailPage() {
   const [modalTopic, setModalTopic] = useState<TrailTopic | null>(null)
   const [modalSubject, setModalSubject] = useState<TrailSubject | null>(null)
 
-  const currentSubjectId = activeSubjectId ?? trail?.subjects[0]?.id ?? null
+  const recommendedSubjectId =
+    trail?.subjects.find((subject) => subject.topics.some((topic) => topic.progress.unlocked && !topic.progress.completed))?.id
+    ?? trail?.subjects.find((subject) => subject.topics.some((topic) => topic.progress.unlocked))?.id
+    ?? trail?.subjects[0]?.id
+    ?? null
+  const currentSubjectId = activeSubjectId ?? recommendedSubjectId
 
   function handleTopicClick(topic: TrailTopic, subject: TrailSubject) {
     setActiveTopicId(topic.id)
@@ -146,19 +151,19 @@ export default function TrailPage() {
   return (
     <AppLayout rightSidebar={rightSidebar}>
       {/* Header sticky — DS v2 */}
-      <div style={{
+      <div className="trail-header" style={{
         position: 'sticky', top: 0, zIndex: 20,
         background: 'linear-gradient(135deg, #2a0d33 0%, #531A61 100%)',
         padding: '14px 24px',
         boxShadow: '0 4px 24px -8px rgba(83,26,97,.45)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: trail ? 12 : 0 }}>
+        <div className="trail-header-top" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: trail ? 12 : 0 }}>
           <div>
             <p style={{ fontSize: 9, color: 'rgba(255,255,255,.45)', letterSpacing: '.2em', textTransform: 'uppercase', fontFamily: 'Inter, Arial, sans-serif', fontWeight: 600 }}>Estudando</p>
             <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 18, color: '#fff', marginTop: 2 }}>{trail?.vestibular.name ?? '…'}</p>
           </div>
           {user && (
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="trail-stats" style={{ display: 'flex', gap: 8 }}>
               <StatChip icon="⚡" value={user.xp} label="XP" variant="dark" />
               <StatChip icon="🔥" value={user.streakDays} label="dias" variant="dark" />
             </div>
@@ -167,14 +172,19 @@ export default function TrailPage() {
 
         {/* Tabs de matérias */}
         {trail && (
-          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
+          <div className="trail-subject-tabs" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
             {trail.subjects.map((subject) => {
-              const completed = subject.topics.filter((t) => t.progress.completed).length
               const total = subject.topics.length
-              const pct = total > 0 ? Math.round((completed / total) * 100) : 0
+              const score = subject.topics.reduce((sum, topic) => {
+                if (topic.progress.completed) return sum + 1
+                if (topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0) return sum + 0.5
+                return sum
+              }, 0)
+              const pct = total > 0 ? Math.round((score / total) * 100) : 0
               const isActive = currentSubjectId === subject.id
               return (
                 <button
+                  className="trail-subject-tab"
                   key={subject.id}
                   onClick={() => setActiveSubjectId(subject.id)}
                   style={{
@@ -199,7 +209,7 @@ export default function TrailPage() {
       </div>
 
       {/* Trilha */}
-      <div style={{ padding: '40px 0 120px', minHeight: '100%' }}>
+      <div className="trail-content" style={{ padding: '40px 0 120px', minHeight: '100%' }}>
         {isLoading && <TrailSkeleton />}
 
         {isError && (
@@ -224,6 +234,58 @@ export default function TrailPage() {
       </div>
 
       <TopicModal topic={modalTopic} subject={modalSubject} onClose={handleCloseModal} />
+
+      <style>{`
+        .trail-subject-tabs {
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .trail-subject-tabs::-webkit-scrollbar {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .trail-header {
+            padding: 12px 14px !important;
+          }
+
+          .trail-header-top {
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+
+          .trail-stats {
+            flex-wrap: wrap !important;
+            justify-content: flex-end !important;
+          }
+
+          .trail-subject-tab {
+            flex: 1 1 calc(50% - 6px) !important;
+            max-width: none !important;
+            padding: 6px 11px !important;
+            font-size: 12px !important;
+            justify-content: center !important;
+          }
+
+          .trail-subject-tabs {
+            flex-wrap: wrap !important;
+            overflow-x: visible !important;
+          }
+
+          .trail-subject-tab span:nth-child(2) {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .trail-content {
+            padding-top: 28px !important;
+            padding-bottom: 160px !important;
+          }
+        }
+      `}</style>
     </AppLayout>
   )
 }

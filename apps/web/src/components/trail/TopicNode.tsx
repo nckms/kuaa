@@ -46,8 +46,9 @@ export default function TopicNode({ topic, icon, isActive, onClick }: TopicNodeP
   const { progress } = topic
   const isLocked = !progress.unlocked
   const isCompleted = progress.completed
-  const isInProgress = progress.unlocked && !progress.completed && progress.sessionsCount > 0
-  const isAvailable = progress.unlocked && !progress.completed && progress.sessionsCount === 0
+  const hasActivity = progress.sessionsCount > 0 || progress.answeredQuestionsCount > 0
+  const isInProgress = progress.unlocked && !progress.completed && hasActivity
+  const isAvailable = progress.unlocked && !progress.completed && !hasActivity
 
   const activeRing: React.CSSProperties = isActive
     ? { outline: '3px solid #FFDC5C', outlineOffset: '4px', borderRadius: '50%', boxShadow: '0 0 0 6px rgba(255,220,92,.25)' }
@@ -69,6 +70,11 @@ export default function TopicNode({ topic, icon, isActive, onClick }: TopicNodeP
   if (isCompleted) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
+        <span style={{
+          backgroundColor: '#10b981', color: '#fff', fontSize: 10, fontWeight: 700,
+          padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap',
+          fontFamily: 'Arial, sans-serif', letterSpacing: '.04em', marginBottom: 6,
+        }}>CONCLUIDO</span>
         <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', backgroundColor: '#531A61', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: '#fff', fontSize: 28, fontWeight: 900 }}>✓</span>
         </div>
@@ -79,8 +85,18 @@ export default function TopicNode({ topic, icon, isActive, onClick }: TopicNodeP
   }
 
   if (isInProgress) {
+    const label = progress.sessionsCount > 0 ? 'RESPONDIDO' : 'EM ANDAMENTO'
+    const detail = progress.sessionsCount > 0
+      ? `${progress.sessionsCount} sessao${progress.sessionsCount > 1 ? 's' : ''}`
+      : `${progress.answeredQuestionsCount} resposta${progress.answeredQuestionsCount > 1 ? 's' : ''}`
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
+        <span style={{
+          backgroundColor: '#FFDC5C', color: '#531A61', fontSize: 10, fontWeight: 700,
+          padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap',
+          fontFamily: 'Arial, sans-serif', letterSpacing: '.04em', marginBottom: 6,
+        }}>{label}</span>
         <div style={{ position: 'relative', width: nodeSize, height: nodeSize }}>
           <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', backgroundColor: '#f3eaf7', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', inset: 0 }}>
             <span style={{ fontSize: 24 }}>{icon}</span>
@@ -88,6 +104,7 @@ export default function TopicNode({ topic, icon, isActive, onClick }: TopicNodeP
           <ProgressRing masteryLevel={progress.masteryLevel} />
         </div>
         <p style={{ fontSize: 13, color: '#531A61', marginTop: 6, textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: 'Arial, sans-serif', fontWeight: 500 }}>{topic.name}</p>
+        <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 2, textAlign: 'center', maxWidth: 110, lineHeight: 1.2, fontFamily: 'Arial, sans-serif' }}>{detail}</p>
       </div>
     )
   }

@@ -1,6 +1,20 @@
 import Redis from 'ioredis'
 
-export const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379')
+let reportedConnectionError = false
 
-redis.on('error', (err) => console.error('[Redis] Erro de conexão:', err))
-redis.on('connect', () => console.log('[Redis] Conectado'))
+export const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+  enableOfflineQueue: false,
+  maxRetriesPerRequest: 1,
+  retryStrategy: () => null,
+})
+
+redis.on('error', (err) => {
+  if (reportedConnectionError) return
+  reportedConnectionError = true
+  console.warn('[Redis] Indisponivel; recursos de cache/fila seguirao em modo degradado:', err.message)
+})
+
+redis.on('connect', () => {
+  reportedConnectionError = false
+  console.log('[Redis] Conectado')
+})

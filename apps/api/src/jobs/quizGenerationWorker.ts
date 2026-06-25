@@ -116,6 +116,7 @@ const worker = new Worker<GenerationJobData>(
       await prisma.question.createMany({
         data: questions.map((q) => ({
           topicId: data.topicId,
+          generatedForSessionId: data.sessionId,
           body: q.body,
           options: q.options as unknown as Prisma.InputJsonValue,
           explanation: q.explanation,

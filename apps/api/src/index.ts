@@ -1,5 +1,4 @@
 import 'dotenv/config'
-import './jobs/quizGenerationWorker'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -9,10 +8,28 @@ import { errorHandler } from './middleware/errorHandler'
 
 const app = express()
 
+const configuredOrigins =
+  process.env.FRONTEND_URL?.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean) ?? []
+
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://kuaatcc.netlify.app',
+  ...configuredOrigins,
+])
+
 app.use(helmet())
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true)
+        return
+      }
+      callback(null, false)
+    },
     credentials: true,
   }),
 )
