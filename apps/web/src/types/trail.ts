@@ -4,6 +4,9 @@ export interface TopicProgress {
   completed: boolean
   sessionsCount: number
   answeredQuestionsCount: number
+  correctAnswersCount: number
+  wrongAnswersCount: number
+  accuracy: number | null
   lastSeenAt: string | null
 }
 
@@ -37,10 +40,24 @@ export interface TrailData {
     totalSessions: number
     finishedSessions: number
     answeredQuestions: number
+    correctAnswers: number
+    wrongAnswers: number
+    accuracy: number | null
     studyTimeMs: number
     weeklyAnsweredQuestions: number[]
     totalXpEarned: number
+    knowledgeGaps: KnowledgeGap[]
   }
+}
+
+export interface KnowledgeGap {
+  topicId: string
+  topicName: string
+  subjectName: string
+  wrongAnswers: number
+  totalAnswers: number
+  accuracy: number
+  lastAnsweredAt: string | null
 }
 
 export interface Vestibular {

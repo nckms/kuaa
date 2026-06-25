@@ -84,7 +84,10 @@ export default function DashboardPage() {
   const weekData = trail?.summary.weeklyAnsweredQuestions ?? EMPTY_WEEK
   const weekAnsweredQuestions = weekData.reduce((sum, val) => sum + val, 0)
   const totalAnsweredQuestions = trail?.summary.answeredQuestions ?? 0
-  const totalSessions = trail?.summary.totalSessions ?? 0
+  const correctAnswers = trail?.summary.correctAnswers ?? 0
+  const wrongAnswers = trail?.summary.wrongAnswers ?? 0
+  const accuracy = trail?.summary.accuracy
+  const knowledgeGaps = trail?.summary.knowledgeGaps ?? []
   const finishedSessions = trail?.summary.finishedSessions ?? 0
   const answeredTopics = trail?.summary.answeredTopics ?? 0
   const completedTopics = trail?.summary.completedTopics ?? 0
@@ -100,6 +103,8 @@ export default function DashboardPage() {
   const vestibularName = trail?.vestibular.name ?? (enrollments[0]?.vestibular.name ?? 'ENEM')
   const subtitleMessage = !trail || answeredTopics === 0
     ? 'Voce ainda nao comecou sua trilha. Que tal agora?'
+    : knowledgeGaps.length > 0
+    ? `Encontrei ${knowledgeGaps.length} lacuna(s) para reforcar hoje.`
     : completedTopics === 0
     ? 'Voce ja respondeu uma sessao. Continue para consolidar o topico.'
     : completedTopics < 5
@@ -159,7 +164,8 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
               <span style={{ backgroundColor: 'rgba(83,26,97,.08)', color: '#531A61', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>{answeredTopics} topico(s) respondido(s)</span>
               <span style={{ backgroundColor: 'rgba(83,26,97,.08)', color: '#531A61', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>{completedTopics} concluido(s)</span>
-              <span style={{ backgroundColor: 'rgba(83,26,97,.08)', color: '#531A61', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>{totalAnsweredQuestions} questao(oes)</span>
+              <span style={{ backgroundColor: 'rgba(16,185,129,.1)', color: '#047857', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>{correctAnswers} acerto(s)</span>
+              <span style={{ backgroundColor: 'rgba(132,0,51,.08)', color: '#840033', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>{wrongAnswers} erro(s)</span>
             </div>
 
             <button
@@ -180,7 +186,7 @@ export default function DashboardPage() {
             <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 64, fontWeight: 700, color: '#531A61', lineHeight: 0.9, letterSpacing: '-0.045em', marginBottom: 8 }}>
               {user?.xp ?? 0}
             </div>
-            <p style={{ fontSize: 13, color: 'rgba(83,26,97,.7)', marginBottom: 20 }}>{finishedSessions} sessoes finalizadas · {totalSessions} iniciadas</p>
+            <p style={{ fontSize: 13, color: 'rgba(83,26,97,.7)', marginBottom: 20 }}>{finishedSessions} sessoes finalizadas · {accuracy ?? 0}% de acerto geral</p>
 
             <div className="dashboard-metric-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {subjectMetrics.map((metric) => (
@@ -235,6 +241,41 @@ export default function DashboardPage() {
               ) : (
                 <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 14, textAlign: 'center', padding: '20px 0' }}>Trilha concluida.</p>
               )}
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,.08)', marginTop: 8, paddingTop: 16 }}>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 10 }}>
+                  Principais lacunas
+                </p>
+                {knowledgeGaps.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {knowledgeGaps.slice(0, 3).map((gap) => (
+                      <div key={gap.topicId} style={{ backgroundColor: 'rgba(255,255,255,.05)', borderRadius: 12, padding: '12px 14px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ color: '#fff', fontSize: 14, fontWeight: 600, fontFamily: "'Questrial', sans-serif", overflowWrap: 'anywhere' }}>{gap.topicName}</p>
+                            <p style={{ color: 'rgba(255,255,255,.42)', fontSize: 11, marginTop: 3 }}>{gap.subjectName} - {gap.wrongAnswers}/{gap.totalAnswers} erro(s)</p>
+                          </div>
+                          <span style={{ color: gap.accuracy >= 70 ? '#FFDC5C' : '#fca5a5', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>{gap.accuracy}%</span>
+                        </div>
+                        <div style={{ marginTop: 8, height: 3, backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 999 }}>
+                          <div style={{ width: `${gap.accuracy}%`, height: '100%', backgroundColor: gap.accuracy >= 70 ? '#FFDC5C' : '#840033', borderRadius: 999 }} />
+                        </div>
+                        <button
+                          onClick={() => generateQuiz.mutate({ topicId: gap.topicId, count: 5 })}
+                          disabled={generateQuiz.isPending}
+                          style={{ marginTop: 10, background: 'transparent', border: '1px solid rgba(255,220,92,.35)', color: '#FFDC5C', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700, cursor: generateQuiz.isPending ? 'not-allowed' : 'pointer' }}
+                        >
+                          Reforcar agora
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ color: 'rgba(255,255,255,.48)', fontSize: 13, lineHeight: 1.5 }}>
+                    Nenhuma lacuna forte detectada ainda. Responda mais questoes para o diagnostico ficar melhor.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -246,8 +287,8 @@ export default function DashboardPage() {
           </div>
           <div className="dashboard-agenda-list" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
             <AgendaCard borderColor="#840033" label={currentTopic?.name ?? 'Trilha concluida'} sublabel={inProgressTopic ? 'CONTINUAR TOPICO' : 'AULA DISPONIVEL'} time="Agora" badge={inProgressTopic ? 'CONTINUAR' : 'INICIAR'} />
-            <AgendaCard borderColor="#FFDC5C" label={`${weekAnsweredQuestions} questao(oes) esta semana`} sublabel="ATIVIDADE REAL" time="Semana" />
-            <AgendaCard borderColor="#531A61" label={`${finishedSessions}/${totalSessions} sessoes finalizadas`} sublabel="PROGRESSO" time="Geral" />
+            <AgendaCard borderColor="#10b981" label={`${correctAnswers}/${totalAnsweredQuestions} acerto(s)`} sublabel={`${accuracy ?? 0}% de acerto geral`} time="Desempenho" />
+            <AgendaCard borderColor="#FFDC5C" label={knowledgeGaps[0]?.topicName ?? 'Sem lacuna principal'} sublabel={knowledgeGaps[0] ? `${knowledgeGaps[0].subjectName} - prioridade de reforco` : 'DIAGNOSTICO'} time="Lacuna" />
           </div>
         </div>
       </div>

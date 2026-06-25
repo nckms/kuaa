@@ -12,6 +12,10 @@ interface TopicModalProps {
 
 export default function TopicModal({ topic, subject, onClose }: TopicModalProps) {
   const generateMutation = useGenerateQuiz()
+  const answeredQuestions = topic?.progress.answeredQuestionsCount ?? 0
+  const correctAnswers = topic?.progress.correctAnswersCount ?? 0
+  const wrongAnswers = topic?.progress.wrongAnswersCount ?? 0
+  const accuracy = topic?.progress.accuracy ?? null
 
   function getButtonLabel(): string {
     if (!topic) return ''
@@ -93,6 +97,23 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
 
               <ProgressBar value={topic.progress.masteryLevel / 5 * 100} color="roxo" size="sm" />
               <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6, marginBottom: 20 }}>Seu progresso neste tópico</p>
+
+              {answeredQuestions > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
+                  <div style={{ background: 'rgba(16,185,129,.1)', borderRadius: 14, padding: '10px 8px', textAlign: 'center' }}>
+                    <p style={{ fontSize: 16, color: '#047857', fontWeight: 800 }}>{correctAnswers}</p>
+                    <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>acertos</p>
+                  </div>
+                  <div style={{ background: 'rgba(132,0,51,.08)', borderRadius: 14, padding: '10px 8px', textAlign: 'center' }}>
+                    <p style={{ fontSize: 16, color: '#840033', fontWeight: 800 }}>{wrongAnswers}</p>
+                    <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>erros</p>
+                  </div>
+                  <div style={{ background: 'var(--bg-soft)', borderRadius: 14, padding: '10px 8px', textAlign: 'center' }}>
+                    <p style={{ fontSize: 16, color: '#531A61', fontWeight: 800 }}>{accuracy ?? 0}%</p>
+                    <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>acerto</p>
+                  </div>
+                </div>
+              )}
 
               <hr style={{ border: 'none', borderTop: '1px solid var(--line-soft)', marginBottom: 20 }} />
 

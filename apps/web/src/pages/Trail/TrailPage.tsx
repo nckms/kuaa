@@ -33,6 +33,10 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
   if (!user) return null
 
   const xpBar = Math.round((user.xp % 100))
+  const correctAnswers = trail?.summary.correctAnswers ?? 0
+  const wrongAnswers = trail?.summary.wrongAnswers ?? 0
+  const accuracy = trail?.summary.accuracy ?? null
+  const knowledgeGaps = trail?.summary.knowledgeGaps ?? []
 
   return (
     <div style={{ padding: 24, height: '100%', overflowY: 'auto', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -93,6 +97,42 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
           </p>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>topicos respondidos · {trail.summary.completedTopics} concluidos</p>
           <ProgressBar value={trail.summary.totalTopics > 0 ? Math.round(((trail.summary.completedTopics + trail.summary.inProgressTopics * 0.5) / trail.summary.totalTopics) * 100) : 0} color="roxo" />
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
+            <div style={{ backgroundColor: 'rgba(16,185,129,.1)', borderRadius: 12, padding: '9px 8px', textAlign: 'center' }}>
+              <p style={{ fontSize: 15, fontWeight: 800, color: '#047857' }}>{correctAnswers}</p>
+              <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>acertos</p>
+            </div>
+            <div style={{ backgroundColor: 'rgba(132,0,51,.08)', borderRadius: 12, padding: '9px 8px', textAlign: 'center' }}>
+              <p style={{ fontSize: 15, fontWeight: 800, color: '#840033' }}>{wrongAnswers}</p>
+              <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>erros</p>
+            </div>
+            <div style={{ backgroundColor: 'var(--bg-soft)', borderRadius: 12, padding: '9px 8px', textAlign: 'center' }}>
+              <p style={{ fontSize: 15, fontWeight: 800, color: '#531A61' }}>{accuracy ?? 0}%</p>
+              <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>acerto</p>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.1em' }}>Lacunas principais</p>
+            {knowledgeGaps.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {knowledgeGaps.slice(0, 3).map((gap) => (
+                  <div key={gap.topicId} style={{ border: '1px solid var(--line-soft)', borderRadius: 12, padding: '9px 10px', backgroundColor: 'var(--surface)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontSize: 12, color: 'var(--text)', fontWeight: 700, overflowWrap: 'anywhere' }}>{gap.topicName}</p>
+                        <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{gap.subjectName} - {gap.wrongAnswers}/{gap.totalAnswers} erros</p>
+                      </div>
+                      <span style={{ fontSize: 12, color: gap.accuracy >= 70 ? '#531A61' : '#840033', fontWeight: 800, flexShrink: 0 }}>{gap.accuracy}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.45 }}>Responda mais questoes para o diagnostico apontar reforcos.</p>
+            )}
+          </div>
         </div>
       )}
 

@@ -7,6 +7,9 @@ interface TopicProgressShape {
   completed: boolean
   sessionsCount: number
   answeredQuestionsCount: number
+  correctAnswersCount: number
+  wrongAnswersCount: number
+  accuracy: number | null
   lastSeenAt: string | null
 }
 
@@ -28,6 +31,16 @@ interface TrailSubjectShape {
   topics: TrailTopicShape[]
 }
 
+interface KnowledgeGapShape {
+  topicId: string
+  topicName: string
+  subjectName: string
+  wrongAnswers: number
+  totalAnswers: number
+  accuracy: number
+  lastAnsweredAt: string | null
+}
+
 interface TrailShape {
   vestibular: { id: string; slug: string; name: string; institution: string }
   subjects: TrailSubjectShape[]
@@ -40,16 +53,23 @@ interface TrailShape {
     totalSessions: number
     finishedSessions: number
     answeredQuestions: number
+    correctAnswers: number
+    wrongAnswers: number
+    accuracy: number | null
     studyTimeMs: number
     weeklyAnsweredQuestions: number[]
     totalXpEarned: number
+    knowledgeGaps: KnowledgeGapShape[]
   }
 }
 
 interface TopicActivity {
   answeredQuestionsCount: number
+  correctAnswersCount: number
+  wrongAnswersCount: number
   finishedSessionsCount: number
   sessionsCount: number
+  lastAnsweredAt: Date | null
 }
 
 interface TrailActivity {
@@ -57,6 +77,8 @@ interface TrailActivity {
   totalSessions: number
   finishedSessions: number
   answeredQuestions: number
+  correctAnswers: number
+  wrongAnswers: number
   studyTimeMs: number
   weeklyAnsweredQuestions: number[]
 }
@@ -123,7 +145,7 @@ class TrailService {
       select: {
         topicId: true,
         finishedAt: true,
-        answers: { select: { id: true, answeredAt: true, timeSpentMs: true } },
+        answers: { select: { id: true, answeredAt: true, timeSpentMs: true, isCorrect: true } },
       },
     })
 
@@ -133,13 +155,18 @@ class TrailService {
 
     let finishedSessions = 0
     let answeredQuestions = 0
+    let correctAnswers = 0
+    let wrongAnswers = 0
     let studyTimeMs = 0
 
     for (const session of sessions) {
       const current = activityMap.get(session.topicId) ?? {
         answeredQuestionsCount: 0,
+        correctAnswersCount: 0,
+        wrongAnswersCount: 0,
         finishedSessionsCount: 0,
         sessionsCount: 0,
+        lastAnsweredAt: null,
       }
 
       current.sessionsCount += 1
@@ -153,6 +180,16 @@ class TrailService {
 
       for (const answer of session.answers) {
         studyTimeMs += answer.timeSpentMs
+        if (answer.isCorrect) {
+          current.correctAnswersCount += 1
+          correctAnswers += 1
+        } else {
+          current.wrongAnswersCount += 1
+          wrongAnswers += 1
+        }
+        if (!current.lastAnsweredAt || answer.answeredAt > current.lastAnsweredAt) {
+          current.lastAnsweredAt = answer.answeredAt
+        }
 
         if (answer.answeredAt >= weekStart) {
           const dayIndex = (answer.answeredAt.getDay() + 6) % 7
@@ -168,6 +205,8 @@ class TrailService {
       totalSessions: sessions.length,
       finishedSessions,
       answeredQuestions,
+      correctAnswers,
+      wrongAnswers,
       studyTimeMs,
       weeklyAnsweredQuestions,
     }
@@ -221,6 +260,11 @@ class TrailService {
             completed: prog?.completed ?? false,
             sessionsCount: Math.max(prog?.sessionsCount ?? 0, activity?.finishedSessionsCount ?? 0),
             answeredQuestionsCount: activity?.answeredQuestionsCount ?? 0,
+            correctAnswersCount: activity?.correctAnswersCount ?? 0,
+            wrongAnswersCount: activity?.wrongAnswersCount ?? 0,
+            accuracy: activity?.answeredQuestionsCount
+              ? Math.round(((activity.correctAnswersCount / activity.answeredQuestionsCount) * 100))
+              : null,
             lastSeenAt: prog?.lastSeenAt?.toISOString() ?? null,
           },
         }
@@ -237,6 +281,32 @@ class TrailService {
     const inProgressTopics = allTopics.filter((t) => (
       !t.progress.completed && (t.progress.sessionsCount > 0 || t.progress.answeredQuestionsCount > 0)
     )).length
+    const knowledgeGaps = subjects.flatMap((subject) => (
+      subject.topics.map((topic) => {
+        const activity = activityMap.get(topic.id)
+        const totalAnswers = activity?.answeredQuestionsCount ?? 0
+        const wrongAnswers = activity?.wrongAnswersCount ?? 0
+        const correctAnswers = activity?.correctAnswersCount ?? 0
+        const accuracy = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 100
+
+        return {
+          topicId: topic.id,
+          topicName: topic.name,
+          subjectName: subject.name,
+          wrongAnswers,
+          totalAnswers,
+          accuracy,
+          lastAnsweredAt: activity?.lastAnsweredAt?.toISOString() ?? null,
+        }
+      })
+    ))
+      .filter((gap) => gap.totalAnswers > 0 && (gap.wrongAnswers > 0 || gap.accuracy < 70))
+      .sort((a, b) => (
+        b.wrongAnswers - a.wrongAnswers
+        || a.accuracy - b.accuracy
+        || b.totalAnswers - a.totalAnswers
+      ))
+      .slice(0, 5)
 
     const xpAgg = await prisma.quizSession.aggregate({
       where: { userId, topic: { subject: { vestibularId: vestibular.id } } },
@@ -261,9 +331,15 @@ class TrailService {
         totalSessions: activity.totalSessions,
         finishedSessions: activity.finishedSessions,
         answeredQuestions: activity.answeredQuestions,
+        correctAnswers: activity.correctAnswers,
+        wrongAnswers: activity.wrongAnswers,
+        accuracy: activity.answeredQuestions > 0
+          ? Math.round((activity.correctAnswers / activity.answeredQuestions) * 100)
+          : null,
         studyTimeMs: activity.studyTimeMs,
         weeklyAnsweredQuestions: activity.weeklyAnsweredQuestions,
         totalXpEarned,
+        knowledgeGaps,
       },
     }
   }
