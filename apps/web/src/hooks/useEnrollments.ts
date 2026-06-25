@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../services/api'
 import type { Vestibular } from '../types/trail'
+import { useAuthStore } from '../stores/auth.store'
 
 export interface EnrollmentItem {
   enrollment: { id: string; vestibularId: string; enrolledAt: string }
@@ -30,7 +31,22 @@ export function useEnroll() {
       const res = await api.post<EnrollResult>('/enrollments', { vestibularId })
       return res.data
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const current = useAuthStore.getState().enrollments
+      const nextEnrollment = {
+        id: data.enrollment.id,
+        vestibularId: data.enrollment.vestibularId,
+        vestibular: { slug: data.vestibular.slug, name: data.vestibular.name },
+      }
+      const exists = current.some((item) => item.vestibularId === nextEnrollment.vestibularId)
+      const enrollments = exists
+        ? current.map((item) => (item.vestibularId === nextEnrollment.vestibularId ? nextEnrollment : item))
+        : [...current, nextEnrollment]
+
+      useAuthStore.setState({
+        enrollments,
+        firstVestibularSlug: enrollments[0]?.vestibular.slug ?? null,
+      })
       queryClient.invalidateQueries({ queryKey: ['enrollments', 'me'] })
       queryClient.invalidateQueries({ queryKey: ['trail'] })
     },

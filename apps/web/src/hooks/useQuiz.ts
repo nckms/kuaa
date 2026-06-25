@@ -47,10 +47,17 @@ export function useSession(sessionId: string | undefined) {
 }
 
 export function useAnswer(sessionId: string) {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: async (data: { questionId: string; optionId: string; timeSpentMs: number }) => {
       const res = await api.post<AnswerResult>(`/quiz/${sessionId}/answer`, data)
       return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trail'] })
+      queryClient.invalidateQueries({ queryKey: ['enrollments'] })
+      queryClient.invalidateQueries({ queryKey: ['user'] })
     },
   })
 }

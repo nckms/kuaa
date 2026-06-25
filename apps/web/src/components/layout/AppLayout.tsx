@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../stores/auth.store'
 
 interface Props {
@@ -19,9 +17,6 @@ export default function AppLayout({ children, rightSidebar }: Props) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, logout, firstVestibularSlug } = useAuthStore()
-  const [drawerOpen, setDrawerOpen] = useState(false)
-
-  useEffect(() => { setDrawerOpen(false) }, [pathname])
 
   async function handleLogout() {
     await logout()
@@ -174,54 +169,8 @@ export default function AppLayout({ children, rightSidebar }: Props) {
         <SidebarContent />
       </aside>
 
-      {/* Mobile drawer overlay */}
-      <AnimatePresence>
-        {drawerOpen && (
-          <>
-            <motion.div
-              style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(26,8,38,.65)', zIndex: 40, backdropFilter: 'blur(4px)' }}
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setDrawerOpen(false)}
-            />
-            <motion.aside
-              style={{
-                position: 'fixed', left: 0, top: 0, bottom: 0, width: 260,
-                background: '#1a0826', zIndex: 50, overflowY: 'auto',
-                borderRight: '1px solid rgba(255,255,255,.06)',
-              }}
-              initial={{ x: -260 }} animate={{ x: 0 }} exit={{ x: -260 }}
-              transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-            >
-              <SidebarContent />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Mobile top bar */}
-      <div
-        className="lg:hidden"
-        style={{
-          position: 'fixed', top: 0, left: 0, right: 0, height: 56,
-          background: '#1a0826', zIndex: 30,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px',
-          borderBottom: '1px solid rgba(255,255,255,.06)',
-        }}
-      >
-        <button
-          onClick={() => setDrawerOpen(true)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.8)', fontSize: 20, lineHeight: 1, padding: 4 }}
-        >
-          <i className="bi bi-list" />
-        </button>
-        <span style={{ fontFamily: "'Unbounded', cursive", fontWeight: 700, fontSize: 15, color: '#fff', letterSpacing: '-0.04em' }}>
-          kuaa<span style={{ color: '#FFDC5C' }}>.</span>
-        </span>
-        <div style={{ width: 28 }} />
-      </div>
-
       {/* Main content */}
-      <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }} className="lg:pt-0 pt-14">
+      <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }} className="app-main-content">
         {children}
       </main>
 
@@ -241,7 +190,7 @@ export default function AppLayout({ children, rightSidebar }: Props) {
 
       {/* Bottom nav — mobile, floating pill */}
       <nav
-        className="fixed lg:hidden"
+        className="mobile-bottom-nav fixed lg:hidden"
         style={{
           bottom: 14, left: 14, right: 14,
           background: '#1a0826',
@@ -278,6 +227,34 @@ export default function AppLayout({ children, rightSidebar }: Props) {
           )
         })}
       </nav>
+
+      <style>{`
+        @media (min-width: 1024px) {
+          .mobile-bottom-nav {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 1023px) {
+          .app-main-content {
+            margin-bottom: 104px;
+            padding-bottom: 24px;
+            scroll-padding-bottom: 124px;
+          }
+        }
+
+        @media (max-width: 380px) {
+          .mobile-bottom-nav {
+            left: 8px !important;
+            right: 8px !important;
+          }
+
+          .mobile-bottom-nav a {
+            padding-left: 4px !important;
+            padding-right: 4px !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

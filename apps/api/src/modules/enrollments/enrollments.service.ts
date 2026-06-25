@@ -44,6 +44,7 @@ class EnrollmentsService {
       where: { id: vestibularId, active: true },
       include: {
         subjects: {
+          orderBy: { order: 'asc' },
           include: { topics: { orderBy: { order: 'asc' } } },
         },
       },
@@ -63,14 +64,12 @@ class EnrollmentsService {
       skipDuplicates: true,
     })
 
-    for (const subject of vestibular.subjects) {
-      const firstTopic = subject.topics[0]
-      if (firstTopic) {
-        await prisma.userTopicProgress.update({
-          where: { userId_topicId: { userId, topicId: firstTopic.id } },
-          data: { unlocked: true },
-        })
-      }
+    const firstTopic = vestibular.subjects.flatMap((s) => s.topics)[0]
+    if (firstTopic) {
+      await prisma.userTopicProgress.update({
+        where: { userId_topicId: { userId, topicId: firstTopic.id } },
+        data: { unlocked: true },
+      })
     }
 
     return { enrollment, vestibular }

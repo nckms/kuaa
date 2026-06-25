@@ -76,23 +76,23 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
-      <div style={{ padding: '32px 24px 80px', fontFamily: 'Inter, Arial, sans-serif', background: 'var(--bg)' }}>
+      <div className="profile-page" style={{ padding: '32px 24px 80px', fontFamily: 'Inter, Arial, sans-serif', background: 'var(--bg)' }}>
 
         {/* Hero card amarelo */}
-        <div style={{ backgroundColor: '#FFDC5C', borderRadius: 24, padding: '28px 32px', marginBottom: 20 }}>
+        <div className="profile-hero-card" style={{ backgroundColor: '#FFDC5C', borderRadius: 24, padding: '28px 32px', marginBottom: 20 }}>
           <p style={{ fontSize: 11, color: 'rgba(83,26,97,.6)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 4 }}>SEU PERFIL DE APROVAÇÃO</p>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div className="profile-hero-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <h1 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 32, color: '#531A61' }}>Índice Kuaa</h1>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="profile-hero-badges" style={{ display: 'flex', gap: 8 }}>
               <span style={{ backgroundColor: '#531A61', color: '#fff', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>✓ {activeVestibular}</span>
               <span style={{ backgroundColor: 'rgba(83,26,97,.12)', color: '#531A61', fontSize: 12, padding: '5px 12px', borderRadius: 999 }}>Atualizado agora</span>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
+          <div className="profile-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
             <div>
               <span style={{ display: 'inline-block', backgroundColor: '#840033', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 999, marginBottom: 12, letterSpacing: '.04em' }}>• TOP —% NACIONAL</span>
-              <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 80, fontWeight: 700, color: '#531A61', lineHeight: 0.9, letterSpacing: '-0.045em', marginBottom: 8 }}>
+              <div className="profile-score" style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 80, fontWeight: 700, color: '#531A61', lineHeight: 0.9, letterSpacing: '-0.045em', marginBottom: 8 }}>
                 {user.xp}
               </div>
               <p style={{ fontSize: 14, color: 'rgba(83,26,97,.6)', marginBottom: 16 }}>DE PONTOS TOTAIS</p>
@@ -107,22 +107,24 @@ export default function ProfilePage() {
                 ))}
               </div>
             </div>
-            <SemiGauge value={user.xp} />
+            <div className="profile-gauge">
+              <SemiGauge value={user.xp} />
+            </div>
           </div>
         </div>
 
         {/* Grid de matérias */}
-        <div style={{ backgroundColor: '#2a0d33', borderRadius: 24, padding: 28, marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div className="profile-history-card" style={{ backgroundColor: '#2a0d33', borderRadius: 24, padding: 28, marginBottom: 20 }}>
+          <div className="profile-card-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,.4)', letterSpacing: '.1em', textTransform: 'uppercase' }}>HISTÓRICO DE PONTUAÇÃO</p>
             {/* Sparkline placeholder */}
             <svg width={80} height={24} viewBox="0 0 80 24">
               <polyline points="0,20 12,16 24,14 36,10 48,8 60,6 72,4 80,2" fill="none" stroke="#FFDC5C" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          <div className="profile-subject-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
             {SUBJECT_CARDS.map((s) => (
-              <div key={s.name} style={{ backgroundColor: 'rgba(255,255,255,.05)', borderRadius: 14, padding: 16 }}>
+              <div className="profile-subject-card" key={s.name} style={{ backgroundColor: 'rgba(255,255,255,.05)', borderRadius: 14, padding: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <span style={{ fontSize: 18 }}>{s.icon}</span>
                   <span style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', letterSpacing: '.06em', textTransform: 'uppercase' }}>{s.name}</span>
@@ -134,8 +136,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Info do usuário */}
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div className="profile-info-card" style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
+          <div className="profile-info-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
             <h2 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: '#1a1a1a' }}>Informações</h2>
             {!isEditing && (
               <button onClick={() => setIsEditing(true)} style={{ backgroundColor: 'transparent', border: '1.5px solid #531A61', color: '#531A61', padding: '8px 18px', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Arial, sans-serif' }}>
@@ -143,7 +145,7 @@ export default function ProfilePage() {
               </button>
             )}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+          <div className="profile-info-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
             {[
               { label: 'Nome', value: user.name },
               { label: 'E-mail', value: user.email },
@@ -154,7 +156,7 @@ export default function ProfilePage() {
             ].map(({ label, value }) => (
               <div key={label}>
                 <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4, letterSpacing: '.04em', textTransform: 'uppercase' }}>{label}</p>
-                <p style={{ fontSize: 15, color: '#1a1a1a', fontWeight: 500 }}>{value}</p>
+                <p className="profile-info-value" style={{ fontSize: 15, color: '#1a1a1a', fontWeight: 500 }}>{value}</p>
               </div>
             ))}
           </div>
@@ -170,6 +172,94 @@ export default function ProfilePage() {
         <div style={{ display: 'none' }}>
           <ProgressBar value={0} />
         </div>
+
+        <style>{`
+          .profile-page,
+          .profile-page * {
+            box-sizing: border-box;
+          }
+
+          .profile-subject-card,
+          .profile-info-value {
+            min-width: 0;
+          }
+
+          @media (max-width: 768px) {
+            .profile-page {
+              padding: 20px 16px 140px !important;
+            }
+
+            .profile-hero-card,
+            .profile-history-card,
+            .profile-info-card {
+              border-radius: 18px !important;
+              padding: 20px !important;
+            }
+
+            .profile-hero-head,
+            .profile-card-head,
+            .profile-info-head {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+              gap: 10px !important;
+            }
+
+            .profile-hero-head h1 {
+              font-size: 28px !important;
+            }
+
+            .profile-hero-badges {
+              width: 100% !important;
+              flex-wrap: wrap !important;
+            }
+
+            .profile-hero-badges span {
+              max-width: 100% !important;
+              overflow-wrap: anywhere;
+            }
+
+            .profile-hero-grid {
+              grid-template-columns: 1fr !important;
+              gap: 12px !important;
+            }
+
+            .profile-score {
+              font-size: 58px !important;
+              letter-spacing: 0 !important;
+            }
+
+            .profile-gauge {
+              display: none !important;
+            }
+
+            .profile-subject-grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            .profile-subject-card {
+              padding: 14px !important;
+            }
+
+            .profile-info-grid {
+              grid-template-columns: 1fr !important;
+            }
+
+            .profile-info-value {
+              overflow-wrap: anywhere;
+            }
+          }
+
+          @media (max-width: 380px) {
+            .profile-page {
+              padding-left: 12px !important;
+              padding-right: 12px !important;
+            }
+
+            .profile-subject-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
 
       </div>
     </AppLayout>

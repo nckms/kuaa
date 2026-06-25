@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import axios from 'axios'
 import type { User } from '../types/user'
+import { API_BASE_URL } from '../config/api'
 
 interface StoredEnrollment {
   id: string
@@ -26,7 +27,7 @@ interface AuthState {
   hydrate: () => Promise<void>
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL
+const BASE_URL = API_BASE_URL
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,

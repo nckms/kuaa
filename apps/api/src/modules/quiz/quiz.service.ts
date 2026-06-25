@@ -1,13 +1,166 @@
-import { Queue } from 'bullmq'
+import type { Prisma } from '@prisma/client'
+import { z } from 'zod'
 import { prisma } from '../../lib/prisma'
 import { redis } from '../../lib/redis'
+import { openai } from '../../lib/openai'
 import { makeError } from '../../utils/errors'
 import { computeNewLevel } from '../../services/adaptive/DifficultyEngine'
-import { getBullMQConnection } from '../../lib/bullmqConnection'
 import type { GenerateInput, AnswerInput } from './quiz.schemas'
-import type { AnswerResult, SessionSummary, AchievementData, QuestionOption, ReviewQuestion } from './quiz.types'
+import type { AnswerResult, SessionSummary, AchievementData, QuestionOption, ReviewQuestion, GenerationJobData } from './quiz.types'
 
-const quizQueue = new Queue('quiz-generation', { connection: getBullMQConnection() })
+const OptionSchema = z.object({
+  id: z.enum(['A', 'B', 'C', 'D', 'E']),
+  text: z.string().min(1),
+  isCorrect: z.boolean(),
+})
+
+const QuestionSchema = z.object({
+  body: z.string().min(10),
+  options: z.array(OptionSchema).length(5),
+  explanation: z.string().min(20),
+  difficulty: z.number().int().min(1).max(5),
+})
+
+const ResponseSchema = z.object({
+  questions: z.array(QuestionSchema).min(1),
+})
+
+const quizQueue = {
+  async getJob(_jobId: string) {
+    return { getState: async () => 'waiting' }
+  },
+}
+
+function generateFallbackQuestions(data: {
+  topicName: string
+  vestibularName: string
+  userMasteryLevel: number
+  questionCount: number
+}): Array<{
+  body: string
+  options: QuestionOption[]
+  explanation: string
+  difficulty: number
+}> {
+  return Array.from({ length: data.questionCount }, (_, i) => ({
+    body: `[QUESTAO DEMONSTRACAO ${i + 1}] Sobre o topico "${data.topicName}": qual das afirmativas a seguir esta correta segundo os principais conceitos estudados?`,
+    options: [
+      { id: 'A', text: 'A primeira alternativa apresenta um exemplo introdutorio do tema.', isCorrect: false },
+      { id: 'B', text: 'A segunda alternativa corresponde ao conceito principal do topico.', isCorrect: true },
+      { id: 'C', text: 'A terceira alternativa mistura conceitos de areas distintas.', isCorrect: false },
+      { id: 'D', text: 'A quarta alternativa apresenta uma informacao parcialmente correta.', isCorrect: false },
+      { id: 'E', text: 'A quinta alternativa contradiz as definicoes fundamentais.', isCorrect: false },
+    ],
+    explanation: `Esta e uma questao de demonstracao sobre "${data.topicName}". A alternativa B esta correta pois representa o conceito central do topico conforme o programa do ${data.vestibularName}. Em uma sessao real, esta explicacao pode ser gerada por IA com detalhes especificos sobre o conteudo.`,
+    difficulty: Math.min(5, data.userMasteryLevel + 1),
+  }))
+}
+
+async function generateQuestions(data: GenerationJobData): Promise<ReturnType<typeof generateFallbackQuestions>> {
+  const hasApiKey = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 10
+
+  if (!hasApiKey) return generateFallbackQuestions(data)
+
+  const systemPrompt = `Voce e um professor especialista em vestibulares brasileiros.
+Gere questoes de multipla escolha no padrao do vestibular solicitado.
+
+REGRAS OBRIGATORIAS:
+1. Linguagem acessivel para estudantes de escolas publicas
+2. Contextos da realidade brasileira contemporanea
+3. Exatamente 5 alternativas (A-E), apenas 1 correta
+4. difficulty de 1 a 5, proporcional ao masteryLevel informado
+5. explanation deve ensinar o conceito, minimo 2 linhas
+
+Retorne APENAS JSON valido sem markdown, exatamente neste formato:
+{
+  "questions": [
+    {
+      "body": "enunciado completo",
+      "options": [
+        { "id": "A", "text": "alternativa", "isCorrect": false },
+        { "id": "B", "text": "alternativa", "isCorrect": true },
+        { "id": "C", "text": "alternativa", "isCorrect": false },
+        { "id": "D", "text": "alternativa", "isCorrect": false },
+        { "id": "E", "text": "alternativa", "isCorrect": false }
+      ],
+      "explanation": "explicacao didatica e completa",
+      "difficulty": 2
+    }
+  ]
+}`
+
+  const userPrompt = `Vestibular: ${data.vestibularName}
+Materia: ${data.subjectName}
+Topico: ${data.topicName}
+Nivel de dominio do aluno: ${data.userMasteryLevel}/5
+Questoes a gerar: ${data.questionCount}
+${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.recentErrorTopics.join(', ')}` : ''}`
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: 4000,
+      temperature: 0.7,
+    })
+
+    const content = completion.choices[0]?.message?.content
+    if (!content) throw new Error('OpenAI retornou resposta vazia')
+
+    const parsed = JSON.parse(content) as unknown
+    const validated = ResponseSchema.parse(parsed)
+    return validated.questions
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'erro desconhecido'
+    console.warn(`[QuizService] Falha ao gerar com IA; usando fallback: ${message}`)
+    return generateFallbackQuestions(data)
+  }
+}
+
+async function persistGeneratedQuestions(
+  sessionId: string,
+  topicId: string,
+  questions: ReturnType<typeof generateFallbackQuestions>,
+): Promise<void> {
+  await prisma.question.createMany({
+    data: questions.map((q) => ({
+      topicId,
+      generatedForSessionId: sessionId,
+      body: q.body,
+      options: q.options as unknown as Prisma.InputJsonValue,
+      explanation: q.explanation,
+      difficulty: q.difficulty,
+      source: 'AI_GENERATED',
+    })),
+  })
+}
+
+async function markSessionReady(sessionId: string): Promise<void> {
+  try {
+    await redis.set(`session:ready:${sessionId}`, '1', 'EX', 3600)
+  } catch {
+    // O status tambem consulta o banco; Redis e acelerador, nao fonte unica.
+  }
+}
+
+async function getRedisValue(key: string): Promise<string | null> {
+  try {
+    return await redis.get(key)
+  } catch {
+    return null
+  }
+}
+
+async function enqueueQuizGeneration(data: GenerationJobData): Promise<{ id: string }> {
+  const questions = await generateQuestions(data)
+  await persistGeneratedQuestions(data.sessionId, data.topicId, questions)
+  await markSessionReady(data.sessionId)
+  return { id: `sync-${data.sessionId}` }
+}
 
 class QuizService {
   async generate(userId: string, input: GenerateInput): Promise<{ jobId: string; sessionId: string }> {
@@ -46,8 +199,7 @@ class QuizService {
       data: { userId, topicId },
     })
 
-    // Enfileirar job
-    const job = await quizQueue.add('generate', {
+    const jobData = {
       sessionId: session.id,
       userId,
       topicId,
@@ -57,7 +209,9 @@ class QuizService {
       userMasteryLevel: progress.masteryLevel,
       recentErrorTopics,
       questionCount: count,
-    })
+    }
+
+    const job = await enqueueQuizGeneration(jobData)
 
     if (!job.id) throw makeError('Erro ao enfileirar geração', 500, 'QUEUE_ERROR')
 
@@ -65,13 +219,23 @@ class QuizService {
   }
 
   async getJobStatus(jobId: string, sessionId: string): Promise<{ status: string; sessionId?: string; message?: string }> {
-    const ready = await redis.get(`session:ready:${sessionId}`)
+    const generatedCount = await prisma.question.count({
+      where: { generatedForSessionId: sessionId, active: true },
+    })
+    if (generatedCount > 0) return { status: 'ready', sessionId }
+
+    const ready = await getRedisValue(`session:ready:${sessionId}`)
     if (ready) return { status: 'ready', sessionId }
 
-    const error = await redis.get(`session:error:${sessionId}`)
+    const error = await getRedisValue(`session:error:${sessionId}`)
     if (error) return { status: 'error', message: error }
 
-    const job = await quizQueue.getJob(jobId)
+    let job: Awaited<ReturnType<typeof quizQueue.getJob>>
+    try {
+      job = await quizQueue.getJob(jobId)
+    } catch {
+      return { status: 'pending' }
+    }
     if (!job) return { status: 'error', message: 'Job não encontrado' }
 
     const state = await job.getState()
@@ -87,9 +251,9 @@ class QuizService {
         topic: {
           include: {
             subject: { include: { vestibular: true } },
-            questions: { where: { active: true }, orderBy: { createdAt: 'asc' } },
           },
         },
+        generatedQuestions: { where: { active: true }, orderBy: { createdAt: 'asc' } },
         answers: { select: { questionId: true } },
       },
     })
@@ -98,8 +262,12 @@ class QuizService {
     if (session.userId !== userId) throw makeError('Acesso negado', 403, 'FORBIDDEN')
     if (session.finishedAt) throw makeError('Sessão já finalizada', 400, 'SESSION_FINISHED')
 
+    if (session.generatedQuestions.length === 0) {
+      throw makeError('Questoes ainda nao estao prontas', 409, 'QUESTIONS_NOT_READY')
+    }
+
     // Remover isCorrect das options antes de enviar
-    const questions = session.topic.questions.map((q) => {
+    const questions = session.generatedQuestions.map((q) => {
       const opts = q.options as unknown as QuestionOption[]
       return {
         id: q.id,
@@ -141,6 +309,10 @@ class QuizService {
     const question = await prisma.question.findUnique({ where: { id: questionId } })
     if (!question) throw makeError('Questão não encontrada', 404, 'NOT_FOUND')
     if (question.topicId !== session.topicId) throw makeError('Questão não pertence a esta sessão', 400, 'INVALID_QUESTION')
+
+    if (question.generatedForSessionId !== sessionId) {
+      throw makeError('Questao nao pertence a esta sessao', 400, 'INVALID_QUESTION')
+    }
 
     // Verificar resposta
     const options = question.options as unknown as QuestionOption[]
@@ -210,9 +382,9 @@ class QuizService {
         topic: {
           include: {
             subject: { include: { vestibular: true } },
-            questions: { where: { active: true } },
           },
         },
+        generatedQuestions: { where: { active: true }, orderBy: { createdAt: 'asc' } },
       },
     })
 
@@ -221,9 +393,12 @@ class QuizService {
     if (session.finishedAt) throw makeError('Sessão já finalizada', 400, 'SESSION_FINISHED')
 
     const { correct, wrong } = session
-    const total = correct + wrong
-    const accuracy = total > 0 ? correct / total : 0
-    const isPerfect = total > 0 && accuracy === 1.0
+    const answeredQuestionIds = new Set(session.answers.map((a) => a.questionId))
+    const skipped = Math.max(0, session.generatedQuestions.length - answeredQuestionIds.size)
+    const answeredTotal = correct + wrong
+    const totalQuestions = session.generatedQuestions.length || answeredTotal
+    const accuracy = totalQuestions > 0 ? correct / totalQuestions : 0
+    const isPerfect = totalQuestions > 0 && correct === totalQuestions && wrong === 0 && skipped === 0
     const bonusXp = isPerfect ? 10 : 0
     const xpEarned = session.xpEarned + bonusXp
 
@@ -234,15 +409,12 @@ class QuizService {
     const currentMastery = progress?.masteryLevel ?? 0
 
     // Calcular questões respondidas para difficulty média
-    const avgDifficulty = session.answers.length > 0
-      ? session.answers.reduce((acc, a) => {
-          const q = a.question
-          return acc + (q.difficulty ?? 2)
-        }, 0) / session.answers.length
+    const avgDifficulty = session.generatedQuestions.length > 0
+      ? session.generatedQuestions.reduce((acc, q) => acc + (q.difficulty ?? 2), 0) / session.generatedQuestions.length
       : 2
 
     const newMasteryLevel = computeNewLevel(currentMastery, accuracy, avgDifficulty)
-    const completed = newMasteryLevel >= 3
+    const completed = (progress?.completed ?? false) || newMasteryLevel >= 3
 
     // Atualizar progresso do tópico
     await prisma.userTopicProgress.update({
@@ -257,12 +429,15 @@ class QuizService {
 
     // Desbloquear próximo tópico se completou
     if (completed) {
-      const nextTopic = await prisma.topic.findFirst({
-        where: {
-          subjectId: session.topic.subjectId,
-          order: session.topic.order + 1,
-        },
+      const subjects = await prisma.subject.findMany({
+        where: { vestibularId: session.topic.subject.vestibularId },
+        orderBy: { order: 'asc' },
+        include: { topics: { orderBy: { order: 'asc' }, select: { id: true } } },
       })
+      const orderedTopics = subjects.flatMap((subject) => subject.topics)
+      const currentTopicIndex = orderedTopics.findIndex((topic) => topic.id === session.topicId)
+      const nextTopic = currentTopicIndex >= 0 ? orderedTopics[currentTopicIndex + 1] : null
+
       if (nextTopic) {
         await prisma.userTopicProgress.upsert({
           where: { userId_topicId: { userId, topicId: nextTopic.id } },
@@ -278,7 +453,7 @@ class QuizService {
     const userRecord = await prisma.user.findUnique({ where: { id: userId } })
 
     const achievementSlugs: string[] = []
-    if (totalSessions === 1) achievementSlugs.push('first_flight')
+    if (totalSessions === 0) achievementSlugs.push('first_flight')
     if (isPerfect) achievementSlugs.push('perfect_wing')
     if ((userRecord?.streakDays ?? 0) >= 7) achievementSlugs.push('week_streak')
     if (totalAnswers >= 100) achievementSlugs.push('century')
@@ -346,7 +521,7 @@ class QuizService {
     // Finalizar sessão
     await prisma.quizSession.update({
       where: { id: sessionId },
-      data: { finishedAt: new Date(), xpEarned, isPerfect },
+      data: { finishedAt: new Date(), xpEarned, skipped, isPerfect },
     })
 
     // Montar review questions
@@ -369,7 +544,7 @@ class QuizService {
       xpEarned,
       correct,
       wrong,
-      skipped: session.skipped,
+      skipped,
       isPerfect,
       accuracy,
       newMasteryLevel,

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuthStore } from '../../stores/auth.store'
+import { api } from '../../services/api'
 import KuaaLogo from '../../components/ui/KuaaLogo'
 import AsaGlyph from '../../components/ui/AsaGlyph'
 import type { AuthResponse } from '../../types/user'
@@ -46,10 +47,7 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const res = await axios.post<AuthResponse>(
-        `${import.meta.env.VITE_API_URL}/auth/login`,
-        form,
-      )
+      const res = await api.post<AuthResponse>('/auth/login', form)
       setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
       navigate('/trilha')
     } catch (err) {
@@ -72,7 +70,7 @@ export default function Login() {
 
       {/* Left brand panel */}
       <div
-        style={{ flex: '0 0 420px', backgroundColor: '#1a0a1f', display: 'flex', flexDirection: 'column', padding: '48px 44px', position: 'relative', overflow: 'hidden' }}
+        style={{ flex: '0 0 420px', backgroundColor: '#1a0a1f', flexDirection: 'column', padding: '48px 44px', position: 'relative', overflow: 'hidden' }}
         className="hidden lg:flex"
       >
         <div style={{ position: 'absolute', right: -60, bottom: -60, opacity: 0.07, color: '#fff', pointerEvents: 'none' }}>
