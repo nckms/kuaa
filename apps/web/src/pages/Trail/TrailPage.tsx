@@ -9,7 +9,7 @@ import StatChip from '../../components/ui/StatChip'
 import SubjectSection from '../../components/trail/SubjectSection'
 import TopicModal from '../../components/trail/TopicModal'
 import { getIcon } from '../../utils/iconMap'
-import type { TrailData, TrailSubject, TrailTopic } from '../../types/trail'
+import type { TrailSubject, TrailTopic } from '../../types/trail'
 
 function TrailSkeleton() {
   return (
@@ -40,36 +40,6 @@ function SummaryMetric({
     <div className="rounded-3 text-center py-2 px-2" style={{ background }}>
       <p className="mb-0 fw-bold" style={{ color, fontSize: 16 }}>{value}</p>
       <p className="mb-0 text-muted" style={{ fontSize: 10 }}>{label}</p>
-    </div>
-  )
-}
-
-function MobileTrailSummary({ trail }: { trail: TrailData }) {
-  const progressValue = trail.summary.totalTopics
-    ? Math.round(((trail.summary.completedTopics + trail.summary.inProgressTopics * 0.5) / trail.summary.totalTopics) * 100)
-    : 0
-
-  return (
-    <div className="trail-mobile-summary d-lg-none px-3 pt-3">
-      <div className="card border-0 shadow-sm" style={{ borderRadius: 6 }}>
-        <div className="card-body p-3">
-          <div className="d-flex justify-content-between align-items-start gap-3 mb-2">
-            <div>
-              <p className="text-muted text-uppercase fw-semibold mb-1" style={{ fontSize: 10, letterSpacing: '.08em' }}>Resumo</p>
-              <p className="mb-0 fw-semibold" style={{ color: 'var(--text)', fontSize: 14 }}>
-                {trail.summary.answeredTopics}/{trail.summary.totalTopics} topicos respondidos
-              </p>
-            </div>
-            <span className="badge rounded-pill text-bg-light border">{progressValue}%</span>
-          </div>
-          <ProgressBar value={progressValue} color="roxo" size="sm" />
-          <div className="row g-2 mt-3">
-            <div className="col-4"><SummaryMetric label="acertos" value={trail.summary.correctAnswers} tone="success" /></div>
-            <div className="col-4"><SummaryMetric label="erros" value={trail.summary.wrongAnswers} tone="danger" /></div>
-            <div className="col-4"><SummaryMetric label="acerto" value={`${trail.summary.accuracy ?? 0}%`} tone="neutral" /></div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
@@ -280,9 +250,7 @@ export default function TrailPage() {
         )}
       </div>
 
-      {trail && <MobileTrailSummary trail={trail} />}
-
-      <div className="trail-content" style={{ padding: '30px 0 120px', minHeight: '100%' }}>
+      <div className="trail-content" style={{ padding: '36px 0 120px', minHeight: '100%' }}>
         {isLoading && <TrailSkeleton />}
 
         {isError && (
@@ -332,17 +300,26 @@ export default function TrailPage() {
             justify-content: flex-end !important;
           }
 
+          .trail-subject-tab {
+            flex: 1 1 calc(50% - 8px) !important;
+            justify-content: center !important;
+            min-width: 0;
+          }
+
           .trail-subject-tabs {
-            flex-wrap: nowrap !important;
-            overflow-x: auto !important;
+            flex-wrap: wrap !important;
+            overflow-x: visible !important;
           }
 
           .trail-subject-tab span:nth-child(2) {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
           }
 
           .trail-content {
-            padding-top: 18px !important;
+            padding-top: 28px !important;
             padding-bottom: 160px !important;
           }
         }
