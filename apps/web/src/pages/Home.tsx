@@ -31,7 +31,7 @@ const features = [
 export default function Home() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const firstVestibularSlug = useAuthStore((s) => s.firstVestibularSlug)
-  const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/onboarding'
+  const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'
 
   return (
     <div style={{ backgroundColor: '#1a0a1f', minHeight: '100vh', fontFamily: "'Questrial', Arial, sans-serif" }}>

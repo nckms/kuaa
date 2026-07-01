@@ -14,6 +14,10 @@ interface EnrollmentApiItem {
   vestibular: { id: string; slug: string; name: string }
 }
 
+interface SetAuthOptions {
+  preserveEnrollments?: boolean
+}
+
 interface AuthState {
   user: User | null
   accessToken: string | null
@@ -22,13 +26,22 @@ interface AuthState {
   isHydrating: boolean
   enrollments: StoredEnrollment[]
   firstVestibularSlug: string | null
-  setAuth: (user: User, accessToken: string, refreshToken: string) => void
+  setAuth: (user: User, accessToken: string, refreshToken: string, options?: SetAuthOptions) => void
   updateUser: (user: User) => void
+  loadEnrollments: () => Promise<StoredEnrollment[]>
   logout: () => Promise<void>
   hydrate: () => Promise<void>
 }
 
 const BASE_URL = API_BASE_URL
+
+function mapEnrollments(items: EnrollmentApiItem[]): StoredEnrollment[] {
+  return items.map((item) => ({
+    id: item.enrollment.id,
+    vestibularId: item.enrollment.vestibularId,
+    vestibular: { slug: item.vestibular.slug, name: item.vestibular.name },
+  }))
+}
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -39,14 +52,43 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   enrollments: [],
   firstVestibularSlug: null,
 
-  setAuth: (user, accessToken, refreshToken) => {
+  setAuth: (user, accessToken, refreshToken, options) => {
     localStorage.setItem('kuaa_token', accessToken)
     localStorage.setItem('kuaa_refresh_token', refreshToken)
-    set({ user, accessToken, refreshToken, isAuthenticated: true })
+    const enrollments = options?.preserveEnrollments ? get().enrollments : []
+    set({
+      user,
+      accessToken,
+      refreshToken,
+      isAuthenticated: true,
+      isHydrating: false,
+      enrollments,
+      firstVestibularSlug: enrollments[0]?.vestibular.slug ?? null,
+    })
   },
 
   updateUser: (user) => {
     set({ user })
+  },
+
+  loadEnrollments: async () => {
+    const token = get().accessToken
+    if (!token) {
+      set({ enrollments: [], firstVestibularSlug: null })
+      return []
+    }
+
+    const res = await axios.get<EnrollmentApiItem[]>(`${BASE_URL}/enrollments/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const enrollments = mapEnrollments(res.data)
+
+    set({
+      enrollments,
+      firstVestibularSlug: enrollments[0]?.vestibular.slug ?? null,
+    })
+
+    return enrollments
   },
 
   logout: async () => {
@@ -115,11 +157,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       }
 
-      const enrollments: StoredEnrollment[] = enrollRes.data.map((item) => ({
-        id: item.enrollment.id,
-        vestibularId: item.enrollment.vestibularId,
-        vestibular: { slug: item.vestibular.slug, name: item.vestibular.name },
-      }))
+      const enrollments = mapEnrollments(enrollRes.data)
 
       set({
         user: userRes.data,

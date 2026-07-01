@@ -27,7 +27,7 @@ function validate(form: FormState): FormErrors {
 
 export default function Login() {
   const navigate = useNavigate()
-  const { setAuth } = useAuthStore()
+  const { setAuth, loadEnrollments } = useAuthStore()
   const [form, setForm] = useState<FormState>({ email: '', password: '' })
   const [errors, setErrors] = useState<FormErrors>({})
   const [loading, setLoading] = useState(false)
@@ -49,7 +49,13 @@ export default function Login() {
     try {
       const res = await api.post<AuthResponse>('/auth/login', form)
       setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
-      navigate('/trilha')
+      try {
+        const enrollments = await loadEnrollments()
+        const firstSlug = enrollments[0]?.vestibular.slug
+        navigate(firstSlug ? `/trilha/${firstSlug}` : '/onboarding')
+      } catch {
+        navigate('/trilha')
+      }
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {

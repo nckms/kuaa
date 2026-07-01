@@ -62,7 +62,7 @@ const labelStyle: React.CSSProperties = {
 
 export default function Register() {
   const navigate = useNavigate()
-  const { setAuth } = useAuthStore()
+  const { setAuth, loadEnrollments } = useAuthStore()
   const [form, setForm] = useState<FormState>({
     name: '', email: '', password: '', school: '', city: '', state: '',
   })
@@ -95,7 +95,13 @@ export default function Register() {
     try {
       const res = await api.post<AuthResponse>('/auth/register', payload)
       setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
-      navigate('/trilha')
+      try {
+        const enrollments = await loadEnrollments()
+        const firstSlug = enrollments[0]?.vestibular.slug
+        navigate(firstSlug ? `/trilha/${firstSlug}` : '/onboarding')
+      } catch {
+        navigate('/trilha')
+      }
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 409) {

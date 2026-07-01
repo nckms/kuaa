@@ -63,7 +63,7 @@ api.interceptors.response.use(
           { refreshToken },
         )
         const { accessToken } = res.data
-        if (user) setAuth(user, accessToken, refreshToken)
+        if (user) setAuth(user, accessToken, refreshToken, { preserveEnrollments: true })
         processQueue(null, accessToken)
         originalRequest.headers.Authorization = `Bearer ${accessToken}`
         return api(originalRequest)

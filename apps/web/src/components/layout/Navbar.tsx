@@ -10,7 +10,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/onboarding'
+  const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

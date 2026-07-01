@@ -23,7 +23,7 @@ export default function AppLayout({ children, rightSidebar }: Props) {
     navigate('/')
   }
 
-  const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/onboarding'
+  const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'
 
   const resolvedNav = navItems.map((item) => ({
     ...item,

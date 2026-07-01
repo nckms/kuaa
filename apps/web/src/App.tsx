@@ -21,15 +21,36 @@ function TrailIndex() {
   const navigate = useNavigate()
   const firstVestibularSlug = useAuthStore((state) => state.firstVestibularSlug)
   const isHydrating = useAuthStore((state) => state.isHydrating)
+  const loadEnrollments = useAuthStore((state) => state.loadEnrollments)
 
   useEffect(() => {
-    if (isHydrating) return
-    if (firstVestibularSlug) {
-      navigate(`/trilha/${firstVestibularSlug}`, { replace: true })
-    } else {
-      navigate('/onboarding', { replace: true })
+    let cancelled = false
+
+    async function redirectToTrail() {
+      if (isHydrating) return
+
+      if (firstVestibularSlug) {
+        navigate(`/trilha/${firstVestibularSlug}`, { replace: true })
+        return
+      }
+
+      try {
+        const enrollments = await loadEnrollments()
+        if (cancelled) return
+
+        const firstSlug = enrollments[0]?.vestibular.slug
+        navigate(firstSlug ? `/trilha/${firstSlug}` : '/onboarding', { replace: true })
+      } catch {
+        if (!cancelled) navigate('/onboarding', { replace: true })
+      }
     }
-  }, [firstVestibularSlug, isHydrating, navigate])
+
+    void redirectToTrail()
+
+    return () => {
+      cancelled = true
+    }
+  }, [firstVestibularSlug, isHydrating, loadEnrollments, navigate])
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#faf3e3' }}>
