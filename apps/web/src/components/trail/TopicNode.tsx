@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import type { TrailTopic } from '../../types/trail'
 
 interface TopicNodeProps {
@@ -11,10 +10,11 @@ interface TopicNodeProps {
 function Stars({ masteryLevel }: { masteryLevel: number }) {
   const count = masteryLevel >= 5 ? 3 : masteryLevel >= 4 ? 2 : masteryLevel >= 2 ? 1 : 0
   if (count === 0) return null
+
   return (
-    <div style={{ display: 'flex', gap: 2, justifyContent: 'center', marginTop: 4 }}>
+    <div className="d-flex justify-content-center gap-1 mt-1" aria-label={`${count} estrelas`}>
       {Array.from({ length: count }).map((_, i) => (
-        <span key={i} style={{ color: '#FFDC5C', fontSize: 14 }}>⭐</span>
+        <i key={i} className="bi bi-star-fill" style={{ color: '#d6a322', fontSize: 12 }} />
       ))}
     </div>
   )
@@ -25,14 +25,23 @@ function ProgressRing({ masteryLevel }: { masteryLevel: number }) {
   const r = 30
   const circumference = 2 * Math.PI * r
   const offset = circumference - (masteryLevel / 5) * circumference
+
   return (
     <svg
       style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}
-      width={size} height={size} viewBox={`0 0 ${size} ${size}`}
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      aria-hidden="true"
     >
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
       <circle
-        cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#531A61" strokeWidth="4"
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke="#531A61"
+        strokeWidth="4"
         strokeDasharray={circumference}
         strokeDashoffset={offset}
         strokeLinecap="round"
@@ -50,85 +59,89 @@ export default function TopicNode({ topic, icon, isActive, onClick }: TopicNodeP
   const isInProgress = progress.unlocked && !progress.completed && hasActivity
   const isAvailable = progress.unlocked && !progress.completed && !hasActivity
 
+  const nodeSize = 72
   const activeRing: React.CSSProperties = isActive
-    ? { outline: '3px solid #FFDC5C', outlineOffset: '4px', borderRadius: '50%', boxShadow: '0 0 0 6px rgba(255,220,92,.25)' }
+    ? { outline: '3px solid rgba(255,220,92,.85)', outlineOffset: 4, borderRadius: 999 }
     : {}
 
-  const nodeSize = 72
+  const titleStyle: React.CSSProperties = {
+    fontSize: 13,
+    color: isLocked ? '#9ca3af' : '#531A61',
+    marginTop: 8,
+    textAlign: 'center',
+    maxWidth: 118,
+    lineHeight: 1.3,
+    fontFamily: 'Inter, Arial, sans-serif',
+    fontWeight: isLocked ? 500 : 600,
+  }
 
   if (isLocked) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} title="Complete o tópico anterior para desbloquear">
-        <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'not-allowed' }}>
-          <span style={{ fontSize: 24, filter: 'grayscale(1)', opacity: 0.5 }}>🔒</span>
+      <div className="d-flex flex-column align-items-center" title="Complete o topico anterior para desbloquear">
+        <div
+          className="rounded-circle d-grid border"
+          style={{ width: nodeSize, height: nodeSize, placeItems: 'center', backgroundColor: '#f1f3f5', color: '#9ca3af', cursor: 'not-allowed' }}
+        >
+          <i className="bi bi-lock" style={{ fontSize: 22 }} />
         </div>
-        <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 6, textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: 'Arial, sans-serif' }}>{topic.name}</p>
+        <p style={titleStyle}>{topic.name}</p>
       </div>
     )
   }
 
   if (isCompleted) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
-        <span style={{
-          backgroundColor: '#10b981', color: '#fff', fontSize: 10, fontWeight: 700,
-          padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap',
-          fontFamily: 'Arial, sans-serif', letterSpacing: '.04em', marginBottom: 6,
-        }}>CONCLUIDO</span>
-        <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', backgroundColor: '#531A61', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ color: '#fff', fontSize: 28, fontWeight: 900 }}>✓</span>
+      <button className="trail-topic-node border-0 bg-transparent d-flex flex-column align-items-center p-0" style={{ cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
+        <span className="badge rounded-pill text-bg-success mb-2" style={{ fontSize: 10, letterSpacing: '.04em' }}>Concluido</span>
+        <div className="rounded-circle d-grid" style={{ width: nodeSize, height: nodeSize, placeItems: 'center', backgroundColor: '#531A61', color: '#fff' }}>
+          <i className="bi bi-check-lg" style={{ fontSize: 28 }} />
         </div>
         <Stars masteryLevel={progress.masteryLevel} />
-        <p style={{ fontSize: 13, color: '#531A61', marginTop: 6, textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: 'Arial, sans-serif', fontWeight: 500 }}>{topic.name}</p>
-      </div>
+        <p style={titleStyle}>{topic.name}</p>
+      </button>
     )
   }
 
   if (isInProgress) {
-    const label = progress.sessionsCount > 0 ? 'RESPONDIDO' : 'EM ANDAMENTO'
+    const label = progress.sessionsCount > 0 ? 'Respondido' : 'Em andamento'
     const detail = progress.sessionsCount > 0
       ? `${progress.sessionsCount} sessao${progress.sessionsCount > 1 ? 's' : ''}`
       : `${progress.answeredQuestionsCount} resposta${progress.answeredQuestionsCount > 1 ? 's' : ''}`
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
-        <span style={{
-          backgroundColor: '#FFDC5C', color: '#531A61', fontSize: 10, fontWeight: 700,
-          padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap',
-          fontFamily: 'Arial, sans-serif', letterSpacing: '.04em', marginBottom: 6,
-        }}>{label}</span>
+      <button className="trail-topic-node border-0 bg-transparent d-flex flex-column align-items-center p-0" style={{ cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
+        <span className="badge rounded-pill mb-2" style={{ backgroundColor: '#FFDC5C', color: '#531A61', fontSize: 10, letterSpacing: '.04em' }}>{label}</span>
         <div style={{ position: 'relative', width: nodeSize, height: nodeSize }}>
-          <div style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', backgroundColor: '#f3eaf7', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'absolute', inset: 0 }}>
-            <span style={{ fontSize: 24 }}>{icon}</span>
+          <div className="rounded-circle d-grid" style={{ width: nodeSize, height: nodeSize, placeItems: 'center', backgroundColor: '#f3eaf7', color: '#531A61', position: 'absolute', inset: 0 }}>
+            <i className={`bi ${icon}`} style={{ fontSize: 24 }} />
           </div>
           <ProgressRing masteryLevel={progress.masteryLevel} />
         </div>
-        <p style={{ fontSize: 13, color: '#531A61', marginTop: 6, textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: 'Arial, sans-serif', fontWeight: 500 }}>{topic.name}</p>
-        <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 2, textAlign: 'center', maxWidth: 110, lineHeight: 1.2, fontFamily: 'Arial, sans-serif' }}>{detail}</p>
-      </div>
+        <p style={titleStyle}>{topic.name}</p>
+        <p className="text-muted mb-0" style={{ fontSize: 11, textAlign: 'center', maxWidth: 118 }}>{detail}</p>
+      </button>
     )
   }
 
   if (isAvailable) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
-        <div style={{ position: 'relative' }}>
-          <span style={{
-            position: 'absolute', top: -20, left: '50%', transform: 'translateX(-50%)',
-            backgroundColor: '#FFDC5C', color: '#531A61', fontSize: 10, fontWeight: 700,
-            padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap',
-            fontFamily: 'Arial, sans-serif', letterSpacing: '.04em',
-          }}>NOVO</span>
-          <motion.div
-            style={{ width: nodeSize, height: nodeSize, borderRadius: '50%', background: 'linear-gradient(135deg, #531A61, #840033)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(83,26,97,.4)' }}
-            animate={{ scale: [1, 1.06, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <span style={{ fontSize: 28 }}>{icon}</span>
-          </motion.div>
+      <button className="trail-topic-node border-0 bg-transparent d-flex flex-column align-items-center p-0" style={{ cursor: 'pointer', ...activeRing }} onClick={() => onClick(topic)}>
+        <span className="badge rounded-pill mb-2" style={{ backgroundColor: '#FFDC5C', color: '#531A61', fontSize: 10, letterSpacing: '.04em' }}>Novo</span>
+        <div
+          className="rounded-circle d-grid"
+          style={{
+            width: nodeSize,
+            height: nodeSize,
+            placeItems: 'center',
+            backgroundColor: '#531A61',
+            color: '#fff',
+            boxShadow: '0 8px 18px -10px rgba(83,26,97,.8)',
+          }}
+        >
+          <i className={`bi ${icon}`} style={{ fontSize: 27 }} />
         </div>
-        <p style={{ fontSize: 13, color: '#531A61', marginTop: 10, textAlign: 'center', maxWidth: 100, lineHeight: 1.3, fontFamily: 'Arial, sans-serif', fontWeight: 500 }}>{topic.name}</p>
-      </div>
+        <p style={titleStyle}>{topic.name}</p>
+      </button>
     )
   }
 

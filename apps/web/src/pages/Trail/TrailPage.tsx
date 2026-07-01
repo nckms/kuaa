@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useTrail } from '../../hooks/useTrail'
 import { useAuthStore } from '../../stores/auth.store'
 import { useMyEnrollments } from '../../hooks/useEnrollments'
@@ -9,17 +9,37 @@ import StatChip from '../../components/ui/StatChip'
 import SubjectSection from '../../components/trail/SubjectSection'
 import TopicModal from '../../components/trail/TopicModal'
 import { getIcon } from '../../utils/iconMap'
-import type { TrailTopic, TrailSubject } from '../../types/trail'
+import type { TrailSubject, TrailTopic } from '../../types/trail'
 
 function TrailSkeleton() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: 40 }}>
+    <div className="d-flex flex-column align-items-center gap-4 py-5">
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 72, height: 72, borderRadius: '50%', backgroundColor: '#f3eaf7', animation: 'pulse 2s infinite' }} />
-          <div style={{ width: 80, height: 10, borderRadius: 6, backgroundColor: '#f3eaf7' }} />
+        <div key={i} className="d-flex flex-column align-items-center gap-2">
+          <div className="placeholder-glow rounded-circle" style={{ width: 72, height: 72, backgroundColor: '#f3eaf7' }} />
+          <div className="placeholder-glow rounded-2" style={{ width: 88, height: 10, backgroundColor: '#f3eaf7' }} />
         </div>
       ))}
+    </div>
+  )
+}
+
+function SummaryMetric({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string | number
+  tone: 'success' | 'danger' | 'neutral'
+}) {
+  const color = tone === 'success' ? '#047857' : tone === 'danger' ? '#840033' : '#531A61'
+  const background = tone === 'success' ? 'rgba(16,185,129,.1)' : tone === 'danger' ? 'rgba(132,0,51,.08)' : 'var(--bg-soft)'
+
+  return (
+    <div className="rounded-3 text-center py-2 px-2" style={{ background }}>
+      <p className="mb-0 fw-bold" style={{ color, fontSize: 16 }}>{value}</p>
+      <p className="mb-0 text-muted" style={{ fontSize: 10 }}>{label}</p>
     </div>
   )
 }
@@ -32,127 +52,112 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
 
   if (!user) return null
 
-  const xpBar = Math.round((user.xp % 100))
+  const xpBar = Math.round(user.xp % 100)
   const correctAnswers = trail?.summary.correctAnswers ?? 0
   const wrongAnswers = trail?.summary.wrongAnswers ?? 0
   const accuracy = trail?.summary.accuracy ?? null
   const knowledgeGaps = trail?.summary.knowledgeGaps ?? []
+  const progressValue = trail?.summary.totalTopics
+    ? Math.round(((trail.summary.completedTopics + trail.summary.inProgressTopics * 0.5) / trail.summary.totalTopics) * 100)
+    : 0
 
   return (
-    <div style={{ padding: 24, height: '100%', overflowY: 'auto', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Avatar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{
-          width: 46, height: 46, borderRadius: '50%', flexShrink: 0,
-          background: 'conic-gradient(from 180deg, #b347d9, #FFDC5C, #840033, #b347d9)',
-          padding: 2,
-        }}>
-          <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#531A61', display: 'grid', placeItems: 'center' }}>
-            <span style={{ fontFamily: "'Unbounded', cursive", fontWeight: 700, fontSize: 14, color: '#fff' }}>
-              {user.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
+    <div className="trail-right-sidebar d-flex flex-column gap-3 p-4 h-100 overflow-auto" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+      <div className="d-flex align-items-center gap-3">
+        <div className="rounded-circle d-grid flex-shrink-0" style={{ width: 44, height: 44, placeItems: 'center', backgroundColor: '#531A61', color: '#fff' }}>
+          <span className="fw-bold">{user.name.charAt(0).toUpperCase()}</span>
         </div>
-        <div style={{ overflow: 'hidden' }}>
-          <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 15, color: 'var(--text)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</p>
-          <p style={{ fontSize: 12, color: 'var(--muted)' }}>{user.email}</p>
+        <div className="min-w-0">
+          <p className="mb-0 fw-semibold text-truncate" style={{ color: 'var(--text)', fontSize: 14 }}>{user.name}</p>
+          <p className="mb-0 text-muted text-truncate" style={{ fontSize: 12 }}>{user.email}</p>
         </div>
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px solid var(--line-soft)' }} />
-
-      {/* Nível e XP */}
-      <div>
-        <div style={{ backgroundColor: 'var(--roxo-light)', borderRadius: 16, padding: 16, boxShadow: 'var(--shadow-xs)' }}>
-          <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 16, color: '#531A61', marginBottom: 8 }}>Nível {user.level}</p>
+      <div className="card border-0 shadow-sm" style={{ borderRadius: 8 }}>
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="fw-semibold" style={{ color: '#531A61' }}>Nivel {user.level}</span>
+            <span className="text-muted" style={{ fontSize: 12 }}>{user.xp} XP</span>
+          </div>
           <ProgressBar value={xpBar} color="roxo" size="sm" />
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>{user.xp} XP total</p>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
-          <div style={{ backgroundColor: 'rgba(255,220,92,.18)', borderRadius: 14, padding: '10px 12px', textAlign: 'center', boxShadow: 'var(--shadow-xs)' }}>
-            <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--dark)' }}>
-              <i className="bi bi-fire" style={{ color: '#840033', marginRight: 4 }} />
-              {user.streakDays}
-            </p>
-            <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>dias seguidos</p>
-          </div>
-          <div style={{ backgroundColor: 'var(--vinho-light)', borderRadius: 14, padding: '10px 12px', textAlign: 'center', boxShadow: 'var(--shadow-xs)' }}>
-            <p style={{ fontSize: 17, fontWeight: 700, color: '#840033' }}>
-              <i className="bi bi-heart-fill" style={{ marginRight: 4 }} />
-              {user.hearts}
-            </p>
-            <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>corações</p>
+          <div className="row g-2 mt-3">
+            <div className="col-6">
+              <div className="border rounded-3 p-2 text-center">
+                <p className="mb-0 fw-bold" style={{ color: '#840033' }}><i className="bi bi-fire me-1" />{user.streakDays}</p>
+                <p className="mb-0 text-muted" style={{ fontSize: 11 }}>dias</p>
+              </div>
+            </div>
+            <div className="col-6">
+              <div className="border rounded-3 p-2 text-center">
+                <p className="mb-0 fw-bold" style={{ color: '#840033' }}><i className="bi bi-heart-fill me-1" />{user.hearts}</p>
+                <p className="mb-0 text-muted" style={{ fontSize: 11 }}>vidas</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px solid var(--line-soft)' }} />
-
-      {/* Progresso da trilha */}
       {trail && (
-        <div>
-          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.1em' }}>Progresso da trilha</p>
-          <p style={{ fontFamily: "'Unbounded', cursive", fontSize: 32, fontWeight: 700, color: '#531A61', letterSpacing: '-0.04em', lineHeight: 1 }}>
-            {trail.summary.answeredTopics}/{trail.summary.totalTopics}
-          </p>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>topicos respondidos · {trail.summary.completedTopics} concluidos</p>
-          <ProgressBar value={trail.summary.totalTopics > 0 ? Math.round(((trail.summary.completedTopics + trail.summary.inProgressTopics * 0.5) / trail.summary.totalTopics) * 100) : 0} color="roxo" />
+        <div className="card border-0 shadow-sm" style={{ borderRadius: 8 }}>
+          <div className="card-body">
+            <p className="text-uppercase fw-semibold text-muted mb-2" style={{ fontSize: 11, letterSpacing: '.08em' }}>Progresso</p>
+            <div className="d-flex align-items-end gap-2 mb-2">
+              <p className="mb-0 fw-bold" style={{ fontSize: 30, color: '#531A61', lineHeight: 1 }}>
+                {trail.summary.answeredTopics}/{trail.summary.totalTopics}
+              </p>
+              <p className="mb-1 text-muted" style={{ fontSize: 12 }}>topicos respondidos</p>
+            </div>
+            <ProgressBar value={progressValue} color="roxo" />
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
-            <div style={{ backgroundColor: 'rgba(16,185,129,.1)', borderRadius: 12, padding: '9px 8px', textAlign: 'center' }}>
-              <p style={{ fontSize: 15, fontWeight: 800, color: '#047857' }}>{correctAnswers}</p>
-              <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>acertos</p>
-            </div>
-            <div style={{ backgroundColor: 'rgba(132,0,51,.08)', borderRadius: 12, padding: '9px 8px', textAlign: 'center' }}>
-              <p style={{ fontSize: 15, fontWeight: 800, color: '#840033' }}>{wrongAnswers}</p>
-              <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>erros</p>
-            </div>
-            <div style={{ backgroundColor: 'var(--bg-soft)', borderRadius: 12, padding: '9px 8px', textAlign: 'center' }}>
-              <p style={{ fontSize: 15, fontWeight: 800, color: '#531A61' }}>{accuracy ?? 0}%</p>
-              <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>acerto</p>
+            <div className="row g-2 mt-3">
+              <div className="col-4"><SummaryMetric label="acertos" value={correctAnswers} tone="success" /></div>
+              <div className="col-4"><SummaryMetric label="erros" value={wrongAnswers} tone="danger" /></div>
+              <div className="col-4"><SummaryMetric label="acerto" value={`${accuracy ?? 0}%`} tone="neutral" /></div>
             </div>
           </div>
+        </div>
+      )}
 
-          <div style={{ marginTop: 16 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.1em' }}>Lacunas principais</p>
+      {trail && (
+        <div className="card border-0 shadow-sm" style={{ borderRadius: 8 }}>
+          <div className="card-body">
+            <p className="text-uppercase fw-semibold text-muted mb-3" style={{ fontSize: 11, letterSpacing: '.08em' }}>Pontos de atencao</p>
             {knowledgeGaps.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="d-flex flex-column gap-2">
                 {knowledgeGaps.slice(0, 3).map((gap) => (
-                  <div key={gap.topicId} style={{ border: '1px solid var(--line-soft)', borderRadius: 12, padding: '9px 10px', backgroundColor: 'var(--surface)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{ fontSize: 12, color: 'var(--text)', fontWeight: 700, overflowWrap: 'anywhere' }}>{gap.topicName}</p>
-                        <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{gap.subjectName} - {gap.wrongAnswers}/{gap.totalAnswers} erros</p>
+                  <div key={gap.topicId} className="border rounded-3 p-2">
+                    <div className="d-flex justify-content-between align-items-start gap-2">
+                      <div className="min-w-0">
+                        <p className="mb-0 fw-semibold text-truncate" style={{ fontSize: 12 }}>{gap.topicName}</p>
+                        <p className="mb-0 text-muted" style={{ fontSize: 10 }}>{gap.subjectName} - {gap.wrongAnswers}/{gap.totalAnswers} erros</p>
                       </div>
-                      <span style={{ fontSize: 12, color: gap.accuracy >= 70 ? '#531A61' : '#840033', fontWeight: 800, flexShrink: 0 }}>{gap.accuracy}%</span>
+                      <span className="fw-bold flex-shrink-0" style={{ fontSize: 12, color: gap.accuracy >= 70 ? '#531A61' : '#840033' }}>{gap.accuracy}%</span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.45 }}>Responda mais questoes para o diagnostico apontar reforcos.</p>
+              <p className="mb-0 text-muted" style={{ fontSize: 12, lineHeight: 1.45 }}>Responda mais questoes para formar o diagnostico.</p>
             )}
           </div>
         </div>
       )}
 
-      {/* Seletor de vestibular */}
       {(enrollments?.length ?? 0) > 1 && (
-        <>
-          <hr style={{ border: 'none', borderTop: '1px solid var(--line-soft)' }} />
-          <div>
-            <p style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 600 }}>Trocar vestibular</p>
+        <div className="card border-0 shadow-sm" style={{ borderRadius: 8 }}>
+          <div className="card-body">
+            <label className="form-label text-uppercase fw-semibold text-muted" style={{ fontSize: 11, letterSpacing: '.08em' }}>Trocar vestibular</label>
             <select
+              className="form-select form-select-sm"
               value={vestibularSlug}
               onChange={(e) => navigate(`/trilha/${e.target.value}`)}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: 14, border: '1.5px solid var(--line-soft)', fontSize: 14, color: 'var(--text)', backgroundColor: 'var(--surface)', outline: 'none', fontFamily: 'Inter, Arial, sans-serif' }}
             >
               {enrollments?.map((e) => (
                 <option key={e.enrollment.vestibularId} value={e.vestibular.slug}>{e.vestibular.name}</option>
               ))}
             </select>
           </div>
-        </>
+        </div>
       )}
     </div>
   )
@@ -174,6 +179,7 @@ export default function TrailPage() {
     ?? trail?.subjects[0]?.id
     ?? null
   const currentSubjectId = activeSubjectId ?? recommendedSubjectId
+  const rightSidebar = <TrailRightSidebarWrapper vestibularSlug={vestibularSlug} />
 
   function handleTopicClick(topic: TrailTopic, subject: TrailSubject) {
     setActiveTopicId(topic.id)
@@ -186,33 +192,30 @@ export default function TrailPage() {
     setModalSubject(null)
   }
 
-  const rightSidebar = <TrailRightSidebarWrapper vestibularSlug={vestibularSlug} />
-
   return (
     <AppLayout rightSidebar={rightSidebar}>
-      {/* Header sticky — DS v2 */}
-      <div className="trail-header" style={{
-        position: 'sticky', top: 0, zIndex: 20,
-        background: 'linear-gradient(135deg, #2a0d33 0%, #531A61 100%)',
+      <div className="trail-header bg-white border-bottom" style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 20,
         padding: '14px 24px',
-        boxShadow: '0 4px 24px -8px rgba(83,26,97,.45)',
+        boxShadow: '0 8px 24px -20px rgba(26,10,31,.35)',
       }}>
-        <div className="trail-header-top" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: trail ? 12 : 0 }}>
+        <div className="trail-header-top d-flex align-items-center justify-content-between gap-3" style={{ marginBottom: trail ? 12 : 0 }}>
           <div>
-            <p style={{ fontSize: 9, color: 'rgba(255,255,255,.45)', letterSpacing: '.2em', textTransform: 'uppercase', fontFamily: 'Inter, Arial, sans-serif', fontWeight: 600 }}>Estudando</p>
-            <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 18, color: '#fff', marginTop: 2 }}>{trail?.vestibular.name ?? '…'}</p>
+            <p className="text-uppercase fw-semibold mb-1" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '.14em' }}>Trilha de estudo</p>
+            <p className="mb-0" style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: 'var(--text)' }}>{trail?.vestibular.name ?? '...'}</p>
           </div>
           {user && (
-            <div className="trail-stats" style={{ display: 'flex', gap: 8 }}>
-              <StatChip icon="⚡" value={user.xp} label="XP" variant="dark" />
-              <StatChip icon="🔥" value={user.streakDays} label="dias" variant="dark" />
+            <div className="trail-stats d-flex gap-2">
+              <StatChip icon="bi-lightning-charge-fill" value={user.xp} label="XP" />
+              <StatChip icon="bi-fire" value={user.streakDays} label="dias" />
             </div>
           )}
         </div>
 
-        {/* Tabs de matérias */}
         {trail && (
-          <div className="trail-subject-tabs" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
+          <div className="trail-subject-tabs d-flex gap-2 overflow-auto pb-1">
             {trail.subjects.map((subject) => {
               const total = subject.topics.length
               const score = subject.topics.reduce((sum, topic) => {
@@ -222,25 +225,24 @@ export default function TrailPage() {
               }, 0)
               const pct = total > 0 ? Math.round((score / total) * 100) : 0
               const isActive = currentSubjectId === subject.id
+
               return (
                 <button
-                  className="trail-subject-tab"
                   key={subject.id}
+                  className={`trail-subject-tab btn btn-sm d-inline-flex align-items-center gap-2 rounded-pill flex-shrink-0 ${isActive ? 'active' : ''}`}
                   onClick={() => setActiveSubjectId(subject.id)}
                   style={{
-                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '7px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                    backgroundColor: isActive ? '#fff' : 'rgba(255,255,255,.12)',
-                    color: isActive ? '#531A61' : 'rgba(255,255,255,.72)',
-                    fontSize: 13, fontWeight: isActive ? 600 : 500,
-                    fontFamily: 'Inter, Arial, sans-serif',
-                    transition: 'all .15s',
-                    boxShadow: isActive ? '0 2px 8px -2px rgba(83,26,97,.3)' : 'none',
+                    backgroundColor: isActive ? '#531A61' : '#fff',
+                    border: isActive ? '1px solid #531A61' : '1px solid var(--line-soft)',
+                    color: isActive ? '#fff' : 'var(--text)',
+                    fontWeight: isActive ? 700 : 500,
+                    fontSize: 13,
+                    boxShadow: isActive ? '0 4px 10px -7px rgba(83,26,97,.45)' : 'none',
                   }}
                 >
-                  <span style={{ fontSize: 14 }}>{getIcon(subject.iconSlug)}</span>
+                  <i className={`bi ${getIcon(subject.iconSlug)}`} />
                   <span>{subject.name}</span>
-                  <span style={{ opacity: 0.65, fontSize: 11 }}>{pct}%</span>
+                  <span style={{ opacity: 0.68, fontSize: 11 }}>{pct}%</span>
                 </button>
               )
             })}
@@ -248,14 +250,13 @@ export default function TrailPage() {
         )}
       </div>
 
-      {/* Trilha */}
-      <div className="trail-content" style={{ padding: '40px 0 120px', minHeight: '100%' }}>
+      <div className="trail-content" style={{ padding: '36px 0 120px', minHeight: '100%' }}>
         {isLoading && <TrailSkeleton />}
 
         {isError && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16 }}>
-            <p style={{ color: '#6b7280', fontSize: 14 }}>Erro ao carregar a trilha.</p>
-            <button onClick={() => refetch()} style={{ backgroundColor: '#531A61', color: '#fff', padding: '11px 24px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14, fontFamily: 'Inter, Arial, sans-serif', boxShadow: '0 4px 12px -3px rgba(83,26,97,.4)' }}>
+          <div className="d-flex flex-column align-items-center justify-content-center gap-3" style={{ minHeight: 300 }}>
+            <p className="text-muted mb-0" style={{ fontSize: 14 }}>Erro ao carregar a trilha.</p>
+            <button onClick={() => refetch()} className="btn btn-sm text-white rounded-pill px-4" style={{ backgroundColor: '#531A61' }}>
               Tentar novamente
             </button>
           </div>
@@ -292,7 +293,6 @@ export default function TrailPage() {
 
           .trail-header-top {
             align-items: flex-start !important;
-            gap: 12px !important;
           }
 
           .trail-stats {
@@ -301,11 +301,9 @@ export default function TrailPage() {
           }
 
           .trail-subject-tab {
-            flex: 1 1 calc(50% - 6px) !important;
-            max-width: none !important;
-            padding: 6px 11px !important;
-            font-size: 12px !important;
+            flex: 1 1 calc(50% - 8px) !important;
             justify-content: center !important;
+            min-width: 0;
           }
 
           .trail-subject-tabs {

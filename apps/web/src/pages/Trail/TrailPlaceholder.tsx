@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/auth.store'
+import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 
 export default function TrailPlaceholder() {
   const navigate = useNavigate()
@@ -11,48 +12,56 @@ export default function TrailPlaceholder() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col font-sans">
-      {/* Navbar */}
-      <nav className="px-6 py-4 flex items-center justify-between shadow-sm" style={{ backgroundColor: '#531A61' }}>
-        <span className="text-xl font-bold text-white">🦅 KUAA</span>
-        <div className="flex items-center gap-4">
-          <span className="text-white/80 text-sm">Olá, {user?.name?.split(' ')[0]}</span>
-          <button
-            onClick={handleLogout}
-            className="text-sm font-medium px-4 py-2 rounded-lg transition hover:opacity-80"
-            style={{ backgroundColor: '#FFDC5C', color: '#531A61' }}
-          >
+    <div className="min-vh-100 d-flex flex-column" style={{ backgroundColor: 'var(--bg)', fontFamily: 'Inter, Arial, sans-serif' }}>
+      <nav className="navbar px-4 shadow-sm" style={{ backgroundColor: '#531A61' }}>
+        <div className="d-flex align-items-center gap-2">
+          <KuaaMascotLogo size={34} />
+          <span className="fw-bold text-white">KUAA</span>
+        </div>
+        <div className="d-flex align-items-center gap-3">
+          <span className="text-white-50 small">Ola, {user?.name?.split(' ')[0]}</span>
+          <button onClick={handleLogout} className="btn btn-sm rounded-pill fw-semibold" style={{ backgroundColor: '#FFDC5C', color: '#531A61' }}>
             Sair
           </button>
         </div>
       </nav>
 
-      {/* Hero */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-        <p className="text-7xl mb-6">🦅</p>
-        <h1 className="text-3xl font-bold mb-4" style={{ color: '#531A61' }}>
-          Sua trilha está sendo preparada
+      <main className="flex-grow-1 d-flex flex-column align-items-center justify-content-center px-4 text-center">
+        <KuaaMascotLogo size={112} />
+        <h1 className="fw-bold mt-4 mb-3" style={{ color: '#531A61', fontSize: 30 }}>
+          Sua trilha esta sendo preparada
         </h1>
-        <p className="text-gray-500 mb-8 max-w-md">
-          Em breve você terá acesso a questões personalizadas, trilhas adaptativas e muito mais.
+        <p className="text-muted mb-4" style={{ maxWidth: 440 }}>
+          Em breve voce tera acesso a questoes personalizadas, trilhas adaptativas e muito mais.
         </p>
 
-        {/* Stats */}
-        <div className="flex gap-6">
-          <div className="text-center px-6 py-4 rounded-2xl" style={{ backgroundColor: '#531A61' + '11', border: '1px solid #531A61' + '33' }}>
-            <p className="text-2xl font-bold" style={{ color: '#531A61' }}>{user?.xp ?? 0}</p>
-            <p className="text-xs text-gray-500 mt-1">XP total</p>
+        <div className="row g-3 justify-content-center" style={{ maxWidth: 560 }}>
+          <div className="col-12 col-sm-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <p className="h4 fw-bold mb-1" style={{ color: '#531A61' }}>{user?.xp ?? 0}</p>
+                <p className="small text-muted mb-0">XP total</p>
+              </div>
+            </div>
           </div>
-          <div className="text-center px-6 py-4 rounded-2xl" style={{ backgroundColor: '#531A61' + '11', border: '1px solid #531A61' + '33' }}>
-            <p className="text-2xl font-bold" style={{ color: '#531A61' }}>Nv. {user?.level ?? 1}</p>
-            <p className="text-xs text-gray-500 mt-1">Nível</p>
+          <div className="col-12 col-sm-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <p className="h4 fw-bold mb-1" style={{ color: '#531A61' }}>Nv. {user?.level ?? 1}</p>
+                <p className="small text-muted mb-0">Nivel</p>
+              </div>
+            </div>
           </div>
-          <div className="text-center px-6 py-4 rounded-2xl" style={{ backgroundColor: '#FFDC5C' + '33', border: '1px solid #FFDC5C' }}>
-            <p className="text-2xl font-bold" style={{ color: '#840033' }}>🔥 {user?.streakDays ?? 0}</p>
-            <p className="text-xs text-gray-500 mt-1">dias seguidos</p>
+          <div className="col-12 col-sm-4">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body">
+                <p className="h4 fw-bold mb-1" style={{ color: '#840033' }}><i className="bi bi-fire me-1" />{user?.streakDays ?? 0}</p>
+                <p className="small text-muted mb-0">dias seguidos</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

@@ -7,6 +7,7 @@ interface Props {
 
 export default function StatChip({ icon, value, label, variant = 'default' }: Props) {
   const isDark = variant === 'dark'
+  const isBootstrapIcon = icon.startsWith('bi-')
   return (
     <div style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -16,7 +17,7 @@ export default function StatChip({ icon, value, label, variant = 'default' }: Pr
       fontSize: 13, color: isDark ? '#fff' : '#1a1a1a',
       fontFamily: 'Arial, sans-serif', whiteSpace: 'nowrap',
     }}>
-      <span>{icon}</span>
+      {isBootstrapIcon ? <i className={`bi ${icon}`} /> : <span>{icon}</span>}
       <span style={{ fontWeight: 700 }}>{value}</span>
       <span style={{ opacity: 0.6, fontSize: 12 }}>{label}</span>
     </div>

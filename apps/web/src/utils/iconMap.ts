@@ -1,12 +1,12 @@
 const ICONS: Record<string, string> = {
-  lang: '📖',
-  math: '📐',
-  science: '🔬',
-  humanities: '🌍',
-  write: '✏️',
-  world: '🌐',
+  lang: 'bi-translate',
+  math: 'bi-calculator',
+  science: 'bi-flask',
+  humanities: 'bi-bank',
+  write: 'bi-pencil-square',
+  world: 'bi-globe2',
 }
 
 export function getIcon(iconSlug: string): string {
-  return ICONS[iconSlug] ?? '📚'
+  return ICONS[iconSlug] ?? 'bi-book'
 }

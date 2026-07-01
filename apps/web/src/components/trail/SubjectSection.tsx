@@ -19,46 +19,47 @@ export default function SubjectSection({ subject, activeTopicId, onTopicClick }:
     return sum
   }, 0)
   const progressPercent = totalCount > 0 ? Math.round((progressScore / totalCount) * 100) : 0
+  const subjectIcon = getIcon(subject.iconSlug)
 
   return (
-    <div style={{ paddingBottom: 40 }}>
-      {/* Header matéria */}
-      <div style={{ padding: '24px 24px 16px', maxWidth: 480, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-          <span style={{ fontSize: 36 }}>{getIcon(subject.iconSlug)}</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <h3 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: 'var(--text)' }}>{subject.name}</h3>
-              <span style={{ fontSize: 12, color: 'var(--muted)', fontFamily: 'Inter, Arial, sans-serif', fontWeight: 500 }}>{completedCount}/{totalCount}</span>
+    <section style={{ paddingBottom: 40 }}>
+      <div className="card border-0 shadow-sm mx-auto" style={{ maxWidth: 520, borderRadius: 8 }}>
+        <div className="card-body">
+          <div className="d-flex align-items-center gap-3">
+            <div className="rounded-3 d-grid flex-shrink-0" style={{ width: 48, height: 48, placeItems: 'center', backgroundColor: 'var(--roxo-light)', color: '#531A61' }}>
+              <i className={`bi ${subjectIcon}`} style={{ fontSize: 24 }} />
             </div>
-            <ProgressBar value={progressPercent} color="vinho" size="sm" />
-            {answeredCount > 0 && (
-              <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 5 }}>{answeredCount} topico(s) respondido(s)</p>
-            )}
+            <div className="flex-grow-1 min-w-0">
+              <div className="d-flex justify-content-between align-items-center gap-3 mb-2">
+                <h3 className="mb-0 text-truncate" style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: 'var(--text)' }}>{subject.name}</h3>
+                <span className="text-muted flex-shrink-0" style={{ fontSize: 12 }}>{completedCount}/{totalCount}</span>
+              </div>
+              <ProgressBar value={progressPercent} color="vinho" size="sm" />
+              {answeredCount > 0 && (
+                <p className="mb-0 text-muted mt-1" style={{ fontSize: 11 }}>{answeredCount} topico(s) respondido(s)</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Trilha de nós */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0' }}>
+      <div className="d-flex flex-column align-items-center pt-4">
         {subject.topics.map((topic, index) => {
           const prevTopic = index > 0 ? subject.topics[index - 1] : null
           const connectorColor = prevTopic?.progress.completed
-            ? (topic.progress.unlocked ? '#531A61' : '#e5e7eb')
-            : '#e5e7eb'
-          const offset = index % 2 === 0 ? -32 : 32
+            ? (topic.progress.unlocked ? '#531A61' : '#dfe3e8')
+            : '#dfe3e8'
+          const offset = index % 2 === 0 ? -28 : 28
 
           return (
-            <div key={topic.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              {/* Conector */}
+            <div key={topic.id} className="d-flex flex-column align-items-center">
               {index > 0 && (
-                <div style={{ width: 2, height: 40, borderLeft: `2px dashed ${connectorColor}` }} />
+                <div style={{ width: 2, height: 38, borderLeft: `2px dashed ${connectorColor}` }} />
               )}
-              {/* Nó com zigzag */}
-              <div style={{ transform: `translateX(${offset}px)` }}>
+              <div className="trail-topic-offset" style={{ transform: `translateX(${offset}px)` }}>
                 <TopicNode
                   topic={topic}
-                  icon={getIcon(subject.iconSlug)}
+                  icon={subjectIcon}
                   isActive={activeTopicId === topic.id}
                   onClick={(t) => onTopicClick(t, subject)}
                 />
@@ -67,6 +68,6 @@ export default function SubjectSection({ subject, activeTopicId, onTopicClick }:
           )
         })}
       </div>
-    </div>
+    </section>
   )
 }
