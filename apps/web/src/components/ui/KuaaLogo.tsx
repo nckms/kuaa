@@ -1,4 +1,4 @@
-import AsaGlyph from './AsaGlyph'
+import KuaaMascotLogo from './KuaaMascotLogo'
 
 interface Props {
   size?: number
@@ -9,20 +9,7 @@ interface Props {
 export default function KuaaLogo({ size = 44, dark = false, showTagline = false }: Props) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <div
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size * 0.32,
-          background: '#FFDC5C',
-          display: 'grid',
-          placeItems: 'center',
-          boxShadow: 'inset 0 0 0 1.5px rgba(0,0,0,.05)',
-          flexShrink: 0,
-        }}
-      >
-        <AsaGlyph size={size * 0.62} />
-      </div>
+      <KuaaMascotLogo size={size} />
       <div>
         <div
           style={{

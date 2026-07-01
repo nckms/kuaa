@@ -18,8 +18,6 @@ export default function AppLayout({ children, rightSidebar }: Props) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, logout, firstVestibularSlug } = useAuthStore()
-  const isTrailRoute = pathname.startsWith('/trilha')
-
   async function handleLogout() {
     await logout()
     navigate('/')
@@ -40,38 +38,13 @@ export default function AppLayout({ children, rightSidebar }: Props) {
         to={trailHref}
         style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', padding: '6px 10px', marginBottom: 22 }}
       >
-        {isTrailRoute ? (
-          <div style={{
-            width: 38, height: 38,
-            background: '#fff',
-            borderRadius: 10,
-            display: 'grid',
-            placeItems: 'center',
-            flexShrink: 0,
-            overflow: 'hidden',
-            boxShadow: '0 0 0 1px rgba(255,255,255,.14)',
-          }}>
-            <KuaaMascotLogo size={36} />
-          </div>
-        ) : (
-          <div style={{
-            width: 34, height: 34,
-            background: 'linear-gradient(135deg, #b347d9, #531A61)',
-            borderRadius: 10, display: 'grid', placeItems: 'center', flexShrink: 0,
-            boxShadow: '0 0 0 1px rgba(179,71,217,.4), 0 0 16px -4px rgba(179,71,217,.5)',
-          }}>
-            <svg width="18" height="16" viewBox="0 0 28 24" fill="none" aria-hidden="true">
-              <path d="M2 20 C6 12 14 8 26 4 C20 10 18 16 20 22 C14 18 8 18 2 20Z" fill="#FFDC5C" opacity="0.95"/>
-              <path d="M2 20 C8 16 14 14 20 22 C14 22 8 22 2 20Z" fill="#FFDC5C" opacity="0.55"/>
-            </svg>
-          </div>
-        )}
+        <KuaaMascotLogo size={40} />
         <div>
           <span style={{ fontFamily: "'Unbounded', cursive", fontWeight: 700, fontSize: 17, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
             kuaa<span style={{ color: '#FFDC5C' }}>.</span>
           </span>
           <span style={{ display: 'block', fontSize: 9, color: 'rgba(255,255,255,.4)', letterSpacing: '.18em', textTransform: 'uppercase', fontFamily: 'Inter, Arial, sans-serif', marginTop: 2 }}>
-            {isTrailRoute ? 'trilha' : 'DS v2'}
+            plataforma
           </span>
         </div>
       </Link>
