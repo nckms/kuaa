@@ -33,8 +33,8 @@ function SummaryMetric({
   value: string | number
   tone: 'success' | 'danger' | 'neutral'
 }) {
-  const color = tone === 'success' ? '#047857' : tone === 'danger' ? '#840033' : '#531A61'
-  const background = tone === 'success' ? 'rgba(16,185,129,.1)' : tone === 'danger' ? 'rgba(132,0,51,.08)' : 'var(--bg-soft)'
+  const color = tone === 'danger' ? '#840033' : '#531A61'
+  const background = tone === 'danger' ? 'rgba(132,0,51,.08)' : '#f3eaf7'
 
   return (
     <div className="rounded-3 text-center py-2 px-2" style={{ background }}>

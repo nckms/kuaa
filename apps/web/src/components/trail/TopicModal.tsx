@@ -98,8 +98,8 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
                 {answeredQuestions > 0 && (
                   <div className="row g-2 mb-3">
                     <div className="col-4">
-                      <div className="rounded-3 text-center py-2" style={{ background: 'rgba(16,185,129,.1)' }}>
-                        <p className="mb-0 fw-bold" style={{ color: '#047857' }}>{correctAnswers}</p>
+                      <div className="rounded-3 text-center py-2" style={{ background: '#f3eaf7' }}>
+                        <p className="mb-0 fw-bold" style={{ color: '#531A61' }}>{correctAnswers}</p>
                         <p className="mb-0 text-muted" style={{ fontSize: 10 }}>acertos</p>
                       </div>
                     </div>
