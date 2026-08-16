@@ -3,7 +3,7 @@ import { api, registerAndLogin } from './helpers/api'
 import { truncateUserData, testPrisma } from './helpers/truncate'
 
 /**
- * Fluxo completo de quiz com fallback questions (OPENAI_API_KEY ausente em .env.test).
+ * Fluxo completo de quiz com fallback questions (GEMINI_API_KEY ausente em .env.test).
  *
  * Valores esperados (calculados com base em fallbackQuestions.ts + quiz.service.ts):
  * - Tópico: Interpretação de Texto (1º topic do ENEM, desbloqueado na matrícula)

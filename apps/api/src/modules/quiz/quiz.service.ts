@@ -2,7 +2,8 @@ import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma'
 import { redis } from '../../lib/redis'
-import { openai } from '../../lib/openai'
+import { ai } from '../../lib/gemini'
+import { env } from '../../lib/env'
 import { makeError } from '../../utils/errors'
 import { computeNewLevel } from '../../services/adaptive/DifficultyEngine'
 import type { GenerateInput, AnswerInput } from './quiz.schemas'
@@ -28,8 +29,7 @@ const ResponseSchema = z.object({
 })
 
 async function generateQuestions(data: GenerationJobData): Promise<ReturnType<typeof generateFallbackQuestions>> {
-  const apiKey = process.env.OPENAI_API_KEY?.trim()
-  const hasApiKey = !!apiKey && apiKey.startsWith('sk-') && apiKey.length > 20
+  const hasApiKey = !!env.GEMINI_API_KEY?.trim()
 
   if (!hasApiKey) return generateFallbackQuestions(data)
 
@@ -70,24 +70,21 @@ ${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.r
 
   try {
     const aiTimeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('OpenAI timeout (8s)')), 8000),
+      setTimeout(() => reject(new Error('Gemini timeout (8s)')), 8000),
     )
-    const completion = await Promise.race([
-      openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_tokens: 4000,
-        temperature: 0.7,
+    const response = await Promise.race([
+      ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `${systemPrompt}\n\n${userPrompt}`,
+        config: {
+          responseMimeType: 'application/json',
+        },
       }),
       aiTimeout,
     ])
 
-    const content = completion.choices[0]?.message?.content
-    if (!content) throw new Error('OpenAI retornou resposta vazia')
+    const content = response.text
+    if (!content) throw new Error('Gemini retornou resposta vazia')
 
     const parsed = JSON.parse(content) as unknown
     const validated = ResponseSchema.parse(parsed)

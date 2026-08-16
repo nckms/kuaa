@@ -8,7 +8,7 @@ const envSchema = z.object({
   PORT: z.string().default('3333'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   // Opcionais — o sistema já degrada bem sem eles
-  OPENAI_API_KEY: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
   REDIS_URL: z.string().optional(),
   FRONTEND_URL: z.string().optional(),
 })

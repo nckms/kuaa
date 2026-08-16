@@ -54,7 +54,7 @@ Edite `DATABASE_URL` em `.env.test` com uma das opções:
 | Outro projeto Supabase (grátis) | URL completa do projeto de teste |
 | Postgres local | `postgresql://postgres:postgres@localhost:5432/kuaa_test` |
 
-Deixe `OPENAI_API_KEY=` vazio — os testes usam fallback questions automaticamente (sem custo de API).
+Deixe `GEMINI_API_KEY=` vazio — os testes usam fallback questions automaticamente (sem custo de API).
 
 ### Rodar testes
 
