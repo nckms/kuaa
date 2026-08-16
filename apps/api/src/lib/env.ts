@@ -3,7 +3,8 @@ import { z } from 'zod'
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(1),
-  JWT_REFRESH_SECRET: z.string().min(1),
+  // JWT_REFRESH_SECRET removido: refresh token usa crypto.randomUUID() persistido no banco,
+  // não JWT assinado — a variável estava no .env por legado sem uso real no código.
   PORT: z.string().default('3333'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   // Opcionais — o sistema já degrada bem sem eles

@@ -9,6 +9,7 @@ build/
 .env
 .env.local
 .env.*.local
+.env.test  # contém credenciais do banco de teste — nunca commitar
 
 # Logs
 *.log
