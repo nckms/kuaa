@@ -85,7 +85,7 @@ ${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.r
 
   // Timeout absoluto cobre todas as tentativas + backoffs (máx ~15s no total).
   const absoluteDeadline = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error('Gemini timeout absoluto (15s)')), 15_000),
+    setTimeout(() => reject(new Error('Gemini timeout absoluto (24s)')), 24_000),
   )
 
   const RETRY_BACKOFF_MS = [500, 1000]
@@ -113,7 +113,7 @@ ${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.r
       const is503 = isGemini503(err)
 
       if (isAbsoluteTimeout) {
-        console.warn('[QuizService] Gemini timeout absoluto (15s), usando fallback')
+        console.warn('[QuizService] Gemini timeout absoluto (24s), usando fallback')
         break
       }
 
