@@ -8,35 +8,55 @@ class EnrollmentsService {
       include: { vestibular: true },
     })
 
-    return Promise.all(
-      enrollments.map(async (enrollment) => {
-        const [totalTopics, completedTopics] = await Promise.all([
-          prisma.topic.count({
-            where: { subject: { vestibularId: enrollment.vestibularId } },
-          }),
-          prisma.userTopicProgress.count({
-            where: {
-              userId,
-              completed: true,
-              topic: { subject: { vestibularId: enrollment.vestibularId } },
-            },
-          }),
-        ])
+    if (enrollments.length === 0) return []
 
-        const progressPercent =
-          totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0
+    const vestibularIds = enrollments.map((e) => e.vestibularId)
 
-        return {
-          enrollment: {
-            id: enrollment.id,
-            vestibularId: enrollment.vestibularId,
-            enrolledAt: enrollment.enrolledAt,
-          },
-          vestibular: enrollment.vestibular,
-          progress: { totalTopics, completedTopics, progressPercent },
-        }
-      }),
-    )
+    // Query 1 — total de tópicos por vestibular (agrupado por subjectId)
+    const topicCounts = await prisma.topic.groupBy({
+      by: ['subjectId'],
+      where: { subject: { vestibularId: { in: vestibularIds } } },
+      _count: { id: true },
+    })
+    const subjects = await prisma.subject.findMany({
+      where: { vestibularId: { in: vestibularIds } },
+      select: { id: true, vestibularId: true },
+    })
+    const subjectToVestibular = new Map(subjects.map((s) => [s.id, s.vestibularId]))
+    const totalTopicsMap = new Map<string, number>()
+    for (const row of topicCounts) {
+      const vestId = subjectToVestibular.get(row.subjectId)
+      if (vestId) {
+        totalTopicsMap.set(vestId, (totalTopicsMap.get(vestId) ?? 0) + row._count.id)
+      }
+    }
+
+    // Query 2 — tópicos completados por vestibular
+    const completedRows = await prisma.userTopicProgress.findMany({
+      where: { userId, completed: true, topic: { subject: { vestibularId: { in: vestibularIds } } } },
+      select: { topic: { select: { subject: { select: { vestibularId: true } } } } },
+    })
+    const completedTopicsMap = new Map<string, number>()
+    for (const row of completedRows) {
+      const vestId = row.topic.subject.vestibularId
+      completedTopicsMap.set(vestId, (completedTopicsMap.get(vestId) ?? 0) + 1)
+    }
+
+    return enrollments.map((enrollment) => {
+      const totalTopics = totalTopicsMap.get(enrollment.vestibularId) ?? 0
+      const completedTopics = completedTopicsMap.get(enrollment.vestibularId) ?? 0
+      const progressPercent = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0
+
+      return {
+        enrollment: {
+          id: enrollment.id,
+          vestibularId: enrollment.vestibularId,
+          enrolledAt: enrollment.enrolledAt,
+        },
+        vestibular: enrollment.vestibular,
+        progress: { totalTopics, completedTopics, progressPercent },
+      }
+    })
   }
 
   async enroll(userId: string, vestibularId: string) {

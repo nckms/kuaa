@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma'
+import { redis } from '../../lib/redis'
 import { makeError } from '../../utils/errors'
 
 interface TopicProgressShape {
@@ -81,6 +82,34 @@ interface TrailActivity {
   wrongAnswers: number
   studyTimeMs: number
   weeklyAnsweredQuestions: number[]
+}
+
+const TRAIL_CACHE_TTL = 60
+
+async function getCachedTrail(key: string): Promise<TrailShape | null> {
+  try {
+    const raw = await redis.get(key)
+    if (!raw) return null
+    return JSON.parse(raw) as TrailShape
+  } catch {
+    return null
+  }
+}
+
+async function setCachedTrail(key: string, data: TrailShape): Promise<void> {
+  try {
+    await redis.set(key, JSON.stringify(data), 'EX', TRAIL_CACHE_TTL)
+  } catch {
+    // Redis indisponível — continua sem cache
+  }
+}
+
+export async function invalidateTrailCache(userId: string, vestibularSlug: string): Promise<void> {
+  try {
+    await redis.del(`trail:${userId}:${vestibularSlug}`)
+  } catch {
+    // Redis indisponível — sem problema
+  }
 }
 
 class TrailService {
@@ -213,6 +242,10 @@ class TrailService {
   }
 
   async getTrail(userId: string, vestibularSlug: string): Promise<TrailShape> {
+    const cacheKey = `trail:${userId}:${vestibularSlug}`
+    const cached = await getCachedTrail(cacheKey)
+    if (cached) return cached
+
     const enrollment = await prisma.enrollment.findFirst({
       where: { userId, vestibular: { slug: vestibularSlug } },
     })
@@ -314,7 +347,7 @@ class TrailService {
     })
     const totalXpEarned = xpAgg._sum.xpEarned ?? 0
 
-    return {
+    const result: TrailShape = {
       vestibular: {
         id: vestibular.id,
         slug: vestibular.slug,
@@ -342,6 +375,9 @@ class TrailService {
         knowledgeGaps,
       },
     }
+
+    await setCachedTrail(cacheKey, result)
+    return result
   }
 
   async getNextTopic(userId: string, vestibularSlug: string) {

@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../lib/prisma'
+import { env } from '../lib/env'
 import { makeError } from '../utils/errors'
 
 interface AccessTokenPayload {
@@ -20,12 +21,10 @@ export async function requireAuth(
     }
 
     const token = authHeader.slice(7)
-    const secret = process.env.JWT_SECRET
-    if (!secret) throw makeError('Configuração inválida', 500, 'CONFIG_ERROR')
 
     let payload: AccessTokenPayload
     try {
-      payload = jwt.verify(token, secret) as AccessTokenPayload
+      payload = jwt.verify(token, env.JWT_SECRET) as AccessTokenPayload
     } catch {
       throw makeError('Token inválido ou expirado', 401, 'INVALID_TOKEN')
     }

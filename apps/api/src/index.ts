@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import './lib/env' // valida env vars no boot — derruba o processo se faltar obrigatória
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'

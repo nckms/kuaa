@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import type { User } from '@prisma/client'
 import { prisma } from '../../lib/prisma'
+import { env } from '../../lib/env'
 import { redis } from '../../lib/redis'
 import { makeError } from '../../utils/errors'
 import type { SafeUser } from '../../types/index'
@@ -20,19 +21,13 @@ interface AuthResult extends AuthTokens {
   user: SafeUser
 }
 
-function getSecret(key: string): string {
-  const val = process.env[key]
-  if (!val) throw new Error(`Missing env var: ${key}`)
-  return val
-}
-
 function toSafeUser(user: User): SafeUser {
   const { passwordHash: _, ...safe } = user
   return safe
 }
 
 function generateAccessToken(userId: string, email: string): string {
-  return jwt.sign({ userId, email }, getSecret('JWT_SECRET'), {
+  return jwt.sign({ userId, email }, env.JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRES,
   })
 }

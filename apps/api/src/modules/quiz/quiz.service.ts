@@ -8,6 +8,7 @@ import { computeNewLevel } from '../../services/adaptive/DifficultyEngine'
 import type { GenerateInput, AnswerInput } from './quiz.schemas'
 import type { AnswerResult, SessionSummary, AchievementData, QuestionOption, ReviewQuestion, GenerationJobData } from './quiz.types'
 import { generateFallbackQuestions } from './fallbackQuestions'
+import { invalidateTrailCache } from '../trail/trail.service'
 
 const OptionSchema = z.object({
   id: z.enum(['A', 'B', 'C', 'D', 'E']),
@@ -275,7 +276,10 @@ class QuizService {
 
     const session = await prisma.quizSession.findUnique({
       where: { id: sessionId },
-      include: { answers: { select: { questionId: true } } },
+      include: {
+        answers: { select: { questionId: true } },
+        topic: { include: { subject: { include: { vestibular: { select: { slug: true } } } } } },
+      },
     })
     if (!session) throw makeError('Sessão não encontrada', 404, 'NOT_FOUND')
     if (session.userId !== userId) throw makeError('Acesso negado', 403, 'FORBIDDEN')
@@ -340,6 +344,8 @@ class QuizService {
     const progress = await prisma.userTopicProgress.findUnique({
       where: { userId_topicId: { userId, topicId: session.topicId } },
     })
+
+    await invalidateTrailCache(userId, session.topic.subject.vestibular.slug)
 
     return {
       isCorrect,
@@ -504,6 +510,8 @@ class QuizService {
       where: { id: sessionId },
       data: { finishedAt: new Date(), xpEarned, skipped, isPerfect },
     })
+
+    await invalidateTrailCache(userId, session.topic.subject.vestibular.slug)
 
     // Montar review questions
     const reviewQuestions: ReviewQuestion[] = session.answers.map((a) => {

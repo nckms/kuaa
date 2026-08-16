@@ -1,8 +1,9 @@
 import Redis from 'ioredis'
+import { env } from './env'
 
 let reportedConnectionError = false
 
-export const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+export const redis = new Redis(env.REDIS_URL ?? 'redis://localhost:6379', {
   enableOfflineQueue: false,
   maxRetriesPerRequest: 1,
   retryStrategy: () => null,
