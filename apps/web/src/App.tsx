@@ -16,6 +16,7 @@ import QuizLoadingPage from './pages/Quiz/QuizLoadingPage'
 import QuizPage from './pages/Quiz/QuizPage'
 import ResultPage from './pages/Quiz/ResultPage'
 import ReviewPage from './pages/Quiz/ReviewPage'
+import IndicePage from './pages/Indice/IndicePage'
 
 function TrailIndex() {
   const navigate = useNavigate()
@@ -80,6 +81,7 @@ function AppRoutes() {
         <Route path="/revisao/:sessionId" element={<ReviewPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
         <Route path="/ranking" element={<RankingPage />} />
+        <Route path="/indice" element={<IndicePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

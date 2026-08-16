@@ -37,12 +37,13 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  enrollments   Enrollment[]
-  quizSessions  QuizSession[]
-  answers       UserAnswer[]
-  achievements  UserAchievement[]
-  topicProgress UserTopicProgress[]
-  refreshTokens RefreshToken[]
+  enrollments    Enrollment[]
+  quizSessions   QuizSession[]
+  answers        UserAnswer[]
+  achievements   UserAchievement[]
+  topicProgress  UserTopicProgress[]
+  refreshTokens  RefreshToken[]
+  indexSnapshots IndexSnapshot[]
 }
 
 model RefreshToken {
@@ -65,8 +66,9 @@ model Vestibular {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  subjects    Subject[]
-  enrollments Enrollment[]
+  subjects       Subject[]
+  enrollments    Enrollment[]
+  indexSnapshots IndexSnapshot[]
 }
 
 model Subject {
@@ -184,6 +186,19 @@ model Achievement {
   iconSlug    String
   xpBonus     Int               @default(0)
   unlocks     UserAchievement[]
+}
+
+model IndexSnapshot {
+  id           String     @id @default(cuid())
+  userId       String
+  vestibularId String
+  score        Int
+  subjectScores Json
+  capturedAt   DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vestibular   Vestibular @relation(fields: [vestibularId], references: [id], onDelete: Cascade)
+
+  @@index([userId, vestibularId, capturedAt])
 }
 
 model UserAchievement {

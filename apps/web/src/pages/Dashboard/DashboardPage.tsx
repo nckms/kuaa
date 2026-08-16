@@ -196,6 +196,9 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+            <Link to="/indice" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 16, fontSize: 12, fontWeight: 700, color: '#531A61', textDecoration: 'none', letterSpacing: '.04em' }}>
+              Ver Índice Kuaa completo →
+            </Link>
           </div>
         </div>
 

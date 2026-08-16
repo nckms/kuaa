@@ -2,6 +2,7 @@ import { useAuthStore } from '../../stores/auth.store'
 import KuaaIcon from '../../components/ui/KuaaIcon'
 import AsaGlyph from '../../components/ui/AsaGlyph'
 import Avatar from '../../components/ui/Avatar'
+import { useIndex } from '../../hooks/useIndex'
 
 type NavIconName = 'home' | 'book' | 'target' | 'video' | 'chat' | 'gear'
 
@@ -13,23 +14,7 @@ const SIDEBAR_ITEMS: { icon: NavIconName; active?: boolean }[] = [
   { icon: 'chat' },
 ]
 
-const SCORE = 832
 const MAX_SCORE = 1000
-const HISTORY: number[] = [712, 736, 740, 758, 772, 790, 808, 832]
-const MONTHS = ['set', 'out', 'nov', 'dez', 'jan', 'fev', 'mar', 'abr']
-
-interface SubjectBreakdown {
-  name: string
-  score: number
-  delta: number
-  color: string
-}
-
-const SUBJECTS: SubjectBreakdown[] = [
-  { name: 'Ciências da Natureza', score: 88, delta: 3, color: '#531A61' },
-  { name: 'Matemática', score: 94, delta: 6, color: '#840033' },
-  { name: 'Linguagens', score: 81, delta: 12, color: '#2a0d33' },
-]
 
 const FAIXAS = [
   { label: '300–499', name: 'iniciante' },
@@ -37,6 +22,11 @@ const FAIXAS = [
   { label: '700–849', name: 'forte' },
   { label: '850+', name: 'elite' },
 ]
+
+// Thresholds para atingir a próxima faixa (undefined = já está na elite)
+const FAIXA_NEXT_THRESHOLD = [500, 700, 850, undefined] as const
+
+const SUBJECT_COLORS = ['#531A61', '#840033', '#2a0d33', '#1A4A61', '#614A1A']
 
 function getFaixaIndex(score: number): number {
   if (score < 500) return 0
@@ -52,7 +42,7 @@ function SparkLine({ values }: { values: number[] }) {
   const h = 60
   const points = values.map((v, i) => {
     const x = (i / (values.length - 1)) * w
-    const y = h - ((v - min) / (max - min)) * h
+    const y = h - ((v - min) / (max - min || 1)) * h
     return `${x},${y}`
   })
   const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p}`).join(' ')
@@ -68,7 +58,7 @@ function SparkLine({ values }: { values: number[] }) {
       <path d={pathD} stroke="url(#spark-line)" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       {values.map((v, i) => {
         const x = (i / (values.length - 1)) * w
-        const y = h - ((v - min) / (max - min)) * h
+        const y = h - ((v - min) / (max - min || 1)) * h
         return (
           <circle
             key={i}
@@ -166,7 +156,34 @@ function BigGauge({ score }: { score: number }) {
 
 export default function IndicePage() {
   const user = useAuthStore((s) => s.user)
-  const faixaIdx = getFaixaIndex(SCORE)
+  // Usa o primeiro vestibular matriculado. Suporte a múltiplas matrículas exigiria um seletor.
+  const firstVestibularSlug = useAuthStore((s) => s.firstVestibularSlug)
+  const { data } = useIndex(firstVestibularSlug ?? '')
+
+  const score = data?.score ?? 300
+  const delta7d = data?.delta7d ?? 0
+  const historyValues = data?.history.map((h) => h.score) ?? []
+  const historyMonths = data?.history.map((h) => h.month) ?? []
+  const subjects = (data?.subjectBreakdown ?? []).map((s, i) => ({
+    name: s.subjectName,
+    score: s.score,
+    delta: s.delta,
+    color: SUBJECT_COLORS[i % SUBJECT_COLORS.length] ?? '#531A61',
+  }))
+
+  const faixaIdx = getFaixaIndex(score)
+  const currentFaixa = FAIXAS[faixaIdx]
+  const nextFaixa = faixaIdx < FAIXAS.length - 1 ? FAIXAS[faixaIdx + 1] : null
+  const nextThreshold = FAIXA_NEXT_THRESHOLD[faixaIdx]
+  const ptsToNext = nextThreshold !== undefined ? nextThreshold - score : null
+
+  // percentile = % que pontuou abaixo do usuário. "Top X%" = 100 - percentile.
+  const percentile = data?.percentile ?? null
+  const topPercent = percentile !== null ? 100 - percentile : null
+
+  const faixaDescText = nextFaixa && ptsToNext !== null
+    ? `Você está na faixa ${currentFaixa?.name ?? ''}. Mantenha o ritmo e alcance a faixa ${nextFaixa.name} com mais ${ptsToNext} pontos.`
+    : `Você está na faixa Elite. Parabéns pelo desempenho máximo!`
 
   return (
     <div
@@ -306,8 +323,9 @@ export default function IndicePage() {
           >
             {/* Left */}
             <div>
+              {/* Percentil nacional — null = "Coletando dados" */}
               <span className="k-pill wine" style={{ marginBottom: 20, display: 'inline-flex' }}>
-                Top 12% nacional
+                {topPercent !== null ? `Top ${topPercent}% nacional` : 'Coletando dados'}
               </span>
 
               <div
@@ -321,14 +339,15 @@ export default function IndicePage() {
                   margin: '16px 0 8px',
                 }}
               >
-                {SCORE}
+                {score}
               </div>
 
               <div style={{ fontSize: 14, color: 'var(--k-tinta-2)', marginBottom: 20 }}>
-                de {MAX_SCORE} · próxima faixa em 18 pts
+                de {MAX_SCORE}
+                {ptsToNext !== null ? ` · próxima faixa em ${ptsToNext} pts` : ' · faixa máxima atingida'}
               </div>
 
-              {/* +24 badge */}
+              {/* Delta 7 dias */}
               <div
                 style={{
                   display: 'inline-flex',
@@ -349,13 +368,12 @@ export default function IndicePage() {
                     color: 'var(--k-vinho)',
                   }}
                 >
-                  +24 pts em 7 dias
+                  {delta7d >= 0 ? '+' : ''}{delta7d} pts em 7 dias
                 </span>
               </div>
 
               <p style={{ fontSize: 13, color: 'var(--k-tinta-2)', maxWidth: 360 }}>
-                Você está na faixa <strong>Forte</strong>. Mantenha o ritmo e alcance a faixa Elite
-                com mais 18 pontos.
+                {faixaDescText}
               </p>
 
               {/* Faixas */}
@@ -392,7 +410,7 @@ export default function IndicePage() {
                   display: 'inline-block',
                 }}
               >
-                <BigGauge score={SCORE} />
+                <BigGauge score={score} />
               </div>
             </div>
           </div>
@@ -424,83 +442,90 @@ export default function IndicePage() {
               >
                 histórico
               </div>
-              <SparkLine values={HISTORY} />
-              {/* Month labels */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginTop: 8,
-                }}
-              >
-                {MONTHS.map((m, i) => (
-                  <span
-                    key={i}
-                    style={{
-                      fontSize: 9,
-                      color: i === MONTHS.length - 1 ? 'var(--k-amarelo)' : 'rgba(255,255,255,.3)',
-                      fontFamily: "'Unbounded', sans-serif",
-                    }}
-                  >
-                    {m}
-                  </span>
-                ))}
-              </div>
+              {historyValues.length >= 2
+                ? <SparkLine values={historyValues} />
+                : <p style={{ fontSize: 12, color: 'rgba(255,255,255,.35)', lineHeight: 1.5 }}>Finalize pelo menos 2 sessões para ver o histórico.</p>
+              }
+              {historyMonths.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                  {historyMonths.map((m, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        fontSize: 9,
+                        color: i === historyMonths.length - 1 ? 'var(--k-amarelo)' : 'rgba(255,255,255,.3)',
+                        fontFamily: "'Unbounded', sans-serif",
+                      }}
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Subject breakdown cards */}
-            {SUBJECTS.map((s) => (
-              <div key={s.name}>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontFamily: "'Unbounded', sans-serif",
-                    fontWeight: 500,
-                    letterSpacing: '.2em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,.45)',
-                    marginBottom: 16,
-                  }}
-                >
-                  {s.name}
+            {subjects.length > 0
+              ? subjects.map((s) => (
+                  <div key={s.name}>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontFamily: "'Unbounded', sans-serif",
+                        fontWeight: 500,
+                        letterSpacing: '.2em',
+                        textTransform: 'uppercase',
+                        color: 'rgba(255,255,255,.45)',
+                        marginBottom: 16,
+                      }}
+                    >
+                      {s.name}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Unbounded', sans-serif",
+                        fontWeight: 700,
+                        fontSize: 52,
+                        color: '#fff',
+                        letterSpacing: '-0.04em',
+                        lineHeight: 0.92,
+                        marginBottom: 8,
+                      }}
+                    >
+                      {s.score}
+                    </div>
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        background: 'rgba(255,255,255,.08)',
+                        borderRadius: 999,
+                        padding: '4px 10px',
+                      }}
+                    >
+                      <KuaaIcon name="arrowUp" size={11} color="#4ade80" />
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: '#4ade80',
+                          fontFamily: "'Unbounded', sans-serif",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {s.delta >= 0 ? '+' : ''}{s.delta}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              : (
+                <div style={{ gridColumn: 'span 3', display: 'flex', alignItems: 'center' }}>
+                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,.35)', lineHeight: 1.5 }}>
+                    Responda questões para ver o breakdown por matéria.
+                  </p>
                 </div>
-                <div
-                  style={{
-                    fontFamily: "'Unbounded', sans-serif",
-                    fontWeight: 700,
-                    fontSize: 52,
-                    color: '#fff',
-                    letterSpacing: '-0.04em',
-                    lineHeight: 0.92,
-                    marginBottom: 8,
-                  }}
-                >
-                  {s.score}
-                </div>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    background: 'rgba(255,255,255,.08)',
-                    borderRadius: 999,
-                    padding: '4px 10px',
-                  }}
-                >
-                  <KuaaIcon name="arrowUp" size={11} color="#4ade80" />
-                  <span
-                    style={{
-                      fontSize: 12,
-                      color: '#4ade80',
-                      fontFamily: "'Unbounded', sans-serif",
-                      fontWeight: 600,
-                    }}
-                  >
-                    +{s.delta}
-                  </span>
-                </div>
-              </div>
-            ))}
+              )
+            }
           </div>
         </div>
       </div>

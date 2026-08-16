@@ -10,6 +10,7 @@ import type { GenerateInput, AnswerInput } from './quiz.schemas'
 import type { AnswerResult, SessionSummary, AchievementData, QuestionOption, ReviewQuestion, GenerationJobData } from './quiz.types'
 import { generateFallbackQuestions } from './fallbackQuestions'
 import { invalidateTrailCache } from '../trail/trail.service'
+import { captureSnapshot } from '../index/index.service'
 
 const OptionSchema = z.object({
   id: z.enum(['A', 'B', 'C', 'D', 'E']),
@@ -548,6 +549,11 @@ class QuizService {
     })
 
     await invalidateTrailCache(userId, session.topic.subject.vestibular.slug)
+
+    // Captura snapshot do Índice Kuaa após cada sessão finalizada
+    captureSnapshot(userId, session.topic.subject.vestibularId).catch((err) => {
+      console.warn('[QuizService] Falha ao capturar IndexSnapshot:', err)
+    })
 
     // Montar review questions
     const reviewQuestions: ReviewQuestion[] = session.answers.map((a) => {
