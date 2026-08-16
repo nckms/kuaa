@@ -28,6 +28,21 @@ const ResponseSchema = z.object({
   questions: z.array(QuestionSchema).min(1),
 })
 
+function isGemini503(err: unknown): boolean {
+  if (!(err instanceof Error)) return false
+  const e = err as unknown as Record<string, unknown>
+  if (e['status'] === 503) return true
+  return err.message.includes('"code":503') || err.message.includes('"status":"UNAVAILABLE"')
+}
+
+function describeGeminiError(err: unknown): string {
+  if (!(err instanceof Error)) return 'erro desconhecido'
+  const e = err as unknown as Record<string, unknown>
+  const status = e['status']
+  if (typeof status === 'number') return `HTTP ${status}`
+  return err.message.slice(0, 100)
+}
+
 async function generateQuestions(data: GenerationJobData): Promise<ReturnType<typeof generateFallbackQuestions>> {
   const hasApiKey = !!env.GEMINI_API_KEY?.trim()
 
@@ -68,32 +83,56 @@ Nivel de dominio do aluno: ${data.userMasteryLevel}/5
 Questoes a gerar: ${data.questionCount}
 ${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.recentErrorTopics.join(', ')}` : ''}`
 
-  try {
-    const aiTimeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Gemini timeout (8s)')), 8000),
-    )
-    const response = await Promise.race([
-      ai.models.generateContent({
-        model: 'gemini-flash-latest',
-        contents: `${systemPrompt}\n\n${userPrompt}`,
-        config: {
-          responseMimeType: 'application/json',
-        },
-      }),
-      aiTimeout,
-    ])
+  // Timeout absoluto cobre todas as tentativas + backoffs (máx ~15s no total).
+  const absoluteDeadline = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Gemini timeout absoluto (15s)')), 15_000),
+  )
 
-    const content = response.text
-    if (!content) throw new Error('Gemini retornou resposta vazia')
+  const RETRY_BACKOFF_MS = [500, 1000]
+  const MAX_ATTEMPTS = 3
 
-    const parsed = JSON.parse(content) as unknown
-    const validated = ResponseSchema.parse(parsed)
-    return validated.questions
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'erro desconhecido'
-    console.warn(`[QuizService] Falha ao gerar com IA; usando fallback: ${message}`)
-    return generateFallbackQuestions(data)
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const response = await Promise.race([
+        ai.models.generateContent({
+          model: 'gemini-flash-latest',
+          contents: `${systemPrompt}\n\n${userPrompt}`,
+          config: { responseMimeType: 'application/json' },
+        }),
+        absoluteDeadline,
+      ])
+
+      const content = response.text
+      if (!content) throw new Error('Gemini retornou resposta vazia')
+
+      const parsed = JSON.parse(content) as unknown
+      const validated = ResponseSchema.parse(parsed)
+      return validated.questions
+    } catch (err) {
+      const isAbsoluteTimeout = err instanceof Error && err.message.startsWith('Gemini timeout absoluto')
+      const is503 = isGemini503(err)
+
+      if (isAbsoluteTimeout) {
+        console.warn('[QuizService] Gemini timeout absoluto (15s), usando fallback')
+        break
+      }
+
+      if (is503 && attempt < MAX_ATTEMPTS) {
+        const wait = RETRY_BACKOFF_MS[attempt - 1] ?? 1000
+        console.warn(`[QuizService] Gemini 503 UNAVAILABLE (tentativa ${attempt}/${MAX_ATTEMPTS}), retry em ${wait}ms`)
+        await new Promise<void>((r) => setTimeout(r, wait))
+        continue
+      }
+
+      const label = is503
+        ? `503 UNAVAILABLE após ${attempt} tentativa(s)`
+        : describeGeminiError(err)
+      console.warn(`[QuizService] Gemini ${label}, usando fallback`)
+      break
+    }
   }
+
+  return generateFallbackQuestions(data)
 }
 
 async function persistGeneratedQuestions(
