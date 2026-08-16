@@ -37,13 +37,14 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  enrollments    Enrollment[]
-  quizSessions   QuizSession[]
-  answers        UserAnswer[]
-  achievements   UserAchievement[]
-  topicProgress  UserTopicProgress[]
-  refreshTokens  RefreshToken[]
-  indexSnapshots IndexSnapshot[]
+  enrollments       Enrollment[]
+  quizSessions      QuizSession[]
+  answers           UserAnswer[]
+  achievements      UserAchievement[]
+  topicProgress     UserTopicProgress[]
+  refreshTokens     RefreshToken[]
+  indexSnapshots    IndexSnapshot[]
+  simuladoAttempts  SimuladoAttempt[]
 }
 
 model RefreshToken {
@@ -66,9 +67,10 @@ model Vestibular {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  subjects       Subject[]
-  enrollments    Enrollment[]
-  indexSnapshots IndexSnapshot[]
+  subjects          Subject[]
+  enrollments       Enrollment[]
+  indexSnapshots    IndexSnapshot[]
+  simuladoAttempts  SimuladoAttempt[]
 }
 
 model Subject {
@@ -199,6 +201,26 @@ model IndexSnapshot {
   vestibular   Vestibular @relation(fields: [vestibularId], references: [id], onDelete: Cascade)
 
   @@index([userId, vestibularId, capturedAt])
+}
+
+model SimuladoAttempt {
+  id           String     @id @default(cuid())
+  userId       String
+  vestibularId String
+  weekStart    DateTime
+  questions    Json
+  answers      Json       @default("{}")
+  flagged      Json       @default("[]")
+  startedAt    DateTime   @default(now())
+  finishedAt   DateTime?
+  score        Int?
+  correct      Int?
+  wrong        Int?
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vestibular   Vestibular @relation(fields: [vestibularId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vestibularId, weekStart])
+  @@index([userId, vestibularId])
 }
 
 model UserAchievement {

@@ -11,7 +11,8 @@ const navItems = [
   { label: 'Trilha',     icon: 'bi-map',            match: '/trilha'    },
   { label: 'Dashboard',  icon: 'bi-house-fill',      match: '/dashboard' },
   { label: 'Índice',     icon: 'bi-speedometer2',    match: '/indice'    },
-  { label: 'Ranking',    icon: 'bi-trophy-fill',     match: '/ranking'   },
+  { label: 'Simulado',  icon: 'bi-journal-text',    match: '/simulado'  },
+  { label: 'Ranking',   icon: 'bi-trophy-fill',     match: '/ranking'   },
   { label: 'Perfil',     icon: 'bi-person-fill',     match: '/perfil'    },
 ]
 

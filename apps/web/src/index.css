@@ -39,13 +39,18 @@
   --vinho-light: #fce8ef;
 
   /* IndicePage aliases — mapeiam para as variáveis do design system acima */
-  --k-roxo-deep: #2a0d33;
-  --k-amarelo:   #FFDC5C;
-  --k-creme:     #faf3e3;
-  --k-tinta:     #1a1a1a;
-  --k-tinta-2:   #6b7280;
-  --k-tinta-3:   #9ca3af;
-  --k-vinho:     #840033;
+  --k-roxo-deep:   #2a0d33;
+  --k-roxo:        #531A61;
+  --k-amarelo:     #FFDC5C;
+  --k-amarelo-soft: rgba(255, 220, 92, .15);
+  --k-creme:       #faf3e3;
+  --k-tinta:       #1a1a1a;
+  --k-tinta-2:     #6b7280;
+  --k-tinta-3:     #9ca3af;
+  --k-vinho:       #840033;
+  --k-line:        #ece1c5;
+  --k-line-2:      #e5e7eb;
+  --k-shadow-sm:   var(--shadow-sm);
 
   /* Shadows — purple-tinted */
   --shadow-xs: 0 1px 1px rgba(83,26,97,.04);
