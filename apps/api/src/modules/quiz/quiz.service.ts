@@ -74,7 +74,7 @@ ${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.r
     )
     const response = await Promise.race([
       ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-flash-latest',
         contents: `${systemPrompt}\n\n${userPrompt}`,
         config: {
           responseMimeType: 'application/json',
