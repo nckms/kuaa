@@ -6,6 +6,7 @@ import { enrollmentsRouter } from '../modules/enrollments/enrollments.routes'
 import { trailRouter } from '../modules/trail/trail.routes'
 import { quizRouter } from '../modules/quiz/quiz.routes'
 import { indexRouter } from '../modules/index/index.routes'
+import { rankingRouter } from '../modules/ranking/ranking.routes'
 
 export const router = Router()
 
@@ -24,3 +25,4 @@ router.use('/enrollments', enrollmentsRouter)
 router.use('/trail', trailRouter)
 router.use('/quiz', quizRouter)
 router.use('/index', indexRouter)
+router.use('/ranking', rankingRouter)
