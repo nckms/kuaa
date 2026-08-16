@@ -1,18 +1,8 @@
 import { useAuthStore } from '../../stores/auth.store'
 import KuaaIcon from '../../components/ui/KuaaIcon'
-import AsaGlyph from '../../components/ui/AsaGlyph'
 import Avatar from '../../components/ui/Avatar'
+import AppLayout from '../../components/layout/AppLayout'
 import { useIndex } from '../../hooks/useIndex'
-
-type NavIconName = 'home' | 'book' | 'target' | 'video' | 'chat' | 'gear'
-
-const SIDEBAR_ITEMS: { icon: NavIconName; active?: boolean }[] = [
-  { icon: 'home' },
-  { icon: 'book' },
-  { icon: 'target', active: true },
-  { icon: 'video' },
-  { icon: 'chat' },
-]
 
 const MAX_SCORE = 1000
 
@@ -23,7 +13,7 @@ const FAIXAS = [
   { label: '850+', name: 'elite' },
 ]
 
-// Thresholds para atingir a próxima faixa (undefined = já está na elite)
+// Threshold para atingir a próxima faixa (undefined = já está na elite)
 const FAIXA_NEXT_THRESHOLD = [500, 700, 850, undefined] as const
 
 const SUBJECT_COLORS = ['#531A61', '#840033', '#2a0d33', '#1A4A61', '#614A1A']
@@ -77,17 +67,14 @@ function BigGauge({ score }: { score: number }) {
   const cx = 170
   const cy = 165
   const r = 130
-  const pct = (score - 300) / 700 // 300–1000 range
-  // semicircle from 180° to 0° (left to right)
+  const pct = (score - 300) / 700
   const arcLength = Math.PI * r
   const filled = arcLength * Math.max(0, Math.min(1, pct))
 
-  // Needle dot position
   const needleAngle = Math.PI - pct * Math.PI
   const nx = cx + r * Math.cos(needleAngle)
   const ny = cy - r * Math.sin(needleAngle)
 
-  // Tick marks
   const ticks = [0, 0.25, 0.5, 0.75, 1]
   const tickLabels = ['300', '475', '650', '825', '1000']
 
@@ -124,7 +111,7 @@ function BigGauge({ score }: { score: number }) {
       <circle cx={nx} cy={ny} r={8} fill="#FFDC5C" />
       <circle cx={nx} cy={ny} r={4} fill="#2a0d33" />
 
-      {/* Tick marks + labels */}
+      {/* Tick marks + labels — cor escura para contraste sobre fundo amarelo/creme */}
       {ticks.map((t, i) => {
         const a = Math.PI - t * Math.PI
         const tx = cx + (r + 22) * Math.cos(a)
@@ -135,14 +122,14 @@ function BigGauge({ score }: { score: number }) {
         const oy = cy - (r + 10) * Math.sin(a)
         return (
           <g key={i}>
-            <line x1={ix} y1={iy} x2={ox} y2={oy} stroke="rgba(255,255,255,.25)" strokeWidth="1.5" />
+            <line x1={ix} y1={iy} x2={ox} y2={oy} stroke="rgba(26,10,31,.3)" strokeWidth="1.5" />
             <text
               x={tx}
               y={ty}
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize="11"
-              fill="rgba(255,255,255,.45)"
+              fill="rgba(26,10,31,.65)"
               fontFamily="'Unbounded', sans-serif"
             >
               {tickLabels[i]}
@@ -177,7 +164,6 @@ export default function IndicePage() {
   const nextThreshold = FAIXA_NEXT_THRESHOLD[faixaIdx]
   const ptsToNext = nextThreshold !== undefined ? nextThreshold - score : null
 
-  // percentile = % que pontuou abaixo do usuário. "Top X%" = 100 - percentile.
   const percentile = data?.percentile ?? null
   const topPercent = percentile !== null ? 100 - percentile : null
 
@@ -186,83 +172,8 @@ export default function IndicePage() {
     : `Você está na faixa Elite. Parabéns pelo desempenho máximo!`
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        fontFamily: "'Questrial', Arial, sans-serif",
-        background: 'var(--k-creme)',
-      }}
-    >
-      {/* Sidebar */}
-      <div
-        style={{
-          width: 80,
-          background: 'var(--k-roxo-deep)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          paddingTop: 20,
-          paddingBottom: 20,
-          gap: 4,
-          flexShrink: 0,
-        }}
-      >
-        {/* Logo icon */}
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            background: 'var(--k-amarelo)',
-            borderRadius: 14,
-            display: 'grid',
-            placeItems: 'center',
-            marginBottom: 24,
-          }}
-        >
-          <AsaGlyph size={28} />
-        </div>
-
-        {/* Nav icons */}
-        {SIDEBAR_ITEMS.map(({ icon, active }) => (
-          <div
-            key={icon}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 12,
-              display: 'grid',
-              placeItems: 'center',
-              background: active ? 'rgba(255,255,255,.1)' : 'transparent',
-              cursor: 'pointer',
-            }}
-          >
-            <KuaaIcon
-              name={icon}
-              size={20}
-              color={active ? 'var(--k-amarelo)' : 'rgba(255,255,255,.4)'}
-            />
-          </div>
-        ))}
-
-        <div style={{ flex: 1 }} />
-        {/* Gear at bottom */}
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
-            display: 'grid',
-            placeItems: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          <KuaaIcon name="gear" size={20} color="rgba(255,255,255,.4)" />
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+    <AppLayout>
+      <div style={{ fontFamily: "'Questrial', Arial, sans-serif", background: 'var(--k-creme)', minHeight: '100%' }}>
         {/* Header */}
         <div
           style={{
@@ -323,7 +234,6 @@ export default function IndicePage() {
           >
             {/* Left */}
             <div>
-              {/* Percentil nacional — null = "Coletando dados" */}
               <span className="k-pill wine" style={{ marginBottom: 20, display: 'inline-flex' }}>
                 {topPercent !== null ? `Top ${topPercent}% nacional` : 'Coletando dados'}
               </span>
@@ -529,6 +439,6 @@ export default function IndicePage() {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }
