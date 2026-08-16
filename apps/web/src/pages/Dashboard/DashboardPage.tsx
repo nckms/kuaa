@@ -4,6 +4,7 @@ import AppLayout from '../../components/layout/AppLayout'
 import ProgressBar from '../../components/ui/ProgressBar'
 import { useAuthStore } from '../../stores/auth.store'
 import { useTrail } from '../../hooks/useTrail'
+import { useIndex } from '../../hooks/useIndex'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
 import type { TrailTopic } from '../../types/trail'
 
@@ -67,6 +68,7 @@ function AgendaCard({ borderColor, label, sublabel, time, badge }: { borderColor
 export default function DashboardPage() {
   const { user, firstVestibularSlug, enrollments } = useAuthStore()
   const { data: trail } = useTrail(firstVestibularSlug ?? '')
+  const { data: indexData } = useIndex(firstVestibularSlug ?? '')
   const navigate = useNavigate()
   const generateQuiz = useGenerateQuiz()
 
@@ -184,7 +186,7 @@ export default function DashboardPage() {
               <span style={{ backgroundColor: '#840033', color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 999, letterSpacing: '.04em' }}>ATUAL</span>
             </div>
             <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 64, fontWeight: 700, color: '#531A61', lineHeight: 0.9, letterSpacing: '-0.045em', marginBottom: 8 }}>
-              {user?.xp ?? 0}
+              {indexData?.score ?? '—'}
             </div>
             <p style={{ fontSize: 13, color: 'rgba(83,26,97,.7)', marginBottom: 20 }}>{finishedSessions} sessoes finalizadas · {accuracy ?? 0}% de acerto geral</p>
 
