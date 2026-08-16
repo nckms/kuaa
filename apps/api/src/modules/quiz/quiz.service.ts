@@ -26,12 +26,6 @@ const ResponseSchema = z.object({
   questions: z.array(QuestionSchema).min(1),
 })
 
-const quizQueue = {
-  async getJob(_jobId: string) {
-    return { getState: async () => 'waiting' }
-  },
-}
-
 async function generateQuestions(data: GenerationJobData): Promise<ReturnType<typeof generateFallbackQuestions>> {
   const apiKey = process.env.OPENAI_API_KEY?.trim()
   const hasApiKey = !!apiKey && apiKey.startsWith('sk-') && apiKey.length > 20
@@ -74,16 +68,22 @@ Questoes a gerar: ${data.questionCount}
 ${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.recentErrorTopics.join(', ')}` : ''}`
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      max_tokens: 4000,
-      temperature: 0.7,
-    })
+    const aiTimeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('OpenAI timeout (8s)')), 8000),
+    )
+    const completion = await Promise.race([
+      openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        max_tokens: 4000,
+        temperature: 0.7,
+      }),
+      aiTimeout,
+    ])
 
     const content = completion.choices[0]?.message?.content
     if (!content) throw new Error('OpenAI retornou resposta vazia')
@@ -195,7 +195,7 @@ class QuizService {
     return { jobId: job.id, sessionId: session.id }
   }
 
-  async getJobStatus(jobId: string, sessionId: string): Promise<{ status: string; sessionId?: string; message?: string }> {
+  async getJobStatus(_jobId: string, sessionId: string): Promise<{ status: string; sessionId?: string; message?: string }> {
     const generatedCount = await prisma.question.count({
       where: { generatedForSessionId: sessionId, active: true },
     })
@@ -206,17 +206,6 @@ class QuizService {
 
     const error = await getRedisValue(`session:error:${sessionId}`)
     if (error) return { status: 'error', message: error }
-
-    let job: Awaited<ReturnType<typeof quizQueue.getJob>>
-    try {
-      job = await quizQueue.getJob(jobId)
-    } catch {
-      return { status: 'pending' }
-    }
-    if (!job) return { status: 'error', message: 'Job não encontrado' }
-
-    const state = await job.getState()
-    if (state === 'failed') return { status: 'error', message: 'Geração falhou' }
 
     return { status: 'pending' }
   }

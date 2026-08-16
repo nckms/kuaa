@@ -201,29 +201,31 @@ function xpReward(order: number): number {
 }
 
 async function main() {
-  const existing = await prisma.vestibular.count()
-  if (existing > 0) {
-    console.log(`🌱 Seed ignorado — banco já possui ${existing} vestibulares.`)
-    return
-  }
-
   console.log('🌱 Iniciando seed do banco Kuaa…')
 
   for (const vest of DATA) {
     const { subjects: subjectData, ...vestData } = vest
-    const vestibular = await prisma.vestibular.create({ data: vestData })
+    const vestibular = await prisma.vestibular.upsert({
+      where: { slug: vestData.slug },
+      create: vestData,
+      update: vestData,
+    })
     console.log(`  ✅ ${vestibular.name}`)
 
     for (const sub of subjectData) {
       const { topics: topicData, ...subData } = sub
-      const subject = await prisma.subject.create({
-        data: { ...subData, vestibularId: vestibular.id },
+      const subject = await prisma.subject.upsert({
+        where: { vestibularId_slug: { vestibularId: vestibular.id, slug: subData.slug } },
+        create: { ...subData, vestibularId: vestibular.id },
+        update: { ...subData, vestibularId: vestibular.id },
       })
       console.log(`    📚 ${subject.name}`)
 
       for (const topic of topicData) {
-        await prisma.topic.create({
-          data: { ...topic, xpReward: xpReward(topic.order), subjectId: subject.id },
+        await prisma.topic.upsert({
+          where: { subjectId_order: { subjectId: subject.id, order: topic.order } },
+          create: { ...topic, xpReward: xpReward(topic.order), subjectId: subject.id },
+          update: { name: topic.name, description: topic.description, xpReward: xpReward(topic.order) },
         })
         console.log(`      📖 ${topic.name} (${xpReward(topic.order)} XP)`)
       }
@@ -231,18 +233,21 @@ async function main() {
   }
 
   // Seed achievements
-  const existingAchievements = await prisma.achievement.count()
-  if (existingAchievements === 0) {
-    await prisma.achievement.createMany({
-      data: [
-        { slug: 'first_flight', name: 'Primeiro Voo', description: 'Complete sua primeira sessão de quiz', iconSlug: 'wing', xpBonus: 10 },
-        { slug: 'perfect_wing', name: 'Asa Perfeita', description: 'Complete uma sessão com 100% de acerto', iconSlug: 'star', xpBonus: 20 },
-        { slug: 'week_streak', name: 'Semana Consistente', description: 'Mantenha uma sequência de 7 dias', iconSlug: 'fire', xpBonus: 30 },
-        { slug: 'century', name: 'Centenário', description: 'Responda 100 questões no total', iconSlug: 'lightning', xpBonus: 25 },
-      ],
+  const achievements = [
+    { slug: 'first_flight', name: 'Primeiro Voo', description: 'Complete sua primeira sessão de quiz', iconSlug: 'wing', xpBonus: 10 },
+    { slug: 'perfect_wing', name: 'Asa Perfeita', description: 'Complete uma sessão com 100% de acerto', iconSlug: 'star', xpBonus: 20 },
+    { slug: 'week_streak', name: 'Semana Consistente', description: 'Mantenha uma sequência de 7 dias', iconSlug: 'fire', xpBonus: 30 },
+    { slug: 'century', name: 'Centenário', description: 'Responda 100 questões no total', iconSlug: 'lightning', xpBonus: 25 },
+  ]
+
+  for (const ach of achievements) {
+    await prisma.achievement.upsert({
+      where: { slug: ach.slug },
+      create: ach,
+      update: ach,
     })
-    console.log('✅ Achievements criados')
   }
+  console.log('  ✅ Achievements sincronizados')
 
   console.log('\n🦅 Seed concluído com sucesso!')
 }

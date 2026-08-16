@@ -79,6 +79,8 @@ model Subject {
   iconSlug     String
   vestibular   Vestibular @relation(fields: [vestibularId], references: [id])
   topics       Topic[]
+
+  @@unique([vestibularId, slug])
 }
 
 model Topic {
@@ -93,6 +95,8 @@ model Topic {
   questions Question[]
   progress  UserTopicProgress[]
   sessions  QuizSession[]
+
+  @@unique([subjectId, order])
 }
 
 model Question {
