@@ -20,7 +20,7 @@ export async function startHandler(req: Request, res: Response, next: NextFuncti
   try {
     const { vestibularSlug } = req.params as { vestibularSlug: string }
     const v = await resolveVestibular(vestibularSlug)
-    const data = await startOrGetSimulado(v.id, req.userId!)
+    const data = await startOrGetSimulado(v.id, v.name, req.userId!)
     res.json(data)
   } catch (err) {
     next(err)

@@ -1,11 +1,18 @@
+import { randomUUID } from 'crypto'
 import { prisma } from '../../lib/prisma'
+import { makeError } from '../../utils/errors'
+import { generateFallbackQuestions } from '../quiz/fallbackQuestions'
+import type { GenerationJobData } from '../quiz/quiz.types'
 
 const TOTAL_QUESTIONS = 45
 export const SIMULADO_DURATION_SECONDS = 90 * 60
 
+// Stored in SimuladoAttempt.questions — includes isCorrect for server-side scoring.
+// isCorrect is NEVER sent to the client (stripped in formatAttempt).
 interface StoredOption {
   id: string
   text: string
+  isCorrect: boolean
 }
 
 interface StoredQuestion {
@@ -16,12 +23,6 @@ interface StoredQuestion {
   subjectSlug: string
   body: string
   options: StoredOption[]
-}
-
-interface DBOption {
-  id: string
-  text: string
-  isCorrect: boolean
 }
 
 /** Returns the Sunday 00:00 UTC that starts the current week */
@@ -46,7 +47,7 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a
 }
 
-async function buildQuestions(vestibularId: string): Promise<StoredQuestion[]> {
+async function buildQuestions(vestibularId: string, vestibularName: string): Promise<StoredQuestion[]> {
   const subjects = await prisma.subject.findMany({
     where: { vestibularId },
     orderBy: { order: 'asc' },
@@ -56,7 +57,10 @@ async function buildQuestions(vestibularId: string): Promise<StoredQuestion[]> {
       slug: true,
       weight: true,
       topics: {
+        orderBy: { order: 'asc' },
         select: {
+          id: true,
+          name: true,
           questions: {
             where: { active: true },
             select: { id: true, body: true, options: true },
@@ -71,35 +75,70 @@ async function buildQuestions(vestibularId: string): Promise<StoredQuestion[]> {
     name: s.name,
     slug: s.slug,
     weight: s.weight,
+    firstTopic: s.topics[0] ?? null,
     questions: s.topics.flatMap((t) => t.questions),
   }))
 
   const totalWeight = perSubject.reduce((sum, s) => sum + s.weight, 0) || 1
 
-  // Proportional allocation with remainder distribution
+  // Proportional allocation: floor each share, then distribute the remainder
+  // to the subjects that have the most available questions (minimise fallback use).
   const allocated = perSubject.map((s) => Math.floor((s.weight / totalWeight) * TOTAL_QUESTIONS))
   let remainder = TOTAL_QUESTIONS - allocated.reduce((a, b) => a + b, 0)
-  const sorted = [...perSubject.keys()].sort((a, b) => perSubject[b]!.questions.length - perSubject[a]!.questions.length)
+  const sortedByAvail = [...perSubject.keys()].sort(
+    (a, b) => perSubject[b]!.questions.length - perSubject[a]!.questions.length,
+  )
   for (let i = 0; remainder > 0; i++, remainder--) {
-    allocated[sorted[i % sorted.length]!]!++
+    allocated[sortedByAvail[i % sortedByAvail.length]!]!++
   }
 
   const selected: StoredQuestion[] = []
+
   for (let si = 0; si < perSubject.length; si++) {
     const subj = perSubject[si]!
-    const count = Math.min(allocated[si]!, subj.questions.length)
-    for (const q of shuffleArray(subj.questions).slice(0, count)) {
-      // Strip isCorrect before storing — never send answers to client
-      const opts = (q.options as unknown as DBOption[]).map(({ id, text }) => ({ id, text }))
+    const need = allocated[si]!
+    const available = shuffleArray(subj.questions)
+
+    // ── Questions from the DB ────────────────────────────────────────────────
+    for (const q of available.slice(0, need)) {
       selected.push({
         id: q.id,
-        order: 0, // reassigned below
+        order: 0,
         subjectId: subj.id,
         subjectName: subj.name,
         subjectSlug: subj.slug,
         body: q.body,
-        options: opts,
+        // options from DB already contain isCorrect — keep it for server-side scoring
+        options: q.options as unknown as StoredOption[],
       })
+    }
+
+    // ── Generate missing questions with fallback ──────────────────────────────
+    const missing = need - Math.min(need, available.length)
+    if (missing > 0 && subj.firstTopic) {
+      const jobData: GenerationJobData = {
+        sessionId: 'simulado-gen',
+        userId: 'system',
+        topicId: subj.firstTopic.id,
+        topicName: subj.firstTopic.name,
+        subjectName: subj.name,
+        vestibularName,
+        userMasteryLevel: 2,
+        recentErrorTopics: [],
+        questionCount: missing,
+      }
+      const generated = generateFallbackQuestions(jobData)
+      for (const q of generated.slice(0, missing)) {
+        selected.push({
+          id: randomUUID(), // inline ID — not in Question table, used only within this attempt
+          order: 0,
+          subjectId: subj.id,
+          subjectName: subj.name,
+          subjectSlug: subj.slug,
+          body: q.body,
+          options: q.options, // already has isCorrect from fallback generator
+        })
+      }
     }
   }
 
@@ -110,6 +149,7 @@ async function buildQuestions(vestibularId: string): Promise<StoredQuestion[]> {
   return interleaved
 }
 
+/** Formats an attempt for API responses — strips isCorrect from options. */
 function formatAttempt(attempt: {
   id: string
   vestibular: { name: string }
@@ -123,13 +163,23 @@ function formatAttempt(attempt: {
   correct: number | null
   wrong: number | null
 }) {
+  const questions = attempt.questions as StoredQuestion[]
   return {
     id: attempt.id,
     vestibularName: attempt.vestibular.name,
     weekStart: attempt.weekStart,
     startedAt: attempt.startedAt,
     finishedAt: attempt.finishedAt,
-    questions: attempt.questions as StoredQuestion[],
+    // Strip isCorrect — never expose correct answers to the client
+    questions: questions.map((q) => ({
+      id: q.id,
+      order: q.order,
+      subjectId: q.subjectId,
+      subjectName: q.subjectName,
+      subjectSlug: q.subjectSlug,
+      body: q.body,
+      options: q.options.map(({ id, text }) => ({ id, text })),
+    })),
     answers: attempt.answers as Record<string, string>,
     flagged: attempt.flagged as string[],
     score: attempt.score,
@@ -142,16 +192,22 @@ function formatAttempt(attempt: {
 
 const vestibularInclude = { vestibular: { select: { name: true } } }
 
-export async function startOrGetSimulado(vestibularId: string, userId: string) {
+export async function startOrGetSimulado(vestibularId: string, vestibularName: string, userId: string) {
   const weekStart = getCurrentWeekStart()
 
   const existing = await prisma.simuladoAttempt.findUnique({
     where: { userId_vestibularId_weekStart: { userId, vestibularId, weekStart } },
-    include: vestibularInclude,
+    select: { id: true },
   })
-  if (existing) return formatAttempt(existing)
+  if (existing) {
+    throw makeError(
+      'Você já iniciou o simulado desta semana. Próximo disponível no próximo domingo.',
+      409,
+      'ALREADY_ATTEMPTED',
+    )
+  }
 
-  const questions = await buildQuestions(vestibularId)
+  const questions = await buildQuestions(vestibularId, vestibularName)
 
   const created = await prisma.simuladoAttempt.create({
     data: { userId, vestibularId, weekStart, questions: questions as object[], answers: {}, flagged: [] },
@@ -178,7 +234,12 @@ export async function getAttempt(attemptId: string, userId: string) {
   return attempt ? formatAttempt(attempt) : null
 }
 
-export async function saveAnswer(attemptId: string, userId: string, questionId: string, optionId: string) {
+export async function saveAnswer(
+  attemptId: string,
+  userId: string,
+  questionId: string,
+  optionId: string,
+) {
   const attempt = await prisma.simuladoAttempt.findFirst({
     where: { id: attemptId, userId, finishedAt: null },
     select: { answers: true },
@@ -216,14 +277,10 @@ export async function finishSimulado(attemptId: string, userId: string) {
   const questions = attempt.questions as unknown as StoredQuestion[]
   const answers = attempt.answers as unknown as Record<string, string>
 
-  const dbQuestions = await prisma.question.findMany({
-    where: { id: { in: questions.map((q) => q.id) } },
-    select: { id: true, options: true },
-  })
-
+  // isCorrect is stored in the attempt JSON — no need to query the Question table.
   const correctMap = new Map<string, string>()
-  for (const q of dbQuestions) {
-    const correct = (q.options as unknown as DBOption[]).find((o) => o.isCorrect)
+  for (const q of questions) {
+    const correct = q.options.find((o) => o.isCorrect)
     if (correct) correctMap.set(q.id, correct.id)
   }
 

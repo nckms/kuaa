@@ -408,7 +408,7 @@ export default function SimuladoPage() {
   const firstVestibularSlug = useAuthStore((s) => s.firstVestibularSlug)
   const slug = firstVestibularSlug ?? ''
 
-  const { data: attempt, isLoading } = useCurrentSimulado(slug)
+  const { data: attempt, isLoading, refetch } = useCurrentSimulado(slug)
   const startMutation = useStartSimulado(slug)
   const answerMutation = useSaveAnswer()
   const flagMutation = useToggleFlag()
@@ -442,7 +442,14 @@ export default function SimuladoPage() {
   }, [attempt?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleStart() {
-    await startMutation.mutateAsync()
+    try {
+      await startMutation.mutateAsync()
+    } catch (err: unknown) {
+      // 409 = already attempted this week; refetch to show the existing attempt/results
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 409) void refetch()
+      else throw err
+    }
   }
 
   function handleAnswer(optionId: string) {
