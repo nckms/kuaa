@@ -8,6 +8,7 @@ import { quizRouter } from '../modules/quiz/quiz.routes'
 import { indexRouter } from '../modules/index/index.routes'
 import { rankingRouter } from '../modules/ranking/ranking.routes'
 import { simuladoRouter } from '../modules/simulado/simulado.routes'
+import { sabiaRouter } from '../modules/sabia/sabia.routes'
 
 export const router = Router()
 
@@ -28,3 +29,4 @@ router.use('/quiz', quizRouter)
 router.use('/index', indexRouter)
 router.use('/ranking', rankingRouter)
 router.use('/simulado', simuladoRouter)
+router.use('/sabia', sabiaRouter)

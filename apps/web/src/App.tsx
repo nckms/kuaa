@@ -18,6 +18,7 @@ import ResultPage from './pages/Quiz/ResultPage'
 import ReviewPage from './pages/Quiz/ReviewPage'
 import IndicePage from './pages/Indice/IndicePage'
 import SimuladoPage from './pages/Quiz/SimuladoPage'
+import SabiaPage from './pages/Sabia/SabiaPage'
 
 function TrailIndex() {
   const navigate = useNavigate()
@@ -84,6 +85,7 @@ function AppRoutes() {
         <Route path="/ranking" element={<RankingPage />} />
         <Route path="/indice" element={<IndicePage />} />
         <Route path="/simulado" element={<SimuladoPage />} />
+        <Route path="/sabia" element={<SabiaPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

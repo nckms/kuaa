@@ -13,6 +13,7 @@ const navItems = [
   { label: 'Índice',     icon: 'bi-speedometer2',    match: '/indice'    },
   { label: 'Simulado',  icon: 'bi-journal-text',    match: '/simulado'  },
   { label: 'Ranking',   icon: 'bi-trophy-fill',     match: '/ranking'   },
+  { label: 'Sabiá',    icon: 'bi-chat-dots-fill',  match: '/sabia'     },
   { label: 'Perfil',     icon: 'bi-person-fill',     match: '/perfil'    },
 ]
 
