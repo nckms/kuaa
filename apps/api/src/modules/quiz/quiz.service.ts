@@ -12,6 +12,19 @@ import { generateFallbackQuestions } from './fallbackQuestions'
 import { invalidateTrailCache } from '../trail/trail.service'
 import { captureSnapshot } from '../index/index.service'
 
+/** Fisher-Yates shuffle das opções de uma questão.
+ *  Re-atribui os IDs A-E em ordem para que letra e posição sempre coincidam.
+ *  O flag isCorrect acompanha o conteúdo da opção — garantia real independente da IA. */
+export function shuffleOptions<T extends { id: string; isCorrect: boolean }>(options: T[]): T[] {
+  const arr = [...options]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j]!, arr[i]!]
+  }
+  const letters = ['A', 'B', 'C', 'D', 'E']
+  return arr.map((opt, i) => ({ ...opt, id: letters[i] ?? opt.id }))
+}
+
 const OptionSchema = z.object({
   id: z.enum(['A', 'B', 'C', 'D', 'E']),
   text: z.string().min(1),
@@ -58,6 +71,7 @@ REGRAS OBRIGATORIAS:
 3. Exatamente 5 alternativas (A-E), apenas 1 correta
 4. difficulty de 1 a 5, proporcional ao masteryLevel informado
 5. explanation deve ensinar o conceito, minimo 2 linhas
+6. A posicao da alternativa correta DEVE variar aleatoriamente entre A, B, C, D e E ao longo das questoes geradas — nunca use um padrao fixo ou previsivel (ex: sempre B, ou A B C D E em ciclo)
 
 Retorne APENAS JSON valido sem markdown, exatamente neste formato:
 {
@@ -171,7 +185,9 @@ async function getRedisValue(key: string): Promise<string | null> {
 }
 
 async function enqueueQuizGeneration(data: GenerationJobData): Promise<{ id: string }> {
-  const questions = await generateQuestions(data)
+  const raw = await generateQuestions(data)
+  // Embaralha opções de cada questão — garante distribuição aleatória independente da IA
+  const questions = raw.map((q) => ({ ...q, options: shuffleOptions(q.options) }))
   await persistGeneratedQuestions(data.sessionId, data.topicId, questions)
   await markSessionReady(data.sessionId)
   return { id: `sync-${data.sessionId}` }

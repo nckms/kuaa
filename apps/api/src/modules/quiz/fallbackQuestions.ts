@@ -341,7 +341,7 @@ export function generateFallbackQuestions(data: {
   return Array.from({ length: data.questionCount }, (_, index) => {
     const context = profile.contexts[index % profile.contexts.length]
     const correctIdea = profile.correctIdeas[index % profile.correctIdeas.length]
-    const correctIndex = (index + 1) % OPTION_IDS.length
+    const correctIndex = Math.floor(Math.random() * OPTION_IDS.length)
     const rotatedDistractors = [
       ...profile.distractors.slice(index % profile.distractors.length),
       ...profile.distractors.slice(0, index % profile.distractors.length),

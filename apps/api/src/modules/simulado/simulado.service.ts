@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto'
 import { prisma } from '../../lib/prisma'
 import { makeError } from '../../utils/errors'
 import { generateFallbackQuestions } from '../quiz/fallbackQuestions'
+import { shuffleOptions } from '../quiz/quiz.service'
 import type { GenerationJobData } from '../quiz/quiz.types'
 
 const TOTAL_QUESTIONS = 45
@@ -108,8 +109,8 @@ async function buildQuestions(vestibularId: string, vestibularName: string): Pro
         subjectName: subj.name,
         subjectSlug: subj.slug,
         body: q.body,
-        // options from DB already contain isCorrect — keep it for server-side scoring
-        options: q.options as unknown as StoredOption[],
+        // Embaralha opções antes de armazenar — garante posição aleatória independente da fonte
+        options: shuffleOptions(q.options as unknown as StoredOption[]),
       })
     }
 
@@ -136,7 +137,7 @@ async function buildQuestions(vestibularId: string, vestibularName: string): Pro
           subjectName: subj.name,
           subjectSlug: subj.slug,
           body: q.body,
-          options: q.options, // already has isCorrect from fallback generator
+          options: shuffleOptions(q.options), // posição aleatória garantida
         })
       }
     }
