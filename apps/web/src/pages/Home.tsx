@@ -20,11 +20,11 @@ const features = [
     label: 'Métricas',
   },
   {
-    title: 'Monitores gratuitos',
-    desc: 'Acesse monitores estudantis para tirar dúvidas — sem pagar absolutamente nada.',
+    title: 'Simulados reais',
+    desc: 'Pratique com simulados semanais no estilo de cada vestibular e acompanhe sua evolução pelo Índice Kuaa.',
     color: '#FFDC5C',
     bg: 'rgba(255,220,92,.12)',
-    label: 'Comunidade',
+    label: 'Prática',
   },
 ]
 
@@ -95,7 +95,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
           >
-            Plataforma gratuita com IA adaptativa, trilhas progressivas e monitores estudantis para ENEM, FUVEST e UNICAMP.
+            Plataforma gratuita com IA adaptativa e trilhas progressivas para ENEM, FUVEST e UNICAMP.
           </motion.p>
 
           <motion.div
