@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import axios from 'axios'
 import type { User } from '../types/user'
 import { API_BASE_URL } from '../config/api'
+import { queryClient } from '../lib/queryClient'
 
 interface StoredEnrollment {
   id: string
@@ -35,6 +36,11 @@ interface AuthState {
 
 const BASE_URL = API_BASE_URL
 
+function activeSlug(user: User | null, enrollments: StoredEnrollment[]) {
+  return (enrollments.find((item) => item.vestibularId === user?.activeVestibularId)
+    ?? enrollments[0])?.vestibular.slug ?? null
+}
+
 function mapEnrollments(items: EnrollmentApiItem[]): StoredEnrollment[] {
   return items.map((item) => ({
     id: item.enrollment.id,
@@ -53,6 +59,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   firstVestibularSlug: null,
 
   setAuth: (user, accessToken, refreshToken, options) => {
+    if (get().user?.id !== user.id) queryClient.clear()
     localStorage.setItem('kuaa_token', accessToken)
     localStorage.setItem('kuaa_refresh_token', refreshToken)
     const enrollments = options?.preserveEnrollments ? get().enrollments : []
@@ -63,12 +70,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isAuthenticated: true,
       isHydrating: false,
       enrollments,
-      firstVestibularSlug: enrollments[0]?.vestibular.slug ?? null,
+      firstVestibularSlug: activeSlug(user, enrollments),
     })
   },
 
   updateUser: (user) => {
-    set({ user })
+    const changed = get().user?.activeVestibularId !== user.activeVestibularId
+    set({ user, firstVestibularSlug: activeSlug(user, get().enrollments) })
+    if (changed) {
+      for (const key of ['trail', 'enrollments', 'index', 'ranking', 'simulado', 'dashboard', 'user']) {
+        void queryClient.invalidateQueries({ queryKey: [key] })
+      }
+    }
   },
 
   loadEnrollments: async () => {
@@ -85,7 +98,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     set({
       enrollments,
-      firstVestibularSlug: enrollments[0]?.vestibular.slug ?? null,
+      firstVestibularSlug: activeSlug(get().user, enrollments),
     })
 
     return enrollments
@@ -102,6 +115,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     localStorage.removeItem('kuaa_token')
     localStorage.removeItem('kuaa_refresh_token')
+    queryClient.clear()
     set({
       user: null,
       accessToken: null,
@@ -165,7 +179,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         refreshToken: storedRefresh,
         isAuthenticated: true,
         enrollments,
-        firstVestibularSlug: enrollments[0]?.vestibular.slug ?? null,
+        firstVestibularSlug: activeSlug(userRes.data, enrollments),
         isHydrating: false,
       })
     } catch {
@@ -174,3 +188,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 }))
+
+// Enrollment hooks also update this store directly; keep the legacy slug consistent.
+useAuthStore.subscribe((state) => {
+  const slug = activeSlug(state.user, state.enrollments)
+  if (state.firstVestibularSlug !== slug) useAuthStore.setState({ firstVestibularSlug: slug })
+})

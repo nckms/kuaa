@@ -26,7 +26,6 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
 
   async function handleStart() {
     if (!topic) return
-    onClose()
     generateMutation.mutate({ topicId: topic.id, count: 5 })
   }
 
@@ -78,13 +77,9 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
                 </h2>
 
                 <div className="d-flex gap-2 mb-3 flex-wrap">
-                  <span className="badge rounded-pill d-inline-flex align-items-center gap-1" style={{ background: 'rgba(255,220,92,.24)', color: '#531A61' }}>
-                    <i className="bi bi-lightning-charge-fill" />
-                    +{topic.xpReward} XP
-                  </span>
                   <span className="badge rounded-pill d-inline-flex align-items-center gap-1" style={{ background: 'var(--roxo-light)', color: '#531A61' }}>
                     <i className="bi bi-bar-chart-fill" />
-                    Nivel {topic.progress.masteryLevel}/5
+                    Domínio {topic.progress.masteryLevel}/5
                   </span>
                   <span className="badge rounded-pill d-inline-flex align-items-center gap-1" style={{ background: 'var(--bg-soft)', color: 'var(--muted)' }}>
                     <i className="bi bi-journal-text" />
@@ -138,9 +133,7 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
                     </>
                   )}
                 </button>
-                <p className="text-muted text-center mb-0 mt-2" style={{ fontSize: 12 }}>
-                  Voce ganha +{topic.xpReward} XP ao completar
-                </p>
+                {generateMutation.isError && <p role="alert" className="text-danger mt-2">Não foi possível preparar a sessão. Tente novamente.</p>}
               </div>
             </motion.div>
           </div>

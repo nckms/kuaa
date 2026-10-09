@@ -77,7 +77,7 @@ export default function TopicNode({ topic, icon, isActive, onClick }: TopicNodeP
 
   if (isLocked) {
     return (
-      <div className="d-flex flex-column align-items-center" title="Complete o topico anterior para desbloquear">
+      <div className="d-flex flex-column align-items-center" title="Responda e finalize uma atividade anterior para desbloquear">
         <div
           className="rounded-circle d-grid border"
           style={{ width: nodeSize, height: nodeSize, placeItems: 'center', backgroundColor: '#f1f3f5', color: '#9ca3af', cursor: 'not-allowed' }}

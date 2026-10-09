@@ -18,6 +18,8 @@ export interface GenerationJobData {
   topicName: string
   subjectName: string
   vestibularName: string
+  vestibularSlug?: string
+  targetDifficulty?: number
   userMasteryLevel: number
   recentErrorTopics: string[]
   questionCount: number
@@ -54,7 +56,7 @@ export interface ReviewQuestion {
   id: string
   body: string
   options: QuestionOption[]
-  userAnswerId: string
+  userAnswerId: string | null
   isCorrect: boolean
   explanation: string
 }

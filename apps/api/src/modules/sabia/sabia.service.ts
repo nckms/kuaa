@@ -1,5 +1,6 @@
 import { ai } from '../../lib/gemini'
 import { env } from '../../lib/env'
+import { makeError } from '../../utils/errors'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -26,76 +27,45 @@ O QUE VOCÊ DEVE FAZER:
 
 FORMATO: Resposta curta (máximo 4 parágrafos). Sempre termine com uma pergunta ou desafio para o estudante.`
 
-const FALLBACK_RESPONSES = [
-  'Antes de eu te ajudar mais a fundo, me conta o que você já tentou ou já sabe sobre esse assunto? Às vezes a gente já tem a resposta mais perto do que imagina.',
-  'Interessante! Para eu te guiar melhor, me diz: o que você já entende sobre esse tema? Qual parte está te deixando confuso?',
-  'Boa pergunta! Para a gente começar, o que você acha que poderia ser um bom ponto de partida para pensar nisso? Não precisa ser a resposta certa — só o que vem à cabeça.',
-]
-
-function isGemini503(err: unknown): boolean {
-  if (err instanceof Error) {
-    return err.message.includes('503') || err.message.includes('UNAVAILABLE')
-  }
-  return false
+function unavailable() {
+  return makeError('O Sabiá está indisponível no momento. Tente novamente em instantes.', 503, 'AI_UNAVAILABLE')
 }
 
 export async function askSabia(message: string, history: ChatMessage[]): Promise<string> {
-  const hasApiKey = !!env.GEMINI_API_KEY?.trim()
-  if (!hasApiKey) return getFallback()
-
-  // Monta o contexto completo: histórico + mensagem atual
-  const historyContext =
-    history.length > 0
-      ? history.map((m) => `${m.role === 'user' ? 'Estudante' : 'Sabiá'}: ${m.content}`).join('\n') + '\n'
-      : ''
-
-  const fullPrompt = `${SYSTEM_PROMPT}\n\n---\n${historyContext}Estudante: ${message}\nSabiá:`
-
-  const MAX_ATTEMPTS = 3
-  const RETRY_BACKOFF_MS = [500, 1000]
-
-  const absoluteDeadline = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error('Gemini timeout absoluto (20s)')), 20_000),
-  )
-
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+  if (!env.GEMINI_API_KEY?.trim()) throw unavailable()
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const controller = new AbortController()
     try {
-      const response = await Promise.race([
-        ai.models.generateContent({
-          model: 'gemini-flash-latest',
-          contents: fullPrompt,
-        }),
-        absoluteDeadline,
-      ])
-
-      const text = response.text?.trim()
-      if (!text) throw new Error('Gemini retornou resposta vazia')
-      return text
-    } catch (err) {
-      const isTimeout =
-        err instanceof Error && err.message.startsWith('Gemini timeout absoluto')
-      const is503 = isGemini503(err)
-
-      if (isTimeout) {
-        console.warn('[Sabia] Gemini timeout, usando fallback')
-        break
-      }
-
-      if (is503 && attempt < MAX_ATTEMPTS) {
-        const wait = RETRY_BACKOFF_MS[attempt - 1] ?? 1000
-        console.warn(`[Sabia] Gemini 503 (tentativa ${attempt}/${MAX_ATTEMPTS}), retry em ${wait}ms`)
-        await new Promise<void>((r) => setTimeout(r, wait))
-        continue
-      }
-
-      console.warn('[Sabia] Gemini falhou, usando fallback:', err instanceof Error ? err.message : err)
-      break
+    const response = await Promise.race([
+      ai.models.generateContent({
+        model: env.SABIA_MODEL,
+        config: {
+          systemInstruction: SYSTEM_PROMPT,
+          maxOutputTokens: 1200,
+          abortSignal: controller.signal,
+          httpOptions: { timeout: 25_000 },
+        },
+        contents: [...history, { role: 'user', content: message }].map((entry) => ({
+          role: entry.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: entry.content }],
+        })),
+      }),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => { controller.abort(); reject(unavailable()) }, 25_000)
+      }),
+    ])
+    const text = response.text?.trim()
+    if (!text) throw unavailable()
+    return text
+    } catch (error) {
+      const status = typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : undefined
+      // Record only provider metadata; prompts, credentials and replies stay out of logs.
+      console.warn('[Sabia] generation failed', { model: env.SABIA_MODEL, attempt: attempt + 1, status: status ?? 'timeout-or-empty' })
+      if (attempt === 1 || (status && status >= 400 && status < 500 && status !== 429)) throw unavailable()
+    } finally {
+      if (timer) clearTimeout(timer)
     }
   }
-
-  return getFallback()
-}
-
-function getFallback(): string {
-  return FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)]!
+  throw unavailable()
 }

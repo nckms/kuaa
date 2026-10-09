@@ -1,4 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { MotionConfig } from 'framer-motion'
 import { useAuthStore } from '../../stores/auth.store'
 import KuaaMascotLogo from '../ui/KuaaMascotLogo'
 
@@ -15,12 +17,23 @@ const navItems = [
   { label: 'Ranking',   icon: 'bi-trophy-fill',     match: '/ranking'   },
   { label: 'Sabiá',    icon: 'bi-chat-dots-fill',  match: '/sabia'     },
   { label: 'Perfil',     icon: 'bi-person-fill',     match: '/perfil'    },
+  { label: 'Configurações', icon: 'bi-gear-fill', match: '/configuracoes' },
 ]
 
 export default function AppLayout({ children, rightSidebar }: Props) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, logout, firstVestibularSlug } = useAuthStore()
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreButton = useRef<HTMLButtonElement>(null)
+  const previousActive = useRef(user?.activeVestibularId)
+  useEffect(() => { setMoreOpen(false) }, [pathname])
+  useEffect(() => {
+    if (previousActive.current !== user?.activeVestibularId && pathname.startsWith('/trilha') && firstVestibularSlug) {
+      navigate(`/trilha/${firstVestibularSlug}`, { replace: true })
+    }
+    previousActive.current = user?.activeVestibularId
+  }, [user?.activeVestibularId, firstVestibularSlug, pathname, navigate])
   async function handleLogout() {
     await logout()
     navigate('/')
@@ -67,13 +80,11 @@ export default function AppLayout({ children, rightSidebar }: Props) {
               to={item.href}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
-                padding: '11px 14px', borderRadius: 14,
+                padding: '11px 14px', borderRadius: 6,
                 background: isActive
-                  ? 'linear-gradient(135deg, #b347d9 0%, rgba(179,71,217,.55) 100%)'
+                  ? 'rgba(255,255,255,.12)'
                   : 'transparent',
-                boxShadow: isActive
-                  ? '0 6px 18px -6px rgba(179,71,217,.55)'
-                  : 'none',
+                boxShadow: 'none',
                 color: isActive ? '#fff' : 'rgba(255,255,255,.58)',
                 textDecoration: 'none',
                 fontSize: 14,
@@ -148,7 +159,8 @@ export default function AppLayout({ children, rightSidebar }: Props) {
   )
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--bg)' }}>
+    <MotionConfig reducedMotion={user?.preferences?.reducedMotion ? 'always' : 'user'}>
+    <div data-reduced-motion={user?.preferences?.reducedMotion || undefined} data-high-contrast={user?.preferences?.highContrast || undefined} style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--bg)' }}>
 
       {/* Sidebar — desktop */}
       <aside
@@ -163,7 +175,7 @@ export default function AppLayout({ children, rightSidebar }: Props) {
       </aside>
 
       {/* Main content */}
-      <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }} className="app-main-content">
+      <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }} className="app-main-content">
         {children}
       </main>
 
@@ -181,20 +193,20 @@ export default function AppLayout({ children, rightSidebar }: Props) {
         </aside>
       )}
 
-      {/* Bottom nav — mobile, floating pill */}
+      {/* Bottom nav — mobile */}
       <nav
+        aria-label="Navegação principal"
         className="mobile-bottom-nav fixed lg:hidden"
         style={{
-          bottom: 14, left: 14, right: 14,
-          background: '#1a0826',
-          borderRadius: 24,
-          boxShadow: '0 10px 15px -3px rgba(83,26,97,.12), 0 30px 50px -12px rgba(83,26,97,.22)',
+          bottom: 0, left: 0, right: 0,
+          background: '#fff',
+          borderTop: '1px solid var(--line-soft)',
           zIndex: 20,
-          display: 'flex',
-          padding: '8px 6px',
+          display: 'grid',
+          padding: '4px 4px calc(4px + env(safe-area-inset-bottom))',
         }}
       >
-        {resolvedNav.map((item) => {
+        {resolvedNav.slice(0, 4).map((item) => {
           const isActive = pathname.startsWith(item.match)
           return (
             <Link
@@ -202,12 +214,10 @@ export default function AppLayout({ children, rightSidebar }: Props) {
               to={item.href}
               style={{
                 flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', padding: '6px 8px', gap: 3,
-                textDecoration: 'none', borderRadius: 16,
-                background: isActive
-                  ? 'linear-gradient(135deg, #b347d9, rgba(179,71,217,.65))'
-                  : 'transparent',
-                color: isActive ? '#fff' : 'rgba(255,255,255,.48)',
+                alignItems: 'center', justifyContent: 'center', padding: '4px 2px', gap: 2,
+                textDecoration: 'none', borderRadius: 0,
+                background: 'transparent',
+                color: isActive ? '#531A61' : '#667085',
                 fontSize: 10.5,
                 fontFamily: 'Inter, Arial, sans-serif',
                 fontWeight: isActive ? 600 : 500,
@@ -215,10 +225,18 @@ export default function AppLayout({ children, rightSidebar }: Props) {
               }}
             >
               <i className={`bi ${item.icon}`} style={{ fontSize: 20 }} />
-              <span>{item.label}</span>
+              <span>{item.label === 'Dashboard' ? 'Painel' : item.label}</span>
             </Link>
           )
         })}
+        <button ref={moreButton} aria-expanded={moreOpen} aria-controls="mobile-more-nav" onClick={() => setMoreOpen(!moreOpen)} style={{ color: resolvedNav.slice(4).some((item) => pathname.startsWith(item.match)) ? '#531A61' : '#667085', background: 'transparent', border: 0, display: 'grid', justifyItems: 'center', alignContent: 'center', gap: 2, fontSize: 10.5, minWidth: 0, minHeight: 52 }}>
+          <i className="bi bi-three-dots" aria-hidden="true" style={{ fontSize: 20 }} />Mais
+        </button>
+        {moreOpen && (
+          <div id="mobile-more-nav" onKeyDown={(event) => { if (event.key === 'Escape') { setMoreOpen(false); moreButton.current?.focus() } }} style={{ position: 'absolute', bottom: 'calc(100% + 1px)', right: 0, width: 'min(280px, 100%)', background: '#fff', padding: 8, border: '1px solid var(--line-soft)', borderRadius: 6, boxShadow: '0 8px 20px #0002' }}>
+            {resolvedNav.slice(4).map((item) => <Link key={item.href} to={item.href} aria-current={pathname.startsWith(item.match) ? 'page' : undefined} style={{ display: 'flex', gap: 12, padding: 14, color: '#2a0d33', textDecoration: 'none' }}><i className={`bi ${item.icon}`} aria-hidden="true" />{item.label}</Link>)}
+          </div>
+        )}
       </nav>
 
       <style>{`
@@ -229,25 +247,24 @@ export default function AppLayout({ children, rightSidebar }: Props) {
         }
 
         @media (max-width: 1023px) {
-          .app-main-content {
-            margin-bottom: 104px;
-            padding-bottom: 24px;
-            scroll-padding-bottom: 124px;
-          }
-        }
-
-        @media (max-width: 380px) {
           .mobile-bottom-nav {
-            left: 8px !important;
-            right: 8px !important;
+            display: grid !important;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
           }
 
-          .mobile-bottom-nav a {
-            padding-left: 4px !important;
-            padding-right: 4px !important;
+          .mobile-bottom-nav > a {
+            min-width: 0;
+            min-height: 52px;
+            font-size: 10px !important;
+          }
+
+          .app-main-content {
+            margin-bottom: calc(64px + env(safe-area-inset-bottom));
+            scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom));
           }
         }
       `}</style>
     </div>
+    </MotionConfig>
   )
 }

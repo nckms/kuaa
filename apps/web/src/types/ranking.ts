@@ -1,8 +1,6 @@
 export interface RankEntry {
   rank: number
-  userId: string
   displayName: string
-  avatarUrl: string | null
   xp: number
   level: number
 }

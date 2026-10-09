@@ -1,0 +1,36 @@
+.study-path { width: 100%; max-width: 600px; margin: 0 auto; padding: 0 20px 28px; }
+.study-path-heading { padding: 8px 0 24px; }
+.study-path-heading-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; color: #531a61; }
+.study-path-heading-title h3 { margin: 0; font-family: 'Questrial', sans-serif; font-size: 22px; color: #281f2c; }
+.study-path-heading-title > span { margin-left: auto; font-size: 12px; color: #6b6571; white-space: nowrap; }
+.study-path-heading p { margin: 8px 0 0; font-size: 12px; color: #6b6571; }
+.study-path-stages { list-style: none; margin: 0; padding: 20px 0 0; }
+.study-path-stage { position: relative; min-height: 168px; }
+.study-path-connector { position: absolute; top: 0; left: 0; width: 100%; height: 168px; overflow: visible; pointer-events: none; }
+.study-path-connector path { fill: none; stroke: #d9d2db; stroke-width: 3; stroke-dasharray: 5 7; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.is-complete .study-path-connector path { stroke: #37866c; stroke-dasharray: none; }
+.study-path-step { position: relative; display: block; width: 100%; min-height: 116px; padding: 0; border: 0; background: transparent; text-align: left; color: #281f2c; }
+button.study-path-step { cursor: pointer; }
+.study-path-marker { position: absolute; top: 8px; left: 28%; transform: translateX(-50%); width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; border: 2px solid #ded5e2; background: #fff; color: #531a61; font-size: 23px; box-shadow: 0 4px 0 #e6dfe9; }
+.is-right .study-path-marker { left: 72%; }
+.study-path-number { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); background: #faf6ed; border: 1px solid #ded5e2; border-radius: 4px; min-width: 25px; padding: 1px 4px; text-align: center; color: #6b6571; font-size: 10px; font-weight: 700; }
+.study-path-caption { display: flex; flex-direction: column; gap: 5px; width: 46%; margin-left: 54%; padding: 8px 0; overflow-wrap: anywhere; }
+.is-right .study-path-caption { margin-left: 0; text-align: right; }
+.study-path-caption strong { font-size: 15px; line-height: 1.35; font-weight: 600; }
+.study-path-caption small { font-size: 12px; line-height: 1.4; color: #6b6571; }
+.study-path-status { font-size: 11px; color: #6b6571; }
+.study-path-action { color: #531a61; font-size: 12px; font-weight: 700; margin-top: 2px; }
+.is-current .study-path-marker { background: #531a61; color: #fff; border-color: #531a61; box-shadow: 0 0 0 6px #ede3f0, 0 5px 0 6px #e0d2e5; }
+.is-current .study-path-status { color: #840033; font-weight: 700; }
+.is-complete .study-path-marker { background: #e8f3ed; border-color: #37866c; color: #227557; box-shadow: 0 4px 0 #d1e4db; }
+.is-locked .study-path-marker { background: #f1eeef; color: #918894; border-color: #ded9df; box-shadow: none; }
+.is-locked .study-path-caption strong { color: #746d78; }
+.study-path-step:focus-visible { outline: 2px solid #531a61; outline-offset: 6px; border-radius: 6px; }
+button.study-path-step:hover .study-path-caption strong { text-decoration: underline; text-underline-offset: 3px; }
+.study-path-end { display: flex; justify-content: center; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid #e4dde5; font-size: 12px; color: #746d78; }
+@media (max-width: 380px) {
+  .study-path { padding-left: 16px; padding-right: 16px; }
+  .study-path-marker { width: 56px; height: 56px; top: 12px; font-size: 20px; }
+  .study-path-caption strong { font-size: 14px; }
+  .study-path-heading-title h3 { font-size: 20px; }
+}

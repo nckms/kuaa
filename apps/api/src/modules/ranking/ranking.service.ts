@@ -1,21 +1,13 @@
 import { prisma } from '../../lib/prisma'
 
-// LGPD: nunca expõe o nome completo de terceiros.
-// "Nicolas Silva" → "Nicolas S."  |  "Nicolas" → "Nicolas"
-function toDisplayName(fullName: string): string {
-  const parts = fullName.trim().split(/\s+/)
-  if (parts.length <= 1) return parts[0] ?? ''
-  return `${parts[0]} ${parts[parts.length - 1]![0]}.`
-}
-
 export async function getRanking(vestibularId: string, requestingUserId: string) {
   // Query única: JOIN implícito via Enrollment, ORDER BY xp DESC, LIMIT 50 — sem N+1
   const [top50, requestingUser] = await Promise.all([
     prisma.user.findMany({
       where: { enrollments: { some: { vestibularId } } },
-      orderBy: { xp: 'desc' },
+      orderBy: [{ xp: 'desc' }, { id: 'asc' }],
       take: 50,
-      select: { id: true, name: true, avatarUrl: true, xp: true, level: true },
+      select: { xp: true, level: true },
     }),
     prisma.user.findUnique({
       where: { id: requestingUserId },
@@ -25,21 +17,21 @@ export async function getRanking(vestibularId: string, requestingUserId: string)
 
   const entries = top50.map((u, i) => ({
     rank: i + 1,
-    userId: u.id,
-    // displayName truncado para todos — requisito LGPD
-    displayName: toDisplayName(u.name),
-    avatarUrl: u.avatarUrl,
+    displayName: `Estudante ${i + 1}`,
     xp: u.xp,
     level: u.level,
   }))
 
   if (!requestingUser) return { entries, myRank: null }
 
-  // Conta quantos usuários matriculados têm xp estritamente maior
+  // Usa o mesmo desempate da lista para manter a posicao pessoal consistente.
   const usersAhead = await prisma.user.count({
     where: {
       enrollments: { some: { vestibularId } },
-      xp: { gt: requestingUser.xp },
+      OR: [
+        { xp: { gt: requestingUser.xp } },
+        { xp: requestingUser.xp, id: { lt: requestingUserId } },
+      ],
     },
   })
 

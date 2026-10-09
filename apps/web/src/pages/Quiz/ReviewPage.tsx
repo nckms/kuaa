@@ -69,7 +69,7 @@ export default function ReviewPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <span style={{ backgroundColor: '#f3f4f6', color: '#9ca3af', fontSize: 12, padding: '3px 10px', borderRadius: 999 }}>Questão {idx + 1}</span>
                 <span style={{ backgroundColor: q.isCorrect ? 'rgba(16,185,129,.12)' : 'rgba(132,0,51,.1)', color: q.isCorrect ? '#10b981' : '#840033', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999 }}>
-                  {q.isCorrect ? 'Correta' : 'Errada'}
+                  {q.userAnswerId === null ? 'Em branco' : q.isCorrect ? 'Correta' : 'Errada'}
                 </span>
               </div>
               <p style={{ fontSize: 16, color: '#1a1a1a', lineHeight: 1.7, marginBottom: 16 }}>{q.body}</p>
@@ -108,7 +108,7 @@ export default function ReviewPage() {
         </div>
 
         {/* Rodapé fixo */}
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTop: '1px solid #f3f4f6', padding: '14px 24px', display: 'flex', justifyContent: 'flex-end', zIndex: 10 }}>
+        <div style={{ backgroundColor: '#fff', borderTop: '1px solid #f3f4f6', padding: '14px 24px', display: 'flex', justifyContent: 'flex-end' }}>
           <button
             onClick={() => navigate(`/trilha/${vestibularSlug}`)}
             style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}

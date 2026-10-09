@@ -1,0 +1,242 @@
+[
+  {
+    "id": "kuaa-exatas-001",
+    "topicTags": ["funcoes e graficos", "algebra e funcoes", "conjuntos e funcoes"],
+    "body": "Uma gráfica cobra uma taxa fixa de R$ 18,00 mais R$ 0,40 por página impressa. Uma encomenda custou R$ 50,00, sem descontos nem outros encargos. Quantas páginas foram impressas?",
+    "options": [{"id":"A","text":"32","isCorrect":false},{"id":"B","text":"80","isCorrect":true},{"id":"C","text":"125","isCorrect":false},{"id":"D","text":"170","isCorrect":false},{"id":"E","text":"68","isCorrect":false}],
+    "explanation": "O custo é C(n) = 18 + 0,40n. Assim, 50 - 18 = 0,40n e n = 32/0,40 = 80 páginas. A taxa fixa não corresponde a páginas impressas.",
+    "difficulty": 1
+  },
+  {
+    "id": "kuaa-exatas-002",
+    "topicTags": ["funcoes e graficos", "algebra e funcoes", "conjuntos e funcoes"],
+    "body": "Em um modelo de produção, o lucro diário, em reais, é L(x) = -2x^2 + 40x - 128, em que x é o número inteiro de lotes produzidos, com 0 <= x <= 20. Qual é o maior lucro diário previsto?",
+    "options": [{"id":"A","text":"R$ 10,00","isCorrect":false},{"id":"B","text":"R$ 128,00","isCorrect":false},{"id":"C","text":"R$ 200,00","isCorrect":false},{"id":"D","text":"R$ 72,00","isCorrect":true},{"id":"E","text":"R$ 40,00","isCorrect":false}],
+    "explanation": "Completando o quadrado, L(x) = -2(x - 10)^2 + 72. O termo quadrático nunca é positivo, portanto o máximo é 72 reais em x = 10, valor inteiro pertencente ao domínio.",
+    "difficulty": 3
+  },
+  {
+    "id": "kuaa-exatas-003",
+    "topicTags": ["funcoes e graficos", "algebra e funcoes", "conjuntos e funcoes"],
+    "body": "No plano cartesiano, o gráfico de uma função afim f passa pelos pontos (2, 7) e (6, 19). Qual é a abscissa do ponto em que esse gráfico cruza o eixo x?",
+    "options": [{"id":"A","text":"-1/3","isCorrect":true},{"id":"B","text":"1/3","isCorrect":false},{"id":"C","text":"-3","isCorrect":false},{"id":"D","text":"1","isCorrect":false},{"id":"E","text":"3","isCorrect":false}],
+    "explanation": "A inclinação é (19 - 7)/(6 - 2) = 3. Como 7 = 3 vezes 2 + b, temos b = 1 e f(x) = 3x + 1. No eixo x, f(x) = 0, logo x = -1/3.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-004",
+    "topicTags": ["algebra e funcoes", "funcoes e graficos", "conjuntos e funcoes"],
+    "body": "Um sensor registra uma concentração modelada por C(t) = 160 vezes (1/2)^(t/3), em mg/L, com t em horas e t >= 0. Após quantas horas a concentração será 20 mg/L?",
+    "options": [{"id":"A","text":"3 horas","isCorrect":false},{"id":"B","text":"6 horas","isCorrect":false},{"id":"C","text":"8 horas","isCorrect":false},{"id":"D","text":"12 horas","isCorrect":false},{"id":"E","text":"9 horas","isCorrect":true}],
+    "explanation": "Dividindo por 160, obtemos (1/2)^(t/3) = 20/160 = 1/8 = (1/2)^3. Logo t/3 = 3 e t = 9 horas. São três intervalos de redução à metade.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-005",
+    "topicTags": ["geometria plana e espacial", "geometria e trigonometria"],
+    "body": "Um terreno retangular mede 18 m por 12 m. Uma faixa de largura constante de 2 m será pavimentada por dentro, ao longo dos quatro lados. A região central restante será um jardim retangular. Qual será a área pavimentada?",
+    "options": [{"id":"A","text":"60 m²","isCorrect":false},{"id":"B","text":"112 m²","isCorrect":false},{"id":"C","text":"104 m²","isCorrect":true},{"id":"D","text":"120 m²","isCorrect":false},{"id":"E","text":"56 m²","isCorrect":false}],
+    "explanation": "A área total é 18 vezes 12 = 216 m². A faixa ocupa 2 m de cada extremidade, deixando um jardim de (18 - 4) por (12 - 4), com 112 m². A diferença é 216 - 112 = 104 m²; assim os cantos não são contados duas vezes.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-006",
+    "topicTags": ["geometria plana e espacial", "geometria e trigonometria"],
+    "body": "Um reservatório cilíndrico reto tem raio interno de 2 m e altura interna de 3 m. Inicialmente vazio, recebe água até atingir 75% de sua capacidade. Qual é o volume de água, em metros cúbicos? Mantenha pi na resposta.",
+    "options": [{"id":"A","text":"9pi m³","isCorrect":true},{"id":"B","text":"12pi m³","isCorrect":false},{"id":"C","text":"3pi m³","isCorrect":false},{"id":"D","text":"4,5pi m³","isCorrect":false},{"id":"E","text":"6pi m³","isCorrect":false}],
+    "explanation": "O volume total é pi vezes r² vezes h = pi vezes 4 vezes 3 = 12pi m³. A água ocupa 3/4 desse volume: (3/4) vezes 12pi = 9pi m³.",
+    "difficulty": 1
+  },
+  {
+    "id": "kuaa-exatas-007",
+    "topicTags": ["geometria analitica"],
+    "body": "Em um mapa cartesiano cuja unidade corresponde a 1 km, dois postos estão em A = (-2, 1) e B = (4, 9). Um ponto de apoio M fica exatamente no ponto médio do segmento AB. Qual é a distância em linha reta entre A e M?",
+    "options": [{"id":"A","text":"10 km","isCorrect":false},{"id":"B","text":"7 km","isCorrect":false},{"id":"C","text":"25 km","isCorrect":false},{"id":"D","text":"5 km","isCorrect":true},{"id":"E","text":"4 km","isCorrect":false}],
+    "explanation": "O ponto médio é M = ((-2 + 4)/2, (1 + 9)/2) = (1, 5). De A até M, as diferenças são 3 e 4. Pelo teorema de Pitágoras, AM = raiz de (3² + 4²) = 5 km.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-008",
+    "topicTags": ["geometria analitica"],
+    "body": "Uma circunferência tem equação (x - 2)^2 + (y + 1)^2 = 25. Uma reta horizontal tem equação y = 2. Qual é a distância entre os dois pontos de interseção da reta com a circunferência, em unidades do plano?",
+    "options": [{"id":"A","text":"4","isCorrect":false},{"id":"B","text":"8","isCorrect":true},{"id":"C","text":"10","isCorrect":false},{"id":"D","text":"6","isCorrect":false},{"id":"E","text":"5","isCorrect":false}],
+    "explanation": "Substituindo y = 2, temos (x - 2)^2 + 9 = 25, então (x - 2)^2 = 16. As interseções são (-2, 2) e (6, 2). Como possuem a mesma ordenada, a distância é 6 - (-2) = 8.",
+    "difficulty": 3
+  },
+  {
+    "id": "kuaa-exatas-009",
+    "topicTags": ["trigonometria", "geometria e trigonometria"],
+    "body": "Uma escada reta de 10 m está apoiada em uma parede vertical, sobre um piso horizontal. Ela forma um ângulo de 60 graus com o piso. A que altura do piso está a extremidade superior? Use sen(60 graus) = raiz de 3/2.",
+    "options": [{"id":"A","text":"5 m","isCorrect":false},{"id":"B","text":"10 vezes raiz de 3 m","isCorrect":false},{"id":"C","text":"5 vezes raiz de 3 m","isCorrect":true},{"id":"D","text":"20/raiz de 3 m","isCorrect":false},{"id":"E","text":"10/3 m","isCorrect":false}],
+    "explanation": "A escada é a hipotenusa e a altura h é o cateto oposto ao ângulo de 60 graus. Portanto h/10 = sen(60 graus) = (raiz de 3)/2 e h = 5 vezes raiz de 3 m.",
+    "difficulty": 1
+  },
+  {
+    "id": "kuaa-exatas-010",
+    "topicTags": ["trigonometria", "geometria e trigonometria"],
+    "body": "Um ângulo agudo theta satisfaz sen(theta) = 3/5. Qual é o valor de tan(2theta)? Use tan(2theta) = 2tan(theta)/(1 - tan(theta)^2).",
+    "options": [{"id":"A","text":"3/4","isCorrect":false},{"id":"B","text":"6/5","isCorrect":false},{"id":"C","text":"7/24","isCorrect":false},{"id":"D","text":"12/7","isCorrect":false},{"id":"E","text":"24/7","isCorrect":true}],
+    "explanation": "Como theta é agudo, cos(theta) é positivo e vale raiz de (1 - 9/25) = 4/5. Assim tan(theta) = 3/4. Pela identidade fornecida, tan(2theta) = (3/2)/(1 - 9/16) = (3/2)/(7/16) = 24/7.",
+    "difficulty": 3
+  },
+  {
+    "id": "kuaa-exatas-011",
+    "topicTags": ["probabilidade e estatistica", "combinatoria e probabilidade"],
+    "body": "Uma urna contém 4 bolas azuis e 3 vermelhas, todas com a mesma chance de serem retiradas. Duas bolas são retiradas sucessivamente, sem reposição. Qual é a probabilidade de ambas serem vermelhas?",
+    "options": [{"id":"A","text":"9/49","isCorrect":false},{"id":"B","text":"1/7","isCorrect":true},{"id":"C","text":"3/7","isCorrect":false},{"id":"D","text":"2/7","isCorrect":false},{"id":"E","text":"1/49","isCorrect":false}],
+    "explanation": "A chance de a primeira ser vermelha é 3/7. Após esse resultado, restam 2 vermelhas entre 6 bolas, dando 2/6. O produto é (3/7)(2/6) = 6/42 = 1/7. Sem reposição, a segunda probabilidade muda.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-012",
+    "topicTags": ["combinatoria e probabilidade", "probabilidade e estatistica"],
+    "body": "Uma turma tem 5 estudantes do turno da manhã e 4 do turno da tarde. Uma comissão sem cargos distintos terá 3 integrantes, sendo exatamente 2 da manhã e 1 da tarde. Quantas comissões diferentes podem ser formadas?",
+    "options": [{"id":"A","text":"20","isCorrect":false},{"id":"B","text":"80","isCorrect":false},{"id":"C","text":"84","isCorrect":false},{"id":"D","text":"40","isCorrect":true},{"id":"E","text":"60","isCorrect":false}],
+    "explanation": "O par da manhã pode ser escolhido de C(5,2) = 5 vezes 4/2 = 10 formas. Para cada par há 4 escolhas da tarde, totalizando 10 vezes 4 = 40. Dividimos por 2 na escolha do par porque a ordem não cria outra comissão.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-013",
+    "topicTags": ["probabilidade e estatistica"],
+    "body": "Em cinco dias, uma biblioteca registrou 4, 6, 6, 9 e 15 empréstimos, respectivamente. Quais são a média aritmética e a mediana desses cinco números, nessa ordem?",
+    "options": [{"id":"A","text":"8 e 6","isCorrect":true},{"id":"B","text":"6 e 8","isCorrect":false},{"id":"C","text":"8 e 9","isCorrect":false},{"id":"D","text":"10 e 6","isCorrect":false},{"id":"E","text":"8 e 8","isCorrect":false}],
+    "explanation": "A soma é 4 + 6 + 6 + 9 + 15 = 40, então a média é 40/5 = 8. Os dados já estão em ordem; como há cinco observações, a mediana é a terceira, igual a 6.",
+    "difficulty": 1
+  },
+  {
+    "id": "kuaa-exatas-014",
+    "topicTags": ["probabilidade e estatistica"],
+    "body": "As massas, em kg, de todos os quatro pacotes de um lote são 2, 4, 4 e 6. Defina a variância populacional como a média dos quadrados dos desvios em relação à média aritmética. Qual é a variância populacional desse lote?",
+    "options": [{"id":"A","text":"4 kg²","isCorrect":false},{"id":"B","text":"8/3 kg²","isCorrect":false},{"id":"C","text":"2 kg²","isCorrect":true},{"id":"D","text":"8 kg²","isCorrect":false},{"id":"E","text":"1 kg²","isCorrect":false}],
+    "explanation": "A média é (2 + 4 + 4 + 6)/4 = 4 kg. Os desvios são -2, 0, 0 e 2, cujos quadrados somam 8. A variância populacional é 8/4 = 2 kg². O divisor é 4, não 3, pois foi pedida a variância de toda a população.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-015",
+    "topicTags": ["progressoes e sequencias"],
+    "body": "Um pequeno auditório tem 12 fileiras. A primeira tem 14 assentos e cada fileira seguinte tem 2 assentos a mais que a anterior. Quantos assentos há no auditório?",
+    "options": [{"id":"A","text":"168","isCorrect":false},{"id":"B","text":"432","isCorrect":false},{"id":"C","text":"288","isCorrect":false},{"id":"D","text":"312","isCorrect":false},{"id":"E","text":"300","isCorrect":true}],
+    "explanation": "Os números formam uma PA de razão 2. A última fileira tem 14 + 11 vezes 2 = 36 assentos. A soma é 12(14 + 36)/2 = 300 assentos.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-016",
+    "topicTags": ["progressoes e sequencias"],
+    "body": "Em um desafio, uma pessoa guarda R$ 3,00 na primeira semana e, a cada semana seguinte, guarda o dobro do valor guardado na semana anterior. Sem considerar juros, qual é o total guardado ao final de seis semanas?",
+    "options": [{"id":"A","text":"R$ 96,00","isCorrect":false},{"id":"B","text":"R$ 189,00","isCorrect":true},{"id":"C","text":"R$ 192,00","isCorrect":false},{"id":"D","text":"R$ 93,00","isCorrect":false},{"id":"E","text":"R$ 126,00","isCorrect":false}],
+    "explanation": "Os depósitos são 3, 6, 12, 24, 48 e 96 reais, uma PG de razão 2. A soma dos seis termos é 3(2^6 - 1)/(2 - 1) = 3 vezes 63 = 189 reais. O último depósito sozinho é 96 reais.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-017",
+    "topicTags": ["cinematica e dinamica"],
+    "body": "Um carrinho move-se em linha reta com velocidade inicial de 4 m/s. Durante os 6 s seguintes, sua aceleração é constante e vale 2 m/s² no mesmo sentido da velocidade inicial. Qual distância ele percorre nesse intervalo?",
+    "options": [{"id":"A","text":"36 m","isCorrect":false},{"id":"B","text":"96 m","isCorrect":false},{"id":"C","text":"16 m","isCorrect":false},{"id":"D","text":"60 m","isCorrect":true},{"id":"E","text":"24 m","isCorrect":false}],
+    "explanation": "Como não há inversão do movimento, a distância coincide com o módulo do deslocamento: d = v0 t + at²/2 = 4 vezes 6 + 2 vezes 36/2 = 24 + 36 = 60 m. A velocidade final seria 16 m/s, não a distância.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-018",
+    "topicTags": ["cinematica e dinamica"],
+    "body": "Um bloco de 5 kg desliza sobre uma mesa horizontal. Uma força horizontal de 18 N o puxa para a direita e o atrito cinético vale 8 N para a esquerda. Não há outras forças horizontais. Qual é a aceleração do bloco?",
+    "options": [{"id":"A","text":"2 m/s² para a direita","isCorrect":true},{"id":"B","text":"3,6 m/s² para a direita","isCorrect":false},{"id":"C","text":"5,2 m/s² para a direita","isCorrect":false},{"id":"D","text":"2 m/s² para a esquerda","isCorrect":false},{"id":"E","text":"1,6 m/s² para a esquerda","isCorrect":false}],
+    "explanation": "Tomando a direita como positiva, a resultante horizontal é 18 - 8 = 10 N. Pela segunda lei de Newton, a = F/m = 10/5 = 2 m/s² para a direita. As forças verticais se equilibram sobre a mesa.",
+    "difficulty": 1
+  },
+  {
+    "id": "kuaa-exatas-019",
+    "topicTags": ["termologia e optica"],
+    "body": "Uma amostra de 200 g de água líquida passa de 20 °C para 35 °C, sem mudança de estado. Adote calor específico constante de 4,2 J/(g °C) e despreze o calor absorvido pelo recipiente. Quanto calor a água absorve?",
+    "options": [{"id":"A","text":"2.940 J","isCorrect":false},{"id":"B","text":"16.800 J","isCorrect":false},{"id":"C","text":"12.600 J","isCorrect":true},{"id":"D","text":"29.400 J","isCorrect":false},{"id":"E","text":"3.000 J","isCorrect":false}],
+    "explanation": "A variação de temperatura é 35 - 20 = 15 °C. O calor sensível é Q = mc deltaT = 200 vezes 4,2 vezes 15 = 12.600 J. Usa-se a variação de temperatura, e não a temperatura final.",
+    "difficulty": 1
+  },
+  {
+    "id": "kuaa-exatas-020",
+    "topicTags": ["termologia e optica"],
+    "body": "Um objeto real está a 30 cm de uma lente delgada convergente de distância focal 10 cm. Use 1/f = 1/p + 1/p', com p' positivo para imagem real. Qual é a distância da imagem à lente e em que lado ela se forma?",
+    "options": [{"id":"A","text":"30 cm, no lado oposto ao objeto","isCorrect":false},{"id":"B","text":"15 cm, no mesmo lado do objeto","isCorrect":false},{"id":"C","text":"7,5 cm, no lado oposto ao objeto","isCorrect":false},{"id":"D","text":"20 cm, no mesmo lado do objeto","isCorrect":false},{"id":"E","text":"15 cm, no lado oposto ao objeto","isCorrect":true}],
+    "explanation": "Temos 1/p' = 1/10 - 1/30 = 2/30 = 1/15, portanto p' = 15 cm. O sinal positivo indica imagem real, formada no lado oposto ao objeto em uma lente convergente.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-021",
+    "topicTags": ["quimica organica"],
+    "body": "Uma amostra de 9,2 g de etanol puro, C2H6O, sofre combustão completa com oxigênio em excesso, formando apenas CO2 e H2O. Adote massas molares de 46 g/mol para o etanol e 44 g/mol para o CO2. Qual massa de CO2 é produzida?",
+    "options": [{"id":"A","text":"8,8 g","isCorrect":false},{"id":"B","text":"17,6 g","isCorrect":true},{"id":"C","text":"4,4 g","isCorrect":false},{"id":"D","text":"26,4 g","isCorrect":false},{"id":"E","text":"35,2 g","isCorrect":false}],
+    "explanation": "A equação balanceada é C2H6O + 3 O2 -> 2 CO2 + 3 H2O. Há 9,2/46 = 0,2 mol de etanol, que produz 0,4 mol de CO2. A massa é 0,4 vezes 44 = 17,6 g. O oxigênio incorporado explica a massa de CO2 superar a de etanol.",
+    "difficulty": 3
+  },
+  {
+    "id": "kuaa-exatas-022",
+    "topicTags": ["quimica organica"],
+    "body": "Considere as fórmulas estruturais condensadas I: CH3-CH2-OH e II: CH3-O-CH3. Ambas correspondem à fórmula molecular C2H6O. Qual alternativa identifica corretamente as funções orgânicas de I e II e a relação de isomeria entre elas?",
+    "options": [{"id":"A","text":"I é álcool; II é éster; são isômeros de função.","isCorrect":false},{"id":"B","text":"I é éter; II é álcool; são isômeros de função.","isCorrect":false},{"id":"C","text":"Ambos são álcoois; são isômeros de posição.","isCorrect":false},{"id":"D","text":"I é álcool; II é éter; são isômeros de função.","isCorrect":true},{"id":"E","text":"Ambos são éteres; são isômeros de cadeia.","isCorrect":false}],
+    "explanation": "Em I, a hidroxila OH está ligada a carbono saturado, caracterizando álcool. Em II, o oxigênio fica entre dois grupos metila, caracterizando éter. A mesma fórmula molecular com funções diferentes caracteriza isomeria de função. Um éster exigiria também uma carbonila, ausente em II.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-023",
+    "topicTags": ["biologia celular e genetica"],
+    "body": "Uma espécie tem células diploides com 2n = 12 cromossomos. Uma célula diploide normal concluiu a replicação do DNA e está na metáfase da mitose, antes da separação das cromátides-irmãs. Contando os cromossomos pelo número de centrômeros ainda não separados, quantos cromossomos e quantas cromátides há nessa célula?",
+    "options": [{"id":"A","text":"12 cromossomos e 24 cromátides","isCorrect":true},{"id":"B","text":"24 cromossomos e 24 cromátides","isCorrect":false},{"id":"C","text":"12 cromossomos e 12 cromátides","isCorrect":false},{"id":"D","text":"6 cromossomos e 12 cromátides","isCorrect":false},{"id":"E","text":"24 cromossomos e 48 cromátides","isCorrect":false}],
+    "explanation": "A replicação duplica o DNA, mas não o número de cromossomos nessa etapa. Na metáfase, cada um dos 12 cromossomos possui duas cromátides-irmãs unidas. Assim, são 12 cromossomos e 12 vezes 2 = 24 cromátides. A separação ocorre na anáfase.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-024",
+    "topicTags": ["biologia celular e genetica"],
+    "body": "Em uma planta, a cor da semente depende de um único gene autossômico: A determina amarelo com dominância completa sobre a, que determina verde. Duas plantas Aa são cruzadas. Sem seleção ou diferenças de viabilidade, qual é a probabilidade de uma semente ser heterozigota, sabendo que ela é amarela?",
+    "options": [{"id":"A","text":"1/4","isCorrect":false},{"id":"B","text":"1/2","isCorrect":false},{"id":"C","text":"2/3","isCorrect":true},{"id":"D","text":"3/4","isCorrect":false},{"id":"E","text":"1/3","isCorrect":false}],
+    "explanation": "O cruzamento Aa com Aa gera AA, Aa, Aa e aa com probabilidades 1/4, 1/4, 1/4 e 1/4. As sementes amarelas são AA ou Aa, totalizando 3/4. A probabilidade condicional é P(Aa)/P(amarela) = (1/2)/(3/4) = 2/3.",
+    "difficulty": 3
+  },
+  {
+    "id": "kuaa-exatas-025",
+    "topicTags": ["cinematica e dinamica"],
+    "body": "Um ciclista percorre 120 m em 20 s e depois mais 180 m em 40 s, sempre em linha reta e no mesmo sentido, sem pausa entre os trechos. Qual é sua velocidade média no percurso completo?",
+    "options": [{"id":"A","text":"4,5 m/s","isCorrect":false},{"id":"B","text":"5,25 m/s","isCorrect":false},{"id":"C","text":"6 m/s","isCorrect":false},{"id":"D","text":"7,5 m/s","isCorrect":false},{"id":"E","text":"5 m/s","isCorrect":true}],
+    "explanation": "O deslocamento total é 120 + 180 = 300 m e o tempo total é 20 + 40 = 60 s. Logo a velocidade média é 300/60 = 5 m/s. A média simples das velocidades dos trechos não se aplica, pois suas durações são diferentes.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-026",
+    "topicTags": ["termologia e optica"],
+    "body": "Em um recipiente termicamente isolado e de capacidade térmica desprezível, misturam-se 100 g de água a 80 °C com 300 g de água a 20 °C. Não há evaporação nem mudança de estado e o calor específico é o mesmo e constante nas duas porções. Qual é a temperatura final de equilíbrio?",
+    "options": [{"id":"A","text":"50 °C","isCorrect":false},{"id":"B","text":"35 °C","isCorrect":true},{"id":"C","text":"65 °C","isCorrect":false},{"id":"D","text":"40 °C","isCorrect":false},{"id":"E","text":"30 °C","isCorrect":false}],
+    "explanation": "O calor perdido pela porção quente iguala o recebido pela fria: 100c(80 - T) = 300c(T - 20). Cancelando c, 8000 - 100T = 300T - 6000, então 400T = 14000 e T = 35 °C. A temperatura fica mais próxima de 20 °C porque há mais água fria.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-027",
+    "topicTags": ["termologia e optica"],
+    "body": "Um raio de luz passa do ar, com índice de refração 1, para um material transparente de índice de refração raiz de 2. O ângulo de incidência, medido em relação à normal, é 45 graus. Use n1 sen(i) = n2 sen(r), sen(45 graus) = (raiz de 2)/2 e sen(30 graus) = 1/2. Qual é o ângulo de refração em relação à normal?",
+    "options": [{"id":"A","text":"15 graus","isCorrect":false},{"id":"B","text":"45 graus","isCorrect":false},{"id":"C","text":"60 graus","isCorrect":false},{"id":"D","text":"30 graus","isCorrect":true},{"id":"E","text":"90 graus","isCorrect":false}],
+    "explanation": "Pela lei fornecida, 1 vezes (raiz de 2)/2 = (raiz de 2) sen(r). Dividindo por raiz de 2, sen(r) = 1/2, logo r = 30 graus no intervalo físico de 0 a 90 graus. O raio aproxima-se da normal ao entrar no meio de maior índice.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-028",
+    "topicTags": ["quimica organica"],
+    "body": "Na hidrogenação completa do propeno, CH3-CH=CH2, cada mol de propeno reage com 1 mol de H2, formando propano. Uma amostra pura de 8,4 g de propeno reage completamente com H2 em excesso. Adote massas molares de 42 g/mol para o propeno e 2 g/mol para H2. Qual é a massa de H2 consumida?",
+    "options": [{"id":"A","text":"0,4 g","isCorrect":true},{"id":"B","text":"0,2 g","isCorrect":false},{"id":"C","text":"0,8 g","isCorrect":false},{"id":"D","text":"4,2 g","isCorrect":false},{"id":"E","text":"8,8 g","isCorrect":false}],
+    "explanation": "A quantidade de propeno é 8,4/42 = 0,2 mol. A adição de hidrogênio à única ligação dupla exige a mesma quantidade de H2: 0,2 mol. Sua massa é 0,2 vezes 2 = 0,4 g. A massa final de propano seria 8,8 g, não a de hidrogênio consumido.",
+    "difficulty": 2
+  },
+  {
+    "id": "kuaa-exatas-029",
+    "topicTags": ["quimica organica"],
+    "body": "Um ácido carboxílico reage com um álcool segundo CH3COOH + CH3OH -> CH3COOCH3 + H2O. Uma experiência começa com 0,50 mol de ácido e 0,80 mol de álcool e obtém 0,30 mol do éster. Considerando a proporção estequiométrica 1:1:1, qual é o rendimento percentual do éster em relação ao máximo teórico?",
+    "options": [{"id":"A","text":"37,5%","isCorrect":false},{"id":"B","text":"30%","isCorrect":false},{"id":"C","text":"60%","isCorrect":true},{"id":"D","text":"62,5%","isCorrect":false},{"id":"E","text":"80%","isCorrect":false}],
+    "explanation": "Como a proporção é 1:1, o ácido limita a produção a 0,50 mol de éster; há álcool em excesso. O rendimento é (0,30/0,50) vezes 100 = 60%. O máximo teórico é estequiométrico e não pressupõe que a reação real atinja conversão total.",
+    "difficulty": 3
+  },
+  {
+    "id": "kuaa-exatas-030",
+    "topicTags": ["biologia celular e genetica"],
+    "body": "Um fragmento de DNA de dupla fita contém 1.000 nucleotídeos no total, somando as duas fitas. Desses, 300 são adenina. Considerando o pareamento A-T e C-G, quantos nucleotídeos de citosina existem no fragmento inteiro?",
+    "options": [{"id":"A","text":"300","isCorrect":false},{"id":"B","text":"400","isCorrect":false},{"id":"C","text":"100","isCorrect":false},{"id":"D","text":"700","isCorrect":false},{"id":"E","text":"200","isCorrect":true}],
+    "explanation": "No conjunto das duas fitas, o número de timinas é igual ao de adeninas: 300. Restam 1000 - 300 - 300 = 400 nucleotídeos, divididos igualmente entre citosina e guanina. Portanto há 400/2 = 200 citosinas. Os 1000 nucleotídeos correspondem a 500 pares de bases.",
+    "difficulty": 2
+  }
+]

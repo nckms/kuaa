@@ -23,7 +23,7 @@ export default function QuizLoadingPage() {
     }
   }, [data, navigate])
 
-  const hasError = isError || data?.status === 'error'
+  const hasError = !jobId || !sessionId || isError || data?.status === 'error'
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif', padding: 24, textAlign: 'center' }}>
@@ -48,7 +48,7 @@ export default function QuizLoadingPage() {
             Preparando suas questões...
           </p>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,.55)', marginBottom: 32 }}>
-            Nossa IA está criando questões personalizadas para você
+            Carregando a sessão de estudo
           </p>
           <div style={{ width: 280, height: 6, backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 999, overflow: 'hidden' }}>
             <div style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #531A61, #840033)', animation: 'shimmer 1.5s ease-in-out infinite', backgroundSize: '200% 100%' }} />

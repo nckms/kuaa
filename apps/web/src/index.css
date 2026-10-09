@@ -213,3 +213,45 @@ input:focus, textarea:focus, select:focus {
 @keyframes shimmer  { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 @keyframes slideUp  { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes spin     { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Persisted accessibility preferences, scoped to the authenticated layout. */
+.app-main-content,
+.app-main-content *,
+.mobile-bottom-nav,
+.trail-subject-tabs {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-main-content::-webkit-scrollbar,
+.app-main-content *::-webkit-scrollbar,
+.mobile-bottom-nav::-webkit-scrollbar,
+.trail-subject-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+[data-reduced-motion] *,
+[data-reduced-motion] *::before,
+[data-reduced-motion] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+[data-high-contrast],
+[data-high-contrast] * {
+  color: #fff !important;
+  background-color: #000 !important;
+  background-image: none !important;
+  border-color: #fff !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+[data-high-contrast] a { color: #ffeb3b !important; text-decoration: underline !important; }
+[data-high-contrast] button,
+[data-high-contrast] input,
+[data-high-contrast] select { border: 1px solid #fff !important; accent-color: #ffeb3b; }
+[data-high-contrast] :focus-visible { outline: 3px solid #ffeb3b !important; outline-offset: 3px; }
+[data-high-contrast] :disabled { opacity: 0.65; }

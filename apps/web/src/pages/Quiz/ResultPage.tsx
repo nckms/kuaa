@@ -81,7 +81,7 @@ export default function ResultPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: animating ? 1 : 0, scale: animating ? 1 : 0.8 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 72, fontWeight: 700, color: '#FFDC5C', letterSpacing: '-0.045em', lineHeight: 0.9, marginTop: 24, marginBottom: 8 }}
+          style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 600, color: '#FFDC5C', letterSpacing: 0, lineHeight: 1.4, marginTop: 24, marginBottom: 8 }}
         >
           +{xpCount} XP
         </motion.div>
@@ -90,7 +90,7 @@ export default function ResultPage() {
           <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 26, color: '#fff', marginBottom: 8 }}>Sessão concluída!</p>
           <span style={{ backgroundColor: '#840033', color: '#fff', fontSize: 12, fontWeight: 600, padding: '4px 14px', borderRadius: 999 }}>{topicName}</span>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 32, marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 24, marginTop: 32, marginBottom: 24 }}>
             <div style={{ textAlign: 'center' }}>
               <span style={{ fontSize: 24, color: '#10b981' }}>✓</span>
               <p style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 28, color: '#fff', fontWeight: 700, letterSpacing: '-0.04em', margin: '4px 0 2px' }}>{correct}</p>
@@ -107,6 +107,8 @@ export default function ResultPage() {
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>acerto</p>
             </div>
           </div>
+
+          <p style={{ color: '#d1d5db', fontSize: 13 }}>{summary.skipped} questão(ões) em branco. O percentual considera todas as questões da sessão.</p>
 
           {isPerfect && (
             <div style={{ backgroundColor: 'rgba(255,220,92,.15)', border: '1px solid #FFDC5C', borderRadius: 16, padding: 16, marginBottom: 12 }}>

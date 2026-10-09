@@ -11,6 +11,7 @@ export interface TopicProgress {
 }
 
 export interface TrailTopic {
+  activity: AdaptiveActivity
   id: string
   name: string
   description: string
@@ -29,6 +30,7 @@ export interface TrailSubject {
 }
 
 export interface TrailData {
+  recommendation: Recommendation | null
   vestibular: { id: string; slug: string; name: string; institution: string }
   subjects: TrailSubject[]
   summary: {
@@ -48,6 +50,22 @@ export interface TrailData {
     totalXpEarned: number
     knowledgeGaps: KnowledgeGap[]
   }
+}
+
+export interface AdaptiveActivity {
+  recentAnswersCount: number
+  recentAccuracy: number | null
+  recentAverageDifficulty: number | null
+  recentAverageTimeMs: number | null
+  timedAnswersCount: number
+  lastAnsweredAt: string | null
+}
+
+export interface Recommendation {
+  topicId: string
+  reason: string
+  kind: 'reinforcement' | 'continue' | 'advance'
+  targetDifficulty?: number
 }
 
 export interface KnowledgeGap {

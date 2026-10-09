@@ -75,11 +75,6 @@ export default function Home() {
         </div>
 
         <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
-          <div className="k-pill ghost-dark" style={{ marginBottom: 28 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#FFDC5C', flexShrink: 0 }} />
-            Para escolas públicas brasileiras · 100% gratuito
-          </div>
-
           <motion.h1
             style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 'clamp(34px, 5.5vw, 68px)', color: '#fff', marginBottom: 24, lineHeight: 1.05, letterSpacing: '-.03em' }}
             initial={{ opacity: 0, y: 24 }}
@@ -110,9 +105,6 @@ export default function Home() {
             >
               Começar agora — é grátis
             </Link>
-            <p style={{ color: 'rgba(255,255,255,.28)', fontSize: 12, letterSpacing: '.04em' }}>
-              SEM CARTÃO · SEM PAYWALL · PARA SEMPRE
-            </p>
           </motion.div>
         </div>
       </section>
@@ -153,12 +145,9 @@ export default function Home() {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid rgba(255,255,255,.06)', padding: '40px 32px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           <KuaaLogo size={30} dark showTagline />
         </div>
-        <p style={{ color: 'rgba(255,255,255,.2)', fontSize: 12, letterSpacing: '.04em' }}>
-          © 2025 KUAA · PROJETO ACADÊMICO SEM FINS LUCRATIVOS
-        </p>
       </footer>
     </div>
   )

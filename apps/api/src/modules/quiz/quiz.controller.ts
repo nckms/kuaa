@@ -18,7 +18,7 @@ export async function getJobStatus(req: Request, res: Response, next: NextFuncti
       ? (rawSessionId[0] as string)
       : (rawSessionId as string | undefined)
     if (!sessionId) { res.status(400).json({ error: 'sessionId obrigatório' }); return }
-    const result = await quizService.getJobStatus(jobId, sessionId)
+    const result = await quizService.getJobStatus(req.userId!, jobId, sessionId)
     res.json(result)
   } catch (err) { next(err) }
 }
@@ -28,6 +28,12 @@ export async function getSession(req: Request, res: Response, next: NextFunction
     const sessionId = Array.isArray(req.params['sessionId']) ? req.params['sessionId'][0] : req.params['sessionId']
     const result = await quizService.getSession(req.userId!, sessionId)
     res.json(result)
+  } catch (err) { next(err) }
+}
+
+export async function resume(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    res.json(await quizService.resume(req.userId!, String(req.params['topicId'])))
   } catch (err) { next(err) }
 }
 

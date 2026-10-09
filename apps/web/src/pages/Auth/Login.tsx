@@ -50,8 +50,8 @@ export default function Login() {
       const res = await api.post<AuthResponse>('/auth/login', form)
       setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
       try {
-        const enrollments = await loadEnrollments()
-        const firstSlug = enrollments[0]?.vestibular.slug
+        await loadEnrollments()
+        const firstSlug = useAuthStore.getState().firstVestibularSlug
         navigate(firstSlug ? `/trilha/${firstSlug}` : '/onboarding')
       } catch {
         navigate('/trilha')

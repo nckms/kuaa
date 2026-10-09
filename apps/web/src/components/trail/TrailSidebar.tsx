@@ -59,8 +59,8 @@ export default function TrailSidebar({ summary }: TrailSidebarProps) {
         <div className="col-6">
           <div className="card border-0 shadow-sm text-center">
             <div className="card-body py-3">
-              <p className="h5 fw-bold mb-1" style={{ color: '#840033' }}><i className="bi bi-heart-fill me-1" />{user.hearts}</p>
-              <p className="small text-muted mb-0">vidas</p>
+              <p className="h5 fw-bold mb-1" style={{ color: '#531A61' }}><i className="bi bi-clock me-1" />{user.preferences?.dailyStudyMinutes ?? 30} min</p>
+              <p className="small text-muted mb-0">meta diária</p>
             </div>
           </div>
         </div>

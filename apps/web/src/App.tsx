@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { MotionConfig } from 'framer-motion'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './lib/queryClient'
@@ -19,6 +20,8 @@ import ReviewPage from './pages/Quiz/ReviewPage'
 import IndicePage from './pages/Indice/IndicePage'
 import SimuladoPage from './pages/Quiz/SimuladoPage'
 import SabiaPage from './pages/Sabia/SabiaPage'
+import SettingsPage from './pages/Settings/SettingsPage'
+import EvaluationPage from './pages/Evaluation/EvaluationPage'
 
 function TrailIndex() {
   const navigate = useNavigate()
@@ -38,10 +41,10 @@ function TrailIndex() {
       }
 
       try {
-        const enrollments = await loadEnrollments()
+        await loadEnrollments()
         if (cancelled) return
 
-        const firstSlug = enrollments[0]?.vestibular.slug
+        const firstSlug = useAuthStore.getState().firstVestibularSlug
         navigate(firstSlug ? `/trilha/${firstSlug}` : '/onboarding', { replace: true })
       } catch {
         if (!cancelled) navigate('/onboarding', { replace: true })
@@ -82,6 +85,8 @@ function AppRoutes() {
         <Route path="/resultado/:sessionId" element={<ResultPage />} />
         <Route path="/revisao/:sessionId" element={<ReviewPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
+        <Route path="/configuracoes" element={<SettingsPage />} />
+        <Route path="/avaliacao" element={<EvaluationPage />} />
         <Route path="/ranking" element={<RankingPage />} />
         <Route path="/indice" element={<IndicePage />} />
         <Route path="/simulado" element={<SimuladoPage />} />
@@ -94,11 +99,16 @@ function AppRoutes() {
 }
 
 export default function App() {
+  const preferences = useAuthStore((state) => state.user?.preferences)
   return (
+    <MotionConfig reducedMotion={preferences?.reducedMotion ? 'always' : 'user'}>
+    <div data-reduced-motion={preferences?.reducedMotion || undefined} data-high-contrast={preferences?.highContrast || undefined}>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>
     </QueryClientProvider>
+    </div>
+    </MotionConfig>
   )
 }

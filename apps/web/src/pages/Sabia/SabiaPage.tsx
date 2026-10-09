@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import AppLayout from '../../components/layout/AppLayout'
 import { useSabia } from '../../hooks/useSabia'
-import type { ChatMessage } from '../../hooks/useSabia'
+import { isAxiosError } from 'axios'
+import { useAuthStore } from '../../stores/auth.store'
 
 const SABIA_AVATAR = (
   <div
@@ -101,56 +102,62 @@ function TypingIndicator() {
   )
 }
 
-const WELCOME_MESSAGE: ChatMessage = {
-  role: 'assistant',
-  content:
-    'Olá! Sou o Sabiá 🦜, seu tutor de estudos. Estou aqui para te ajudar a entender qualquer matéria do vestibular — mas não entrego respostas prontas! Em vez disso, vou te fazer perguntas e dar dicas até você chegar lá sozinho. O que você está estudando hoje?',
+export default function SabiaPage() {
+  const userId = useAuthStore((state) => state.user?.id)
+  return <SabiaConversation key={userId} />
 }
 
-export default function SabiaPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE])
+function SabiaConversation() {
   const [input, setInput] = useState('')
+  const [conversationId, setConversationId] = useState<string | null>(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const drafts = useRef<Record<string, string>>({})
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const { mutate, isPending } = useSabia()
+  const { mutate, isPending, error, reset, history, conversations } = useSabia(conversationId)
+  const messages = history.data ?? []
+  const blocked = isPending || (!history.data && !history.isSuccess)
+  const sendingRef = useRef(false)
+  const errorText = isAxiosError(error) && error.response?.status === 503
+    ? 'O Sabiá está indisponível no momento. Sua mensagem foi mantida; tente novamente em instantes.'
+    : isAxiosError(error) && error.response?.status === 429
+      ? 'Muitas mensagens em pouco tempo. Aguarde um minuto e tente novamente.'
+      : 'Não foi possível confirmar o envio. Confira sua conexão e recarregue o histórico antes de tentar novamente.'
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isPending])
 
+  function openConversation(id: string | null) {
+    if (isPending) return
+    drafts.current[conversationId ?? 'new'] = input
+    setInput(drafts.current[id ?? 'new'] ?? '')
+    setConversationId(id)
+    setHistoryOpen(false)
+    reset()
+  }
+
   function handleSend() {
     const text = input.trim()
-    if (!text || isPending) return
-
-    const userMsg: ChatMessage = { role: 'user', content: text }
-    const updatedMessages = [...messages, userMsg]
-    setMessages(updatedMessages)
-    setInput('')
-
-    // Histórico enviado ao backend (exclui a mensagem de boas-vindas e a que acabamos de adicionar)
-    const historyForBackend = updatedMessages.slice(1, -1)
+    if (!text || input.length > 2000 || blocked || sendingRef.current) return
+    sendingRef.current = true
 
     mutate(
-      { message: text, history: historyForBackend },
+      { message: text, conversationId },
       {
         onSuccess: (data) => {
-          setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
+          delete drafts.current[conversationId ?? 'new']
+          setConversationId(data.conversationId)
+          setInput('')
+          if (textareaRef.current) textareaRef.current.style.height = 'auto'
         },
-        onError: () => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'assistant',
-              content: 'Ops, tive um problema de conexão. Pode repetir sua pergunta?',
-            },
-          ])
-        },
+        onSettled: () => { sendingRef.current = false },
       },
     )
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
       handleSend()
     }
@@ -180,6 +187,7 @@ export default function SabiaPage() {
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
+          minHeight: 0,
           maxWidth: 720,
           margin: '0 auto',
           width: '100%',
@@ -208,7 +216,7 @@ export default function SabiaPage() {
             >
               🦜
             </div>
-            <div>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <h1
                 style={{
                   fontFamily: "'Unbounded', sans-serif",
@@ -216,7 +224,7 @@ export default function SabiaPage() {
                   fontSize: 18,
                   color: '#531A61',
                   margin: 0,
-                  letterSpacing: '-0.02em',
+                  letterSpacing: 0,
                 }}
               >
                 Sabiá
@@ -225,7 +233,21 @@ export default function SabiaPage() {
                 Tutor de IA · método socrático
               </p>
             </div>
+            <button type="button" aria-label="Histórico de conversas" title="Histórico de conversas" aria-expanded={historyOpen} aria-controls="sabia-history" onClick={() => setHistoryOpen(!historyOpen)} style={{ width: 44, height: 44, flexShrink: 0, border: '1px solid var(--line-soft)', background: '#fff', color: '#531A61', borderRadius: 6 }}><i className="bi bi-clock-history" aria-hidden="true" /></button>
+            <button type="button" aria-label="Nova conversa" title="Nova conversa" disabled={isPending} onClick={() => openConversation(null)} style={{ width: 44, height: 44, flexShrink: 0, border: '1px solid var(--line-soft)', background: '#fff', color: '#531A61', borderRadius: 6 }}><i className="bi bi-plus-lg" aria-hidden="true" /></button>
           </div>
+
+          <p style={{ margin: '12px 0 0', fontSize: 13, overflowWrap: 'anywhere', color: '#6b6571' }}>{conversations.data?.find((item) => item.id === conversationId)?.title ?? (conversationId ? 'Conversa' : 'Nova conversa')}</p>
+          {historyOpen && <section id="sabia-history" aria-label="Histórico de conversas" style={{ marginTop: 12, border: '1px solid var(--line-soft)', borderRadius: 6, background: '#fff', padding: 12, maxHeight: 220, overflowY: 'auto' }}>
+            <h2 style={{ fontSize: 16, margin: '0 0 10px' }}>Histórico</h2>
+            {conversations.isPending && <p role="status">Carregando histórico...</p>}
+            {conversations.isError && <button onClick={() => void conversations.refetch()}>Tentar carregar novamente</button>}
+            {conversations.isSuccess && !conversations.data.length && <p style={{ fontSize: 13 }}>Nenhuma conversa salva ainda.</p>}
+            {conversations.data?.map((item) => <button key={item.id} type="button" disabled={isPending} aria-current={item.id === conversationId ? 'true' : undefined} onClick={() => openConversation(item.id)} style={{ display: 'block', width: '100%', textAlign: 'left', border: 0, borderBottom: '1px solid var(--line-soft)', background: item.id === conversationId ? '#f5eef7' : '#fff', padding: '10px 8px', borderRadius: 4 }}>
+              <strong style={{ display: 'block', fontSize: 13, color: '#281f2c', overflowWrap: 'anywhere' }}>{item.title}</strong>
+              <span style={{ fontSize: 11, color: '#6b6571' }}>{new Date(item.updatedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })} · {item._count.messages} mensagens</span>
+            </button>)}
+          </section>}
 
           {/* Aviso */}
           <div
@@ -244,7 +266,7 @@ export default function SabiaPage() {
             }}
           >
             <span>💡</span>
-            <span>O Sabiá te ajuda a <strong>entender</strong> — ele não entrega respostas prontas.</span>
+            <span>As respostas são geradas por IA e podem conter erros. Confira informações importantes com seu professor.</span>
           </div>
         </div>
 
@@ -252,21 +274,30 @@ export default function SabiaPage() {
         <div
           style={{
             flex: 1,
+            minHeight: 0,
             overflowY: 'auto',
             padding: '20px 0',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
-          {messages.map((msg, i) =>
-            msg.role === 'user' ? (
-              <UserBubble key={i} content={msg.content} />
-            ) : (
-              <SabiaBubble key={i} content={msg.content} />
-            ),
-          )}
+          {history.isPending && <p role="status">Carregando conversa...</p>}
+          {history.isError && <div role="alert">
+            <p>Não foi possível carregar seu histórico.</p>
+            <button onClick={() => void history.refetch()} disabled={history.isFetching}>Tentar novamente</button>
+          </div>}
+          {history.isSuccess && messages.length === 0 && <p>O que você está estudando hoje?</p>}
+          {messages.map((msg) => <div key={msg.id}>
+            <p style={{ fontSize: 10, color: '#6b6571', textAlign: msg.role === 'user' ? 'right' : 'left', marginBottom: 4 }}><time dateTime={msg.createdAt}>{new Date(msg.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</time></p>
+            {msg.role === 'user' ? <UserBubble content={msg.content} /> : <SabiaBubble content={msg.content} />}
+          </div>)}
 
           {isPending && <TypingIndicator />}
+          {error && <div role="alert">
+            <p>{errorText}</p>
+            <button onClick={handleSend} disabled={blocked || !input.trim()}>Tentar novamente</button>
+            <button onClick={() => void history.refetch()} disabled={isPending || history.isFetching}>Recarregar histórico</button>
+          </div>}
 
           <div ref={bottomRef} />
         </div>
@@ -295,8 +326,10 @@ export default function SabiaPage() {
               value={input}
               onChange={handleInput}
               onKeyDown={handleKeyDown}
-              placeholder="Pergunte qualquer coisa... (Enter para enviar)"
-              disabled={isPending}
+              placeholder="Qual é sua dúvida?"
+              aria-label="Mensagem para o Sabiá"
+              maxLength={2000}
+              disabled={blocked}
               rows={1}
               style={{
                 flex: 1,
@@ -310,11 +343,14 @@ export default function SabiaPage() {
                 lineHeight: 1.5,
                 overflowY: 'auto',
                 minHeight: 24,
+                minWidth: 0,
               }}
             />
             <button
               onClick={handleSend}
-              disabled={!input.trim() || isPending}
+              disabled={!input.trim() || blocked}
+              aria-label="Enviar mensagem"
+              title="Enviar mensagem"
               style={{
                 width: 38,
                 height: 38,
@@ -341,7 +377,7 @@ export default function SabiaPage() {
               textAlign: 'center',
             }}
           >
-            Shift + Enter para nova linha
+            {input.length}/2000
           </p>
         </div>
       </div>

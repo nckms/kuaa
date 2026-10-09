@@ -1,4 +1,12 @@
+export interface UserPreferences {
+  dailyStudyMinutes: number
+  reducedMotion: boolean
+  highContrast: boolean
+}
+
 export interface User {
+  activeVestibularId?: string | null
+  preferences?: UserPreferences
   id: string
   email: string
   name: string
