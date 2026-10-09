@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import KuaaLogo from '../../components/ui/KuaaLogo'
 import KuaaIcon from '../../components/ui/KuaaIcon'
@@ -57,37 +57,34 @@ function SimuladoLanding({
   isStarting: boolean
 }) {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--k-creme)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', fontFamily: "'Questrial', Arial, sans-serif" }}>
-      <div style={{ maxWidth: 480, width: '100%', textAlign: 'center' }}>
-        <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg, #2a0d33, #531A61)', display: 'grid', placeItems: 'center', margin: '0 auto 28px' }}>
-          <KuaaIcon name="sparkle" size={36} color="#FFDC5C" />
-        </div>
+    <div style={{ minHeight: '100vh', background: 'var(--k-creme)', padding: 'clamp(24px, 5vw, 56px) 20px', fontFamily: "'Questrial', Arial, sans-serif" }}>
+      <div style={{ maxWidth: 720, width: '100%', margin: '0 auto' }}>
+        <Link to="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#531A61', textDecoration: 'none', marginBottom: 36 }}><i className="bi bi-arrow-left" aria-hidden="true" /> Painel</Link>
 
-        <p style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 500, fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--k-tinta-3)', marginBottom: 12 }}>
-          {vestibularName ?? 'ENEM'} · Esta semana
+        <p style={{ fontWeight: 600, fontSize: 12, textTransform: 'uppercase', color: 'var(--k-tinta-3)', marginBottom: 8 }}>
+          {vestibularName ?? 'ENEM'} · Semana atual
         </p>
 
-        <h1 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 32, color: '#2a0d33', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 16 }}>
-          Simulado<br />da Semana
+        <h1 style={{ fontFamily: "'Questrial', sans-serif", fontWeight: 700, fontSize: 28, color: '#2a0d33', lineHeight: 1.2, marginBottom: 12 }}>
+          Simulado semanal
         </h1>
 
-        <p style={{ fontSize: 15, color: 'var(--k-tinta-2)', lineHeight: 1.65, marginBottom: 36 }}>
-          45 questões distribuídas entre todas as áreas do {vestibularName ?? 'ENEM'}. Você tem <strong>90 minutos</strong>. Um novo simulado é publicado todo domingo.
+        <p style={{ fontSize: 15, color: 'var(--k-tinta-2)', lineHeight: 1.6, marginBottom: 20 }}>
+          Até 45 questões do banco de estudo para {vestibularName ?? 'ENEM'}. Você tem <strong>90 minutos</strong>. Um novo simulado fica disponível todo domingo. Não é uma prova oficial.
         </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 0, borderTop: '1px solid var(--k-line)', borderBottom: '1px solid var(--k-line)', marginBottom: 24 }}>
+          <div style={{ padding: '16px 8px 16px 0' }}><strong style={{ display: 'block', fontSize: 20 }}>Até 45</strong><span style={{ color: 'var(--k-tinta-3)', fontSize: 13 }}>questões</span></div>
+          <div style={{ padding: '16px 8px 16px 0' }}><strong style={{ display: 'block', fontSize: 20 }}>90 min</strong><span style={{ color: 'var(--k-tinta-3)', fontSize: 13 }}>tempo disponível</span></div>
+        </div>
 
         <button
           onClick={onStart}
           disabled={isStarting}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '16px 36px', borderRadius: 14, border: 'none', background: 'linear-gradient(135deg, #531A61, #840033)', color: '#fff', fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: '.04em', cursor: isStarting ? 'not-allowed' : 'pointer', opacity: isStarting ? 0.7 : 1 }}
+          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 48, padding: '12px 22px', borderRadius: 6, border: 'none', background: '#531A61', color: '#fff', fontWeight: 700, fontSize: 14, cursor: isStarting ? 'not-allowed' : 'pointer', opacity: isStarting ? 0.7 : 1 }}
         >
-          {isStarting ? 'Carregando...' : 'Iniciar Simulado →'}
+          {isStarting ? 'Carregando...' : 'Iniciar simulado'}
         </button>
-
-        <div style={{ marginTop: 28 }}>
-          <Link to="/dashboard" style={{ fontSize: 13, color: 'var(--k-tinta-3)', textDecoration: 'none' }}>
-            ← Voltar ao Dashboard
-          </Link>
-        </div>
       </div>
     </div>
   )
@@ -155,6 +152,26 @@ function SimuladoResults({ attempt, result }: { attempt: SimuladoAttempt; result
           Próximo simulado disponível em <strong>{nextWeek}</strong>
         </p>
 
+        <section aria-label="Revisão do simulado" style={{ marginBottom: 24, overflowWrap: 'anywhere' }}>
+          <h2 style={{ fontSize: 20, marginBottom: 12 }}>Revisão das questões</h2>
+          {attempt.questions.map((question, index) => {
+            const answer = attempt.answers[question.id]
+            const correctOption = question.options.find((option) => option.id === question.correctOptionId)
+            const selected = question.options.find((option) => option.id === answer)
+            return (
+              <details key={question.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--k-line)' }}>
+                <summary style={{ cursor: 'pointer', fontSize: 14 }}>
+                  {index + 1}. {question.subjectName} · {!answer ? 'Em branco' : !correctOption ? 'Respondida' : answer === correctOption.id ? 'Correta' : 'Errada'}
+                </summary>
+                <p style={{ marginTop: 12 }}>{question.body}</p>
+                <p>Sua resposta: {selected ? `${selected.id}) ${selected.text}` : 'Em branco'}</p>
+                {correctOption && <p><strong>Resposta correta:</strong> {correctOption.id}) {correctOption.text}</p>}
+                <p>{question.explanation ?? 'Explicação não disponível nesta tentativa antiga.'}</p>
+              </details>
+            )
+          })}
+        </section>
+
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
           <Link to="/indice" style={{ padding: '12px 24px', borderRadius: 12, background: '#531A61', color: '#fff', textDecoration: 'none', fontFamily: "'Unbounded', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.05em' }}>
             Ver Índice Kuaa
@@ -183,6 +200,7 @@ function SimuladoExam({
   onJump,
   onFinish,
   isFinishing,
+  isSaving,
 }: {
   attempt: SimuladoAttempt
   localAnswers: Record<string, string>
@@ -196,6 +214,7 @@ function SimuladoExam({
   onJump: (idx: number) => void
   onFinish: () => void
   isFinishing: boolean
+  isSaving: boolean
 }) {
   const questions = attempt.questions
   const q: SimuladoQuestion = questions[currentIdx]!
@@ -209,7 +228,7 @@ function SimuladoExam({
     <div style={{ minHeight: '100vh', background: 'var(--k-creme)', display: 'flex', flexDirection: 'column', fontFamily: "'Questrial', Arial, sans-serif" }}>
 
       {/* Top bar */}
-      <div style={{ background: 'var(--k-roxo-deep)', padding: '0 32px', height: 62, display: 'flex', alignItems: 'center', gap: 24, flexShrink: 0 }}>
+      <div className="simulado-header" style={{ background: 'var(--k-roxo-deep)', padding: '12px 32px', minHeight: 62, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 24, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <KuaaLogo size={32} dark />
           <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,.15)' }} />
@@ -230,7 +249,7 @@ function SimuladoExam({
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={onFinish}
-            disabled={isFinishing}
+            disabled={isFinishing || isSaving}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: 'rgba(255,220,92,.15)', color: '#FFDC5C', fontFamily: "'Unbounded', sans-serif", fontSize: 11, fontWeight: 700, cursor: isFinishing ? 'not-allowed' : 'pointer', letterSpacing: '.08em' }}
           >
             {isFinishing ? 'finalizando...' : 'finalizar'}
@@ -251,6 +270,7 @@ function SimuladoExam({
           </h2>
           <button
             onClick={onFlag}
+            disabled={isSaving || isFinishing || timeLeft === 0}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--k-line-2)', background: isFlagged ? 'var(--k-amarelo-soft)' : '#fff', color: isFlagged ? 'var(--k-tinta)' : 'var(--k-tinta-3)', fontSize: 11, fontFamily: "'Unbounded', sans-serif", fontWeight: 500, cursor: 'pointer', letterSpacing: '.1em', textTransform: 'uppercase' }}
           >
             <KuaaIcon name="flag" size={13} color={isFlagged ? '#840033' : 'var(--k-tinta-3)'} />
@@ -260,10 +280,10 @@ function SimuladoExam({
       </div>
 
       {/* Body */}
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, padding: '24px 32px', alignItems: 'start' }}>
+      <div className="simulado-body" style={{ flex: 1, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 20, padding: '24px 32px', alignItems: 'start' }}>
 
         {/* Question card */}
-        <div style={{ background: '#fff', borderRadius: 20, padding: '32px 36px', boxShadow: 'var(--k-shadow-sm)' }}>
+        <div className="simulado-question" style={{ minWidth: 0, overflowWrap: 'anywhere', background: '#fff', borderRadius: 20, padding: '32px 36px', boxShadow: 'var(--k-shadow-sm)' }}>
           <p style={{ color: 'var(--k-tinta-2)', fontSize: 15, lineHeight: 1.65, marginBottom: 28 }}>
             {q.body}
           </p>
@@ -275,6 +295,8 @@ function SimuladoExam({
                 <button
                   key={id}
                   onClick={() => onAnswer(id)}
+                  disabled={isSaving || isFinishing || timeLeft === 0}
+                  aria-pressed={isSelected}
                   style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 18px', borderRadius: 12, border: '1.5px solid', borderColor: isSelected ? '#840033' : 'var(--k-line-2)', background: isSelected ? 'rgba(132,0,51,.06)' : '#fff', cursor: 'pointer', textAlign: 'left', transition: 'all .12s' }}
                 >
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: isSelected ? '#840033' : 'var(--k-creme)', color: isSelected ? '#fff' : 'var(--k-tinta-3)', display: 'grid', placeItems: 'center', fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 12, flexShrink: 0 }}>
@@ -289,7 +311,7 @@ function SimuladoExam({
           </div>
 
           {/* Bottom nav */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--k-line)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--k-line)' }}>
             <button
               onClick={onPrev}
               disabled={currentIdx === 0}
@@ -397,6 +419,10 @@ function SimuladoExam({
         @media (max-width: 900px) {
           .simulado-body { grid-template-columns: 1fr !important; }
         }
+        @media (max-width: 600px) {
+          .simulado-body, .simulado-header { padding: 16px !important; }
+          .simulado-question { padding: 20px 16px !important; }
+        }
       `}</style>
     </div>
   )
@@ -407,8 +433,9 @@ function SimuladoExam({
 export default function SimuladoPage() {
   const firstVestibularSlug = useAuthStore((s) => s.firstVestibularSlug)
   const slug = firstVestibularSlug ?? ''
+  const vestibularName = useAuthStore((s) => s.enrollments.find((e) => e.vestibular.slug === slug)?.vestibular.name)
 
-  const { data: attempt, isLoading, refetch } = useCurrentSimulado(slug)
+  const { data: attempt, isLoading, isError, refetch } = useCurrentSimulado(slug)
   const startMutation = useStartSimulado(slug)
   const answerMutation = useSaveAnswer()
   const flagMutation = useToggleFlag()
@@ -419,59 +446,93 @@ export default function SimuladoPage() {
   const [localFlagged, setLocalFlagged] = useState<string[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
   const [result, setResult] = useState<FinishResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const pendingSave = useRef<Promise<unknown> | null>(null)
+  const finishing = useRef(false)
+  const autoFinished = useRef<string | null>(null)
+  const initializedAttempt = useRef<string | null>(null)
+  const { mutateAsync: finishAttempt } = finishMutation
 
   // Sync local state when attempt loads
   useEffect(() => {
-    if (attempt) {
+    if (attempt && initializedAttempt.current !== attempt.id) {
       setLocalAnswers(attempt.answers)
       setLocalFlagged(attempt.flagged)
+      setCurrentIdx(0)
+      setResult(null)
+      initializedAttempt.current = attempt.id
     }
-  }, [attempt?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [attempt])
+
+  const handleFinish = useCallback(async () => {
+    if (!attempt || finishing.current) return
+    finishing.current = true
+    setError(null)
+    try {
+      await pendingSave.current?.catch(() => undefined)
+      setResult(await finishAttempt(attempt.id))
+    } catch {
+      setError('Nao foi possivel finalizar. Suas respostas salvas foram mantidas. Tente novamente.')
+    } finally {
+      finishing.current = false
+    }
+  }, [attempt, finishAttempt])
 
   // Timer
   useEffect(() => {
     if (!attempt || attempt.finishedAt || result) return
-    const elapsed = Math.floor((Date.now() - new Date(attempt.startedAt).getTime()) / 1000)
-    const initial = Math.max(0, attempt.totalSeconds - elapsed)
-    setTimeLeft(initial)
-    if (initial === 0) return
-    const interval = setInterval(() => {
-      setTimeLeft((t) => (t <= 1 ? 0 : t - 1))
-    }, 1000)
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((new Date(attempt.startedAt).getTime()
+        + attempt.totalSeconds * 1000 - Date.now()) / 1000))
+      setTimeLeft(remaining)
+      if (remaining === 0 && autoFinished.current !== attempt.id) {
+        autoFinished.current = attempt.id
+        void handleFinish()
+      }
+    }
+    tick()
+    const interval = setInterval(tick, 1000)
     return () => clearInterval(interval)
-  }, [attempt?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [attempt, result, handleFinish])
 
   async function handleStart() {
+    setError(null)
     try {
       await startMutation.mutateAsync()
     } catch (err: unknown) {
       // 409 = already attempted this week; refetch to show the existing attempt/results
       const status = (err as { response?: { status?: number } })?.response?.status
       if (status === 409) void refetch()
-      else throw err
+      else setError('Nao foi possivel iniciar o simulado. Tente novamente.')
     }
   }
 
-  function handleAnswer(optionId: string) {
-    if (!attempt) return
+  async function handleAnswer(optionId: string) {
+    if (!attempt || pendingSave.current || finishing.current || timeLeft === 0) return
     const qId = attempt.questions[currentIdx]!.id
-    setLocalAnswers((prev) => ({ ...prev, [qId]: optionId }))
-    answerMutation.mutate({ attemptId: attempt.id, questionId: qId, optionId })
+    setError(null)
+    const request = answerMutation.mutateAsync({ attemptId: attempt.id, questionId: qId, optionId })
+    pendingSave.current = request
+    try {
+      await request
+      setLocalAnswers((prev) => ({ ...prev, [qId]: optionId }))
+    } catch {
+      setError('A resposta nao foi salva. Selecione a alternativa novamente para tentar salvar.')
+    } finally {
+      pendingSave.current = null
+    }
   }
 
-  function handleFlag() {
-    if (!attempt) return
+  async function handleFlag() {
+    if (!attempt || flagMutation.isPending || finishing.current || timeLeft === 0) return
     const qId = attempt.questions[currentIdx]!.id
-    setLocalFlagged((prev) =>
-      prev.includes(qId) ? prev.filter((id) => id !== qId) : [...prev, qId]
-    )
-    flagMutation.mutate({ attemptId: attempt.id, questionId: qId })
-  }
-
-  async function handleFinish() {
-    if (!attempt) return
-    const res = await finishMutation.mutateAsync(attempt.id)
-    setResult(res)
+    setError(null)
+    try {
+      await flagMutation.mutateAsync({ attemptId: attempt.id, questionId: qId })
+      setLocalFlagged((prev) => prev.includes(qId) ? prev.filter((id) => id !== qId) : [...prev, qId])
+    } catch {
+      setError('Nao foi possivel salvar a marcacao. Tente novamente.')
+    }
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -492,13 +553,23 @@ export default function SimuladoPage() {
     )
   }
 
+  if (isError) {
+    return <div role="alert" style={{ padding: 24 }}>
+      <p>Nao foi possivel carregar o simulado.</p>
+      <button onClick={() => void refetch()}>Tentar novamente</button>
+      <Link to="/dashboard">Voltar ao dashboard</Link>
+    </div>
+  }
+
+  const errorMessage = error ? <p role="alert" style={{ padding: '12px 24px', margin: 0, background: '#fff', color: '#840033' }}>{error}</p> : null
+
   if (!attempt) {
     return (
-      <SimuladoLanding
-        vestibularName={undefined}
+      <>{errorMessage}<SimuladoLanding
+        vestibularName={vestibularName}
         onStart={handleStart}
         isStarting={startMutation.isPending}
-      />
+      /></>
     )
   }
 
@@ -507,7 +578,7 @@ export default function SimuladoPage() {
   }
 
   return (
-    <SimuladoExam
+    <>{errorMessage}<SimuladoExam
       attempt={attempt}
       localAnswers={localAnswers}
       localFlagged={localFlagged}
@@ -520,6 +591,7 @@ export default function SimuladoPage() {
       onJump={(idx) => setCurrentIdx(idx)}
       onFinish={handleFinish}
       isFinishing={finishMutation.isPending}
-    />
+      isSaving={answerMutation.isPending || flagMutation.isPending}
+    /></>
   )
 }

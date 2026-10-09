@@ -38,7 +38,7 @@ function SparkLine({ values }: { values: number[] }) {
   const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p}`).join(' ')
 
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: 'visible' }}>
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: 'visible', maxWidth: '100%', height: 'auto' }}>
       <defs>
         <linearGradient id="spark-line" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#531A61" />
@@ -79,7 +79,7 @@ function BigGauge({ score }: { score: number }) {
   const tickLabels = ['300', '475', '650', '825', '1000']
 
   return (
-    <svg width={340} height={210} viewBox="0 0 340 210" style={{ display: 'block' }}>
+    <svg width={340} height={210} viewBox="0 0 340 210" style={{ display: 'block', maxWidth: '100%', height: 'auto' }}>
       <defs>
         <linearGradient id="gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#531A61" />
@@ -145,7 +145,8 @@ export default function IndicePage() {
   const user = useAuthStore((s) => s.user)
   // Usa o primeiro vestibular matriculado. Suporte a múltiplas matrículas exigiria um seletor.
   const firstVestibularSlug = useAuthStore((s) => s.firstVestibularSlug)
-  const { data } = useIndex(firstVestibularSlug ?? '')
+  const vestibularName = useAuthStore((s) => s.enrollments.find((e) => e.vestibular.slug === firstVestibularSlug)?.vestibular.name)
+  const { data, isLoading, isError, refetch } = useIndex(firstVestibularSlug ?? '')
 
   const score = data?.score ?? 300
   const delta7d = data?.delta7d ?? 0
@@ -171,13 +172,25 @@ export default function IndicePage() {
     ? `Você está na faixa ${currentFaixa?.name ?? ''}. Mantenha o ritmo e alcance a faixa ${nextFaixa.name} com mais ${ptsToNext} pontos.`
     : `Você está na faixa Elite. Parabéns pelo desempenho máximo!`
 
+  if (isLoading || isError) {
+    return <AppLayout>
+      <div style={{ padding: 28 }} role={isError ? 'alert' : 'status'}>
+        <p>{isError ? 'Nao foi possivel carregar seu indice.' : 'Carregando seu indice...'}</p>
+        {isError && <button onClick={() => void refetch()}>Tentar novamente</button>}
+      </div>
+    </AppLayout>
+  }
+
   return (
     <AppLayout>
-      <div style={{ fontFamily: "'Questrial', Arial, sans-serif", background: 'var(--k-creme)', minHeight: '100%' }}>
+      <div className="indice-page" style={{ fontFamily: "'Questrial', Arial, sans-serif", background: 'var(--k-creme)', minHeight: '100%', minWidth: 0, overflowWrap: 'anywhere' }}>
         {/* Header */}
         <div
+          className="indice-header"
           style={{
             display: 'flex',
+            flexWrap: 'wrap',
+            gap: 16,
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '24px 40px',
@@ -212,21 +225,21 @@ export default function IndicePage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="k-pill ghost">ENEM 2025</span>
-            <span className="k-pill ghost">Fuvest</span>
+            {vestibularName && <span className="k-pill ghost">{vestibularName}</span>}
             <Avatar size={38} name={user?.name ?? 'K'} hue={0} ring />
           </div>
         </div>
 
         {/* Hero amarelo */}
-        <div style={{ padding: '0 40px' }}>
+        <div className="indice-content" style={{ padding: '0 40px' }}>
           <div
+            className="indice-summary"
             style={{
               background: 'var(--k-amarelo)',
               borderRadius: 28,
               padding: '40px 48px',
               display: 'grid',
-              gridTemplateColumns: '1fr auto',
+              gridTemplateColumns: 'minmax(0, 1fr) auto',
               gap: 32,
               alignItems: 'center',
               marginBottom: 24,
@@ -239,10 +252,11 @@ export default function IndicePage() {
               </span>
 
               <div
+                className="indice-score"
                 style={{
                   fontFamily: "'Unbounded', sans-serif",
                   fontWeight: 700,
-                  fontSize: 148,
+                  fontSize: 96,
                   color: 'var(--k-roxo-deep)',
                   letterSpacing: '-0.045em',
                   lineHeight: 0.88,
@@ -311,13 +325,14 @@ export default function IndicePage() {
             </div>
 
             {/* Right: BigGauge */}
-            <div style={{ flexShrink: 0 }}>
+            <div style={{ minWidth: 0, maxWidth: 372 }}>
               <div
                 style={{
                   background: 'rgba(26,10,31,.08)',
                   borderRadius: 20,
                   padding: '16px',
                   display: 'inline-block',
+                  maxWidth: '100%',
                 }}
               >
                 <BigGauge score={score} />
@@ -327,12 +342,13 @@ export default function IndicePage() {
 
           {/* Bottom dark breakdown */}
           <div
+            className="indice-breakdown"
             style={{
               background: 'var(--k-roxo-deep)',
               borderRadius: 24,
               padding: '32px 36px',
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr 1fr',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
               gap: 24,
               marginBottom: 40,
             }}
@@ -354,7 +370,7 @@ export default function IndicePage() {
               </div>
               {historyValues.length >= 2
                 ? <SparkLine values={historyValues} />
-                : <p style={{ fontSize: 12, color: 'rgba(255,255,255,.35)', lineHeight: 1.5 }}>Finalize pelo menos 2 sessões para ver o histórico.</p>
+                : <p style={{ fontSize: 12, color: 'rgba(255,255,255,.35)', lineHeight: 1.5 }}>O histórico mensal aparecerá conforme novos meses de estudo forem registrados.</p>
               }
               {historyMonths.length > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
@@ -429,7 +445,7 @@ export default function IndicePage() {
                   </div>
                 ))
               : (
-                <div style={{ gridColumn: 'span 3', display: 'flex', alignItems: 'center' }}>
+                <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center' }}>
                   <p style={{ fontSize: 13, color: 'rgba(255,255,255,.35)', lineHeight: 1.5 }}>
                     Responda questões para ver o breakdown por matéria.
                   </p>
@@ -438,6 +454,17 @@ export default function IndicePage() {
             }
           </div>
         </div>
+        <style>{`
+          @media (max-width: 1200px) {
+            .indice-summary { grid-template-columns: minmax(0, 1fr) !important; }
+          }
+          @media (max-width: 600px) {
+            .indice-header { padding: 24px 16px !important; }
+            .indice-content { padding: 0 16px !important; }
+            .indice-summary, .indice-breakdown { padding: 24px 20px !important; }
+            .indice-score { font-size: 64px !important; letter-spacing: 0 !important; }
+          }
+        `}</style>
       </div>
     </AppLayout>
   )

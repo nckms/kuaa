@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import AppLayout from '../../components/layout/AppLayout'
 import { useAuthStore } from '../../stores/auth.store'
 import { useRanking } from '../../hooks/useRanking'
@@ -14,7 +13,6 @@ function PositionBadge({ label, size, bg }: { label: string; size: number; bg: s
 }
 
 export default function RankingPage() {
-  const [tab, setTab] = useState<'semanal' | 'geral'>('geral')
   // Usa o primeiro vestibular matriculado (mesma limitação do IndicePage — sem seletor multi-vestibular)
   const firstVestibularSlug = useAuthStore((s) => s.firstVestibularSlug)
   const { data, isLoading, isError } = useRanking(firstVestibularSlug ?? '')
@@ -32,14 +30,6 @@ export default function RankingPage() {
       <div className="ranking-page" style={{ padding: '32px 24px 80px', fontFamily: 'Inter, Arial, sans-serif', maxWidth: 680, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
           <h1 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 28, color: '#531A61' }}>Comparativo anonimo</h1>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {(['semanal', 'geral'] as const).map((t) => (
-              <button key={t} onClick={() => setTab(t)}
-                style={{ padding: '7px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif', backgroundColor: tab === t ? '#531A61' : 'transparent', color: tab === t ? '#fff' : '#9ca3af' }}>
-                {t === 'semanal' ? 'Semanal' : 'Geral'}
-              </button>
-            ))}
-          </div>
         </div>
 
         {isLoading && (

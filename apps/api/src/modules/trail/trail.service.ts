@@ -1,6 +1,8 @@
 import { prisma } from '../../lib/prisma'
 import { redis } from '../../lib/redis'
 import { makeError } from '../../utils/errors'
+import { getCompletedSimuladoActivity } from '../simulado/simulado.results'
+import { recommendTopic, summarizeActivity, type AdaptiveActivity, type LearningAnswer, type Recommendation } from '../../services/adaptive/RecommendationEngine'
 
 interface TopicProgressShape {
   masteryLevel: number
@@ -15,6 +17,7 @@ interface TopicProgressShape {
 }
 
 interface TrailTopicShape {
+  activity: AdaptiveActivity
   id: string
   name: string
   description: string
@@ -42,7 +45,8 @@ interface KnowledgeGapShape {
   lastAnsweredAt: string | null
 }
 
-interface TrailShape {
+export interface TrailShape {
+  recommendation: Recommendation | null
   vestibular: { id: string; slug: string; name: string; institution: string }
   subjects: TrailSubjectShape[]
   summary: {
@@ -65,6 +69,7 @@ interface TrailShape {
 }
 
 interface TopicActivity {
+  answers: LearningAnswer[]
   answeredQuestionsCount: number
   correctAnswersCount: number
   wrongAnswersCount: number
@@ -90,7 +95,8 @@ async function getCachedTrail(key: string): Promise<TrailShape | null> {
   try {
     const raw = await redis.get(key)
     if (!raw) return null
-    return JSON.parse(raw) as TrailShape
+    const trail = JSON.parse(raw) as TrailShape
+    return 'recommendation' in trail ? trail : null
   } catch {
     return null
   }
@@ -136,7 +142,7 @@ class TrailService {
     })
     const progressMap = new Map(records.map((p) => [p.topicId, p]))
 
-    let chainOpen = true
+    let chainOpen: boolean = true
     for (const topicId of topicIds) {
       const progress = progressMap.get(topicId)
       const completed = progress?.completed ?? false
@@ -144,7 +150,7 @@ class TrailService {
         completed
         || (progress?.sessionsCount ?? 0) > 0
         || (activityMap.get(topicId)?.sessionsCount ?? 0) > 0
-      const shouldBeUnlocked = chainOpen || hasActivity
+      const shouldBeUnlocked: boolean = chainOpen || hasActivity || (progress?.unlocked ?? false)
 
       if (progress?.unlocked !== shouldBeUnlocked) {
         await prisma.userTopicProgress.update({
@@ -153,7 +159,10 @@ class TrailService {
         })
       }
 
-      chainOpen = chainOpen && completed
+      const practiced: boolean = (progress?.sessionsCount ?? 0) > 0
+        || ((activityMap.get(topicId)?.finishedSessionsCount ?? 0) > 0
+          && (activityMap.get(topicId)?.answeredQuestionsCount ?? 0) > 0)
+      chainOpen = shouldBeUnlocked && (completed || practiced)
     }
   }
 
@@ -168,28 +177,46 @@ class TrailService {
   private async getTrailActivity(
     userId: string,
     topicIds: string[],
+    vestibularId: string,
   ): Promise<TrailActivity> {
-    const sessions = await prisma.quizSession.findMany({
+    const [sessions, simulados] = await Promise.all([prisma.quizSession.findMany({
       where: { userId, topicId: { in: topicIds } },
       select: {
         topicId: true,
         finishedAt: true,
-        answers: { select: { id: true, answeredAt: true, timeSpentMs: true, isCorrect: true } },
+        answers: { select: { answeredAt: true, timeSpentMs: true, isCorrect: true, question: { select: { difficulty: true } } } },
       },
-    })
+    }), getCompletedSimuladoActivity(userId, vestibularId)])
+
+    const learningSessions = [
+      ...sessions.map((session) => ({
+        ...session,
+        answers: session.answers.map((answer) => ({ ...answer, difficulty: answer.question.difficulty })),
+      })),
+      ...simulados.flatMap((attempt) => {
+        const topicIds = [...new Set(attempt.answers.map((answer) => answer.topicId))]
+        return topicIds.map((topicId) => ({
+          topicId,
+          finishedAt: attempt.finishedAt,
+          answers: attempt.answers.filter((answer) => answer.topicId === topicId)
+            .map((answer) => ({ ...answer, timeSpentMs: null })),
+        }))
+      }),
+    ]
 
     const activityMap = new Map<string, TopicActivity>()
     const weekStart = this.getWeekStart()
     const weeklyAnsweredQuestions = [0, 0, 0, 0, 0, 0, 0]
 
-    let finishedSessions = 0
+    const finishedSessions = sessions.filter((session) => session.finishedAt).length + simulados.length
     let answeredQuestions = 0
     let correctAnswers = 0
     let wrongAnswers = 0
-    let studyTimeMs = 0
+    let studyTimeMs = simulados.reduce((total, attempt) => total + attempt.studyTimeMs, 0)
 
-    for (const session of sessions) {
-      const current = activityMap.get(session.topicId) ?? {
+    for (const session of learningSessions) {
+      const current = (session.topicId ? activityMap.get(session.topicId) : null) ?? {
+        answers: [],
         answeredQuestionsCount: 0,
         correctAnswersCount: 0,
         wrongAnswersCount: 0,
@@ -204,11 +231,11 @@ class TrailService {
 
       if (session.finishedAt) {
         current.finishedSessionsCount += 1
-        finishedSessions += 1
+        current.answers.push(...session.answers)
       }
 
       for (const answer of session.answers) {
-        studyTimeMs += answer.timeSpentMs
+        studyTimeMs += answer.timeSpentMs ?? 0
         if (answer.isCorrect) {
           current.correctAnswersCount += 1
           correctAnswers += 1
@@ -226,12 +253,12 @@ class TrailService {
         }
       }
 
-      activityMap.set(session.topicId, current)
+      if (session.topicId) activityMap.set(session.topicId, current)
     }
 
     return {
       activityMap,
-      totalSessions: sessions.length,
+      totalSessions: sessions.length + simulados.length,
       finishedSessions,
       answeredQuestions,
       correctAnswers,
@@ -263,9 +290,11 @@ class TrailService {
     if (!vestibular) throw makeError('Vestibular não encontrado', 404, 'NOT_FOUND')
 
     const topicIds = this.getOrderedTopicIds(vestibular)
-    const activity = await this.getTrailActivity(userId, topicIds)
+    const activity = await this.getTrailActivity(userId, topicIds, vestibular.id)
     const { activityMap } = activity
-    await this.normalizeLinearProgress(userId, topicIds, activityMap)
+    for (const subject of vestibular.subjects) {
+      await this.normalizeLinearProgress(userId, subject.topics.map((topic) => topic.id), activityMap)
+    }
 
     const progressRecords = await prisma.userTopicProgress.findMany({
       where: { userId, topicId: { in: topicIds } },
@@ -287,6 +316,7 @@ class TrailService {
           description: topic.description,
           order: topic.order,
           xpReward: topic.xpReward,
+          activity: summarizeActivity(activity?.answers ?? []),
           progress: {
             masteryLevel: prog?.masteryLevel ?? 0,
             unlocked: prog?.unlocked ?? false,
@@ -298,13 +328,22 @@ class TrailService {
             accuracy: activity?.answeredQuestionsCount
               ? Math.round(((activity.correctAnswersCount / activity.answeredQuestionsCount) * 100))
               : null,
-            lastSeenAt: prog?.lastSeenAt?.toISOString() ?? null,
+            lastSeenAt: activity?.lastAnsweredAt?.toISOString() ?? prog?.lastSeenAt?.toISOString() ?? null,
           },
         }
       }),
     }))
 
     const allTopics = subjects.flatMap((s) => s.topics)
+    const recommendation = recommendTopic(allTopics)
+    const recommended = allTopics.find((topic) => topic.id === recommendation?.topicId)
+    if (recommended && !recommended.progress.unlocked) {
+      await prisma.userTopicProgress.update({
+        where: { userId_topicId: { userId, topicId: recommended.id } },
+        data: { unlocked: true },
+      })
+      recommended.progress.unlocked = true
+    }
     const totalTopics = allTopics.length
     const unlockedTopics = allTopics.filter((t) => t.progress.unlocked).length
     const answeredTopics = allTopics.filter((t) => (
@@ -348,6 +387,7 @@ class TrailService {
     const totalXpEarned = xpAgg._sum.xpEarned ?? 0
 
     const result: TrailShape = {
+      recommendation,
       vestibular: {
         id: vestibular.id,
         slug: vestibular.slug,
@@ -384,14 +424,19 @@ class TrailService {
     const trail = await this.getTrail(userId, vestibularSlug)
 
     for (const subject of trail.subjects) {
+      const topic = subject.topics.find((item) => item.id === trail.recommendation?.topicId)
+      if (topic) return { topic, subject, message: trail.recommendation!.reason, recommendation: trail.recommendation }
+    }
+
+    for (const subject of trail.subjects) {
       for (const topic of subject.topics) {
         if (topic.progress.unlocked && !topic.progress.completed) {
-          return { topic, subject, message: null }
+          return { topic, subject, message: null, recommendation: null }
         }
       }
     }
 
-    return { topic: null, subject: null, message: 'Trilha concluída!' }
+    return { topic: null, subject: null, message: 'Trilha concluída!', recommendation: null }
   }
 }
 

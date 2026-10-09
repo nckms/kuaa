@@ -10,7 +10,7 @@ import { truncateUserData, testPrisma } from './helpers/truncate'
  * - 3 questões fallback; correct options: B(idx=1), C(idx=2), D(idx=3)
  * - Responder B, C, D → 3 acertos, accuracy = 1.0
  * - XP: Q1=4, Q2=4, Q3=6 (streak perfeito) = 14 + 10 bônus sessão perfeita = 24
- * - newMasteryLevel: computeNewLevel(0, 1.0, _) → 3
+ * - Three answers are insufficient evidence to advance mastery.
  */
 
 let token: string
@@ -18,12 +18,14 @@ let firstTopicId: string
 let sessionId: string
 let questionIds: string[]
 let correctOptions: string[]
+let userId: string
 
 beforeAll(async () => {
   await truncateUserData()
 
   const auth = await registerAndLogin('quiz_flow')
   token = auth.token
+  userId = auth.userId
 
   // Pegar ENEM id
   const vestRes = await api.get('/api/v1/vestibulares').set('Authorization', `Bearer ${token}`)
@@ -137,7 +139,7 @@ describe('POST /api/v1/quiz/:sessionId/answer', () => {
 })
 
 describe('POST /api/v1/quiz/:sessionId/finish', () => {
-  it('finaliza com XP=24, 3/0/0, isPerfect, mastery=3', async () => {
+  it('finaliza com XP=24 sem declarar dominio com apenas tres respostas', async () => {
     const res = await api
       .post(`/api/v1/quiz/${sessionId}/finish`)
       .set('Authorization', `Bearer ${token}`)
@@ -150,9 +152,56 @@ describe('POST /api/v1/quiz/:sessionId/finish', () => {
     expect(body.skipped).toBe(0)
     expect(body.isPerfect).toBe(true)
     expect(body.xpEarned).toBe(24)  // 4+4+6=14 respostas + 10 bônus perfeito
-    expect(body.newMasteryLevel).toBe(3) // computeNewLevel(0, 1.0, _) = 3
+    expect(body.newMasteryLevel).toBe(0)
+    const trail = await api.get('/api/v1/trail/enem').set('Authorization', `Bearer ${token}`)
+    expect(trail.body.subjects[0].topics[1].progress.unlocked).toBe(true)
+    expect(trail.body.subjects[0].topics[0].progress.completed).toBe(false)
     const slugs = (body.newAchievements as Array<{ slug: string }>).map((a) => a.slug)
     expect(slugs).toContain('first_flight')
     expect(slugs).toContain('perfect_wing')
+    const user = await testPrisma.user.findUniqueOrThrow({ where: { id: userId } })
+    const achievementXp = body.newAchievements.reduce((sum: number, item: { xpBonus: number }) => sum + item.xpBonus, 0)
+    expect(user.xp).toBe(body.xpEarned + achievementXp)
   })
+  it('finalizar novamente nao duplica XP ou sessoes', async () => {
+    const before = await testPrisma.user.findUniqueOrThrow({ where: { id: userId } })
+    const again = await api.post(`/api/v1/quiz/${sessionId}/finish`).set('Authorization', `Bearer ${token}`)
+    expect(again.status).toBe(200)
+    expect((await testPrisma.user.findUniqueOrThrow({ where: { id: userId } })).xp).toBe(before.xp)
+    expect((await testPrisma.userTopicProgress.findUniqueOrThrow({ where: { userId_topicId: { userId, topicId: firstTopicId } } })).sessionsCount).toBe(1)
+  })
+})
+
+it('nao grava saldo negativo ao errar sem coracoes', async () => {
+  await testPrisma.user.update({ where: { id: userId }, data: { hearts: 0 } })
+  const generated = await api.post('/api/v1/quiz/generate').set('Authorization', `Bearer ${token}`)
+    .send({ topicId: firstTopicId, count: 3 })
+  expect(generated.status).toBe(201)
+  const question = await testPrisma.question.findFirstOrThrow({
+    where: { generatedForSessionId: generated.body.sessionId },
+  })
+  const wrong = (question.options as Array<{ id: string; isCorrect: boolean }>).find((option) => !option.isCorrect)!
+  const answer = await api.post(`/api/v1/quiz/${generated.body.sessionId}/answer`)
+    .set('Authorization', `Bearer ${token}`)
+    .send({ questionId: question.id, optionId: wrong.id, timeSpentMs: 1000 })
+  expect(answer.status).toBe(200)
+  expect(answer.body.heartsRemaining).toBe(0)
+  expect((await testPrisma.user.findUniqueOrThrow({ where: { id: userId } })).hearts).toBe(0)
+})
+
+it('serializa respostas concorrentes e finalizacao sem duplicar dados', async () => {
+  const generated = await api.post('/api/v1/quiz/generate').set('Authorization', `Bearer ${token}`)
+    .send({ topicId: firstTopicId, count: 3 })
+  expect(generated.status).toBe(201)
+  const id = generated.body.sessionId as string
+  const question = await testPrisma.question.findFirstOrThrow({ where: { generatedForSessionId: id } })
+  const correct = (question.options as Array<{ id: string; isCorrect: boolean }>).find((o) => o.isCorrect)!
+  const input = { questionId: question.id, optionId: correct.id, timeSpentMs: 3000 }
+  const responses = await Promise.all([0, 1].map(() => api.post(`/api/v1/quiz/${id}/answer`).set('Authorization', `Bearer ${token}`).send(input)))
+  expect(responses.map((res) => res.status).sort()).toEqual([200, 400])
+  expect(await testPrisma.userAnswer.count({ where: { sessionId: id } })).toBe(1)
+  const before = await testPrisma.user.findUniqueOrThrow({ where: { id: userId } })
+  const finishes = await Promise.all([0, 1].map(() => api.post(`/api/v1/quiz/${id}/finish`).set('Authorization', `Bearer ${token}`)))
+  expect(finishes.map((res) => res.status)).toEqual([200, 200])
+  expect((await testPrisma.user.findUniqueOrThrow({ where: { id: userId } })).xp).toBe(before.xp)
 })

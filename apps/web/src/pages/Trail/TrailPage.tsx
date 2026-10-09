@@ -89,8 +89,8 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
             </div>
             <div className="col-6">
               <div className="border rounded-3 p-2 text-center">
-                <p className="mb-0 fw-bold" style={{ color: '#840033' }}><i className="bi bi-heart-fill me-1" />{user.hearts}</p>
-                <p className="mb-0 text-muted" style={{ fontSize: 11 }}>vidas</p>
+                <p className="mb-0 fw-bold" style={{ color: '#531A61' }}><i className="bi bi-clock me-1" />{user.preferences?.dailyStudyMinutes ?? 30} min</p>
+                <p className="mb-0 text-muted" style={{ fontSize: 11 }}>meta diária</p>
               </div>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function TrailPage() {
   const [modalSubject, setModalSubject] = useState<TrailSubject | null>(null)
 
   const recommendedSubjectId =
-    trail?.subjects.find((subject) => subject.topics.some((topic) => topic.progress.unlocked && !topic.progress.completed))?.id
+    trail?.subjects.find((subject) => subject.topics.some((topic) => topic.id === trail.recommendation?.topicId))?.id
     ?? trail?.subjects.find((subject) => subject.topics.some((topic) => topic.progress.unlocked))?.id
     ?? trail?.subjects[0]?.id
     ?? null
@@ -250,7 +250,20 @@ export default function TrailPage() {
         )}
       </div>
 
-      <div className="trail-content" style={{ padding: '36px 0 120px', minHeight: '100%' }}>
+      <div className="trail-content" style={{ padding: '24px 0 40px' }}>
+        {trail?.recommendation && (() => {
+          const subject = trail.subjects.find((item) => item.topics.some((topic) => topic.id === trail.recommendation!.topicId))
+          const topic = subject?.topics.find((item) => item.id === trail.recommendation!.topicId)
+          return topic && subject ? (
+            <section className="trail-recommendation">
+              <div><p className="trail-recommendation-label">Seu próximo estudo</p><h2>{topic.name}</h2></div>
+              <button aria-label={`Estudar ${topic.name}`} title="Estudar agora" onClick={() => {
+                setActiveSubjectId(subject.id)
+                handleTopicClick(topic, subject)
+              }}><i className="bi bi-arrow-right" aria-hidden="true" /></button>
+            </section>
+          ) : null
+        })()}
         {isLoading && <TrailSkeleton />}
 
         {isError && (
@@ -267,7 +280,7 @@ export default function TrailPage() {
           return activeSubject ? (
             <SubjectSection
               subject={activeSubject}
-              activeTopicId={activeTopicId}
+              activeTopicId={activeTopicId ?? trail.recommendation?.topicId ?? null}
               onTopicClick={handleTopicClick}
             />
           ) : null
@@ -277,6 +290,11 @@ export default function TrailPage() {
       <TopicModal topic={modalTopic} subject={modalSubject} onClose={handleCloseModal} />
 
       <style>{`
+        .trail-recommendation { max-width: 560px; margin: 0 auto 24px; padding: 0 20px 20px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--line-soft); }
+        .trail-recommendation > div { min-width: 0; flex: 1; }
+        .trail-recommendation-label { font-size: 11px; color: #840033; margin: 0 0 4px; font-weight: 600; }
+        .trail-recommendation h2 { font-size: 16px; line-height: 1.4; margin: 0; color: var(--text); }
+        .trail-recommendation button { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid #d9cddd; background: white; border-radius: 50%; color: #531a61; }
         .trail-subject-tabs {
           scrollbar-width: none;
           -webkit-overflow-scrolling: touch;
@@ -319,8 +337,8 @@ export default function TrailPage() {
           }
 
           .trail-content {
-            padding-top: 28px !important;
-            padding-bottom: 160px !important;
+            padding-top: 20px !important;
+            padding-bottom: 32px !important;
           }
         }
       `}</style>

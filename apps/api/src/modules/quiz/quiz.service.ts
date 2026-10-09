@@ -1,5 +1,4 @@
 import type { Prisma } from '@prisma/client'
-import { z } from 'zod'
 import { prisma } from '../../lib/prisma'
 import { redis } from '../../lib/redis'
 import { ai } from '../../lib/gemini'
@@ -8,9 +7,10 @@ import { makeError } from '../../utils/errors'
 import { computeNewLevel } from '../../services/adaptive/DifficultyEngine'
 import type { GenerateInput, AnswerInput } from './quiz.schemas'
 import type { AnswerResult, SessionSummary, AchievementData, QuestionOption, ReviewQuestion, GenerationJobData } from './quiz.types'
-import { generateFallbackQuestions } from './fallbackQuestions'
-import { invalidateTrailCache } from '../trail/trail.service'
+import { generateCuratedQuestions as generateFallbackQuestions } from './curatedQuestions'
+import { invalidateTrailCache, trailService } from '../trail/trail.service'
 import { captureSnapshot } from '../index/index.service'
+import { buildFewShotContext, selectReferences, validateGeneratedQuestions, PROMPT_VERSION } from './fewShot'
 
 /** Fisher-Yates shuffle das opções de uma questão.
  *  Re-atribui os IDs A-E em ordem para que letra e posição sempre coincidam.
@@ -25,22 +25,11 @@ export function shuffleOptions<T extends { id: string; isCorrect: boolean }>(opt
   return arr.map((opt, i) => ({ ...opt, id: letters[i] ?? opt.id }))
 }
 
-const OptionSchema = z.object({
-  id: z.enum(['A', 'B', 'C', 'D', 'E']),
-  text: z.string().min(1),
-  isCorrect: z.boolean(),
-})
-
-const QuestionSchema = z.object({
-  body: z.string().min(10),
-  options: z.array(OptionSchema).length(5),
-  explanation: z.string().min(20),
-  difficulty: z.number().int().min(1).max(5),
-})
-
-const ResponseSchema = z.object({
-  questions: z.array(QuestionSchema).min(1),
-})
+interface GenerationResult {
+  questions: ReturnType<typeof generateFallbackQuestions>
+  source: 'AI_GENERATED' | 'CURATED'
+  metadata: Prisma.InputJsonObject
+}
 
 function isGemini503(err: unknown): boolean {
   if (!(err instanceof Error)) return false
@@ -57,10 +46,22 @@ function describeGeminiError(err: unknown): string {
   return err.message.slice(0, 100)
 }
 
-async function generateQuestions(data: GenerationJobData): Promise<ReturnType<typeof generateFallbackQuestions>> {
+async function generateQuestions(data: GenerationJobData): Promise<GenerationResult> {
   const hasApiKey = !!env.GEMINI_API_KEY?.trim()
+  const references = selectReferences(data)
+  const optionCount = data.vestibularSlug === 'unicamp' ? 4 : 5
+  const metadata = { promptVersion: PROMPT_VERSION, referenceIds: references.map((ref) => ref.id), model: env.GEMINI_MODEL, targetDifficulty: data.targetDifficulty ?? 1 }
+  const fallback = (reason: string): GenerationResult => ({
+    questions: generateFallbackQuestions(data).map((question) => ({
+      ...question,
+      options: optionCount === 4
+        ? question.options.filter((option, index) => option.isCorrect || index !== question.options.findIndex((item) => !item.isCorrect))
+        : question.options,
+    })),
+    source: 'CURATED', metadata: { ...metadata, source: 'CURATED', fallbackReason: reason },
+  })
 
-  if (!hasApiKey) return generateFallbackQuestions(data)
+  if (!hasApiKey) return fallback('AI_NOT_CONFIGURED')
 
   const systemPrompt = `Voce e um professor especialista em vestibulares brasileiros.
 Gere questoes de multipla escolha no padrao do vestibular solicitado.
@@ -68,7 +69,7 @@ Gere questoes de multipla escolha no padrao do vestibular solicitado.
 REGRAS OBRIGATORIAS:
 1. Linguagem acessivel para estudantes de escolas publicas
 2. Contextos da realidade brasileira contemporanea
-3. Exatamente 5 alternativas (A-E), apenas 1 correta
+3. Exatamente ${optionCount} alternativas (${optionCount === 4 ? 'A-D' : 'A-E'}), apenas 1 correta
 4. difficulty de 1 a 5, proporcional ao masteryLevel informado
 5. explanation deve ensinar o conceito, minimo 2 linhas
 6. A posicao da alternativa correta DEVE variar aleatoriamente entre A, B, C, D e E ao longo das questoes geradas — nunca use um padrao fixo ou previsivel (ex: sempre B, ou A B C D E em ciclo)
@@ -95,23 +96,25 @@ Retorne APENAS JSON valido sem markdown, exatamente neste formato:
 Materia: ${data.subjectName}
 Topico: ${data.topicName}
 Nivel de dominio do aluno: ${data.userMasteryLevel}/5
+Dificuldade alvo: ${data.targetDifficulty ?? Math.max(1, data.userMasteryLevel)}/5
 Questoes a gerar: ${data.questionCount}
 ${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.recentErrorTopics.join(', ')}` : ''}`
 
-  // Timeout absoluto cobre todas as tentativas + backoffs (máx ~15s no total).
+  let timer: ReturnType<typeof setTimeout> | undefined
   const absoluteDeadline = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error('Gemini timeout absoluto (24s)')), 24_000),
+    { timer = setTimeout(() => reject(new Error('Gemini timeout absoluto (24s)')), 24_000) },
   )
 
   const RETRY_BACKOFF_MS = [500, 1000]
   const MAX_ATTEMPTS = 3
 
+  try {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       const response = await Promise.race([
         ai.models.generateContent({
-          model: 'gemini-flash-latest',
-          contents: `${systemPrompt}\n\n${userPrompt}`,
+          model: env.GEMINI_MODEL,
+          contents: `${systemPrompt}\n\n${buildFewShotContext(data, references)}\n\n${userPrompt}`,
           config: { responseMimeType: 'application/json' },
         }),
         absoluteDeadline,
@@ -121,8 +124,8 @@ ${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.r
       if (!content) throw new Error('Gemini retornou resposta vazia')
 
       const parsed = JSON.parse(content) as unknown
-      const validated = ResponseSchema.parse(parsed)
-      return validated.questions
+      const questions = validateGeneratedQuestions(parsed, data.questionCount, references, optionCount)
+      return { questions, source: 'AI_GENERATED', metadata: { ...metadata, source: 'AI_GENERATED' } }
     } catch (err) {
       const isAbsoluteTimeout = err instanceof Error && err.message.startsWith('Gemini timeout absoluto')
       const is503 = isGemini503(err)
@@ -146,16 +149,20 @@ ${data.recentErrorTopics.length > 0 ? `Topicos com dificuldade recente: ${data.r
       break
     }
   }
-
-  return generateFallbackQuestions(data)
+  return fallback('AI_UNAVAILABLE_OR_INVALID')
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
 }
 
 async function persistGeneratedQuestions(
   sessionId: string,
   topicId: string,
   questions: ReturnType<typeof generateFallbackQuestions>,
+  source: GenerationResult['source'],
+  metadata: Prisma.InputJsonObject,
 ): Promise<void> {
-  await prisma.question.createMany({
+  await prisma.$transaction([prisma.question.createMany({
     data: questions.map((q) => ({
       topicId,
       generatedForSessionId: sessionId,
@@ -163,9 +170,9 @@ async function persistGeneratedQuestions(
       options: q.options as unknown as Prisma.InputJsonValue,
       explanation: q.explanation,
       difficulty: q.difficulty,
-      source: 'AI_GENERATED',
+      source,
     })),
-  })
+  }), prisma.quizSession.update({ where: { id: sessionId }, data: { generationMetadata: metadata } })])
 }
 
 async function markSessionReady(sessionId: string): Promise<void> {
@@ -187,13 +194,22 @@ async function getRedisValue(key: string): Promise<string | null> {
 async function enqueueQuizGeneration(data: GenerationJobData): Promise<{ id: string }> {
   const raw = await generateQuestions(data)
   // Embaralha opções de cada questão — garante distribuição aleatória independente da IA
-  const questions = raw.map((q) => ({ ...q, options: shuffleOptions(q.options) }))
-  await persistGeneratedQuestions(data.sessionId, data.topicId, questions)
+  const questions = raw.questions.map((q) => ({ ...q, options: shuffleOptions(q.options) }))
+  if (!questions.length) throw makeError('Nao ha questoes de reserva para este topico e a IA esta indisponivel. Tente outro topico.', 503, 'NO_QUESTIONS')
+  await persistGeneratedQuestions(data.sessionId, data.topicId, questions, raw.source, raw.metadata)
   await markSessionReady(data.sessionId)
   return { id: `sync-${data.sessionId}` }
 }
 
 class QuizService {
+  async resume(userId: string, topicId: string) {
+    const session = await prisma.quizSession.findFirst({
+      where: { userId, topicId, finishedAt: null, generatedQuestions: { some: { active: true } } },
+      orderBy: { startedAt: 'desc' }, select: { id: true },
+    })
+    return session ? { sessionId: session.id, jobId: `sync-${session.id}` } : null
+  }
+
   async generate(userId: string, input: GenerateInput): Promise<{ jobId: string; sessionId: string }> {
     const { topicId, count } = input
 
@@ -209,6 +225,7 @@ class QuizService {
       where: { userId_vestibularId: { userId, vestibularId: topic.subject.vestibularId } },
     })
     if (!enrollment) throw makeError('Você não está matriculado neste vestibular', 403, 'NOT_ENROLLED')
+    const trail = await trailService.getTrail(userId, topic.subject.vestibular.slug)
 
     // Verificar progresso desbloqueado
     const progress = await prisma.userTopicProgress.findUnique({
@@ -218,12 +235,15 @@ class QuizService {
 
     // Buscar erros recentes para contexto da IA
     const recentErrors = await prisma.userAnswer.findMany({
-      where: { userId, isCorrect: false },
+      where: { userId, isCorrect: false, question: { topic: { subject: { vestibularId: topic.subject.vestibularId } } } },
       orderBy: { answeredAt: 'desc' },
       take: 10,
       include: { question: { include: { topic: true } } },
     })
-    const recentErrorTopics = [...new Set(recentErrors.map((a) => a.question.topic.name))].slice(0, 3)
+    const recentErrorTopics = [...new Set([
+      ...trail.summary.knowledgeGaps.map((gap) => gap.topicName),
+      ...recentErrors.map((a) => a.question.topic.name),
+    ])].slice(0, 3)
 
     // Criar sessão
     const session = await prisma.quizSession.create({
@@ -237,23 +257,38 @@ class QuizService {
       topicName: topic.name,
       subjectName: topic.subject.name,
       vestibularName: topic.subject.vestibular.name,
+      vestibularSlug: topic.subject.vestibular.slug,
       userMasteryLevel: progress.masteryLevel,
+      targetDifficulty: trail.recommendation?.topicId === topicId
+        ? trail.recommendation.targetDifficulty : Math.max(1, Math.min(5, progress.masteryLevel)),
       recentErrorTopics,
       questionCount: count,
     }
 
-    const job = await enqueueQuizGeneration(jobData)
+    let job: { id: string }
+    try {
+      job = await enqueueQuizGeneration(jobData)
+    } catch (error) {
+      await prisma.quizSession.update({ where: { id: session.id }, data: { generationMetadata: { status: 'failed' } } })
+      throw error
+    }
 
     if (!job.id) throw makeError('Erro ao enfileirar geração', 500, 'QUEUE_ERROR')
 
     return { jobId: job.id, sessionId: session.id }
   }
 
-  async getJobStatus(_jobId: string, sessionId: string): Promise<{ status: string; sessionId?: string; message?: string }> {
+  async getJobStatus(userId: string, _jobId: string, sessionId: string): Promise<{ status: string; sessionId?: string; message?: string }> {
+    const session = await prisma.quizSession.findFirst({ where: { id: sessionId, userId } })
+    if (!session) throw makeError('Sessao nao encontrada', 404, 'NOT_FOUND')
     const generatedCount = await prisma.question.count({
       where: { generatedForSessionId: sessionId, active: true },
     })
     if (generatedCount > 0) return { status: 'ready', sessionId }
+    if ((session.generationMetadata as { status?: string } | null)?.status === 'failed'
+      || Date.now() - session.startedAt.getTime() > 120000) {
+      return { status: 'error', message: 'Nao foi possivel gerar as questoes. Inicie uma nova sessao.' }
+    }
 
     const ready = await getRedisValue(`session:ready:${sessionId}`)
     if (ready) return { status: 'ready', sessionId }
@@ -273,7 +308,7 @@ class QuizService {
             subject: { include: { vestibular: true } },
           },
         },
-        generatedQuestions: { where: { active: true }, orderBy: { createdAt: 'asc' } },
+        generatedQuestions: { where: { active: true }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
         answers: { include: { question: true }, orderBy: { answeredAt: 'asc' } },
       },
     })
@@ -305,6 +340,7 @@ class QuizService {
       subjectName: session.topic.subject.name,
       vestibularName: session.topic.subject.vestibular.name,
       vestibularSlug: session.topic.subject.vestibular.slug,
+      generation: session.generationMetadata,
       questions,
       answeredIds: session.answers.map((a) => a.questionId),
       answeredResults: session.answers.map((answer) => {
@@ -360,16 +396,25 @@ class QuizService {
     const correctOption = options.find((o) => o.isCorrect)!
 
     // Calcular XP (verificar streak de 3 corretas)
-    const recentAnswers = await prisma.userAnswer.findMany({
+    let xpDelta = 0
+
+    // Lock the user before the session, consistently with finish, across concurrent requests.
+    const user = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`
+      await tx.$queryRaw`SELECT id FROM "QuizSession" WHERE id = ${sessionId} FOR UPDATE`
+      const locked = await tx.quizSession.findUniqueOrThrow({ where: { id: sessionId } })
+      if (locked.finishedAt) throw makeError('Sessao ja finalizada', 400, 'SESSION_FINISHED')
+      const duplicate = await tx.userAnswer.findFirst({ where: { sessionId, questionId } })
+      if (duplicate) throw makeError('Questao ja respondida', 400, 'ALREADY_ANSWERED')
+    const recentAnswers = await tx.userAnswer.findMany({
       where: { userId, sessionId },
       orderBy: { answeredAt: 'desc' },
       take: 2,
     })
     const isPerfectStreak = isCorrect && recentAnswers.length >= 2 && recentAnswers.every((a) => a.isCorrect)
-    const xpDelta = isCorrect ? (isPerfectStreak ? 6 : 4) : 0
+    xpDelta = isCorrect ? (isPerfectStreak ? 6 : 4) : 0
 
     // Transação: criar resposta, atualizar sessão e usuário
-    const user = await prisma.$transaction(async (tx) => {
       await tx.userAnswer.create({
         data: { userId, questionId, sessionId, optionId, isCorrect, timeSpentMs },
       })
@@ -383,11 +428,17 @@ class QuizService {
         },
       })
 
+      if (!isCorrect) {
+        await tx.user.updateMany({
+          where: { id: userId, hearts: { gt: 0 } },
+          data: { hearts: { decrement: 1 } },
+        })
+      }
+
       const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
           xp: { increment: xpDelta },
-          hearts: isCorrect ? undefined : { decrement: 1 },
         },
       })
 
@@ -412,7 +463,10 @@ class QuizService {
   }
 
   async finish(userId: string, sessionId: string): Promise<SessionSummary> {
-    const session = await prisma.quizSession.findUnique({
+    const result = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`
+    await tx.$queryRaw`SELECT id FROM "QuizSession" WHERE id = ${sessionId} FOR UPDATE`
+    const session = await tx.quizSession.findUnique({
       where: { id: sessionId },
       include: {
         answers: {
@@ -424,13 +478,13 @@ class QuizService {
             subject: { include: { vestibular: true } },
           },
         },
-        generatedQuestions: { where: { active: true }, orderBy: { createdAt: 'asc' } },
+        generatedQuestions: { where: { active: true }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
       },
     })
 
     if (!session) throw makeError('Sessão não encontrada', 404, 'NOT_FOUND')
     if (session.userId !== userId) throw makeError('Acesso negado', 403, 'FORBIDDEN')
-    if (session.finishedAt) throw makeError('Sessão já finalizada', 400, 'SESSION_FINISHED')
+    if (session.finishedAt) return null
 
     const { correct, wrong } = session
     const answeredQuestionIds = new Set(session.answers.map((a) => a.questionId))
@@ -443,7 +497,7 @@ class QuizService {
     const xpEarned = session.xpEarned + bonusXp
 
     // Buscar progresso atual
-    const progress = await prisma.userTopicProgress.findUnique({
+    const progress = await tx.userTopicProgress.findUnique({
       where: { userId_topicId: { userId, topicId: session.topicId } },
     })
     const currentMastery = progress?.masteryLevel ?? 0
@@ -453,23 +507,26 @@ class QuizService {
       ? session.generatedQuestions.reduce((acc, q) => acc + (q.difficulty ?? 2), 0) / session.generatedQuestions.length
       : 2
 
-    const newMasteryLevel = computeNewLevel(currentMastery, accuracy, avgDifficulty)
+    const newMasteryLevel = computeNewLevel(currentMastery, accuracy, avgDifficulty, {
+      answeredCount: session.answers.length,
+      averageTimeMs: session.answers.length ? session.answers.reduce((sum, answer) => sum + answer.timeSpentMs, 0) / session.answers.length : null,
+    })
     const completed = (progress?.completed ?? false) || newMasteryLevel >= 3
 
     // Atualizar progresso do tópico
-    await prisma.userTopicProgress.update({
+    await tx.userTopicProgress.update({
       where: { userId_topicId: { userId, topicId: session.topicId } },
       data: {
         masteryLevel: newMasteryLevel,
-        sessionsCount: { increment: 1 },
+        sessionsCount: { increment: answeredTotal > 0 ? 1 : 0 },
         lastSeenAt: new Date(),
         completed,
       },
     })
 
-    // Desbloquear próximo tópico se completou
-    if (completed) {
-      const subjects = await prisma.subject.findMany({
+    // Access progresses after practice; mastery still requires sufficient evidence.
+    if (completed || answeredTotal > 0) {
+      const subjects = await tx.subject.findMany({
         where: { vestibularId: session.topic.subject.vestibularId },
         orderBy: { order: 'asc' },
         include: { topics: { orderBy: { order: 'asc' }, select: { id: true } } },
@@ -479,7 +536,7 @@ class QuizService {
       const nextTopic = currentTopicIndex >= 0 ? orderedTopics[currentTopicIndex + 1] : null
 
       if (nextTopic) {
-        await prisma.userTopicProgress.upsert({
+        await tx.userTopicProgress.upsert({
           where: { userId_topicId: { userId, topicId: nextTopic.id } },
           create: { userId, topicId: nextTopic.id, unlocked: true },
           update: { unlocked: true },
@@ -488,28 +545,28 @@ class QuizService {
     }
 
     // Verificar achievements
-    const totalAnswers = await prisma.userAnswer.count({ where: { userId } })
-    const totalSessions = await prisma.quizSession.count({ where: { userId, finishedAt: { not: null } } })
-    const userRecord = await prisma.user.findUnique({ where: { id: userId } })
+    const totalAnswers = await tx.userAnswer.count({ where: { userId } })
+    const totalSessions = await tx.quizSession.count({ where: { userId, finishedAt: { not: null }, answers: { some: {} } } })
+    const userRecord = await tx.user.findUnique({ where: { id: userId } })
 
     const achievementSlugs: string[] = []
-    if (totalSessions === 0) achievementSlugs.push('first_flight')
+    if (totalSessions === 0 && answeredTotal > 0) achievementSlugs.push('first_flight')
     if (isPerfect) achievementSlugs.push('perfect_wing')
     if ((userRecord?.streakDays ?? 0) >= 7) achievementSlugs.push('week_streak')
     if (totalAnswers >= 100) achievementSlugs.push('century')
 
     const newAchievements: AchievementData[] = []
     for (const slug of achievementSlugs) {
-      const achievement = await prisma.achievement.findUnique({ where: { slug } })
+      const achievement = await tx.achievement.findUnique({ where: { slug } })
       if (!achievement) continue
-      const exists = await prisma.userAchievement.findUnique({
+      const exists = await tx.userAchievement.findUnique({
         where: { userId_achievementId: { userId, achievementId: achievement.id } },
       })
       if (!exists) {
-        await prisma.userAchievement.create({
+        await tx.userAchievement.create({
           data: { userId, achievementId: achievement.id },
         })
-        await prisma.user.update({ where: { id: userId }, data: { xp: { increment: achievement.xpBonus } } })
+        await tx.user.update({ where: { id: userId }, data: { xp: { increment: achievement.xpBonus } } })
         newAchievements.push({
           slug: achievement.slug,
           name: achievement.name,
@@ -521,13 +578,13 @@ class QuizService {
     }
 
     // Verificar level up
-    const updatedUser = await prisma.user.findUnique({ where: { id: userId } })
+    const updatedUser = await tx.user.update({ where: { id: userId }, data: { xp: { increment: bonusXp } } })
     const currentLevel = updatedUser?.level ?? 1
     const newLevel = Math.floor(Math.sqrt((updatedUser?.xp ?? 0) / 100)) + 1
     const levelUp = newLevel > currentLevel
 
     if (levelUp) {
-      await prisma.user.update({ where: { id: userId }, data: { level: newLevel } })
+      await tx.user.update({ where: { id: userId }, data: { level: newLevel } })
     }
 
     // Atualizar streak
@@ -545,8 +602,8 @@ class QuizService {
       return d.getTime() === today.getTime()
     })()
 
-    if (!wasToday) {
-      await prisma.user.update({
+    if (!wasToday && answeredTotal > 0) {
+      await tx.user.update({
         where: { id: userId },
         data: {
           lastActivityAt: new Date(),
@@ -559,32 +616,26 @@ class QuizService {
     }
 
     // Finalizar sessão
-    await prisma.quizSession.update({
+    await tx.quizSession.update({
       where: { id: sessionId },
       data: { finishedAt: new Date(), xpEarned, skipped, isPerfect },
     })
 
-    await invalidateTrailCache(userId, session.topic.subject.vestibular.slug)
-
-    // Captura snapshot do Índice Kuaa após cada sessão finalizada
-    captureSnapshot(userId, session.topic.subject.vestibularId).catch((err) => {
-      console.warn('[QuizService] Falha ao capturar IndexSnapshot:', err)
-    })
-
     // Montar review questions
-    const reviewQuestions: ReviewQuestion[] = session.answers.map((a) => {
-      const opts = a.question.options as unknown as QuestionOption[]
+    const reviewQuestions: ReviewQuestion[] = session.generatedQuestions.map((question) => {
+      const answer = session.answers.find((item) => item.questionId === question.id)
+      const opts = question.options as unknown as QuestionOption[]
       return {
-        id: a.question.id,
-        body: a.question.body,
+        id: question.id,
+        body: question.body,
         options: opts,
-        userAnswerId: a.optionId,
-        isCorrect: a.isCorrect,
-        explanation: a.question.explanation,
+        userAnswerId: answer?.optionId ?? null,
+        isCorrect: answer?.isCorrect ?? false,
+        explanation: question.explanation,
       }
     })
 
-    return {
+    return { vestibularId: session.topic.subject.vestibularId, summary: {
       sessionId,
       topicName: session.topic.name,
       vestibularSlug: session.topic.subject.vestibular.slug,
@@ -599,7 +650,14 @@ class QuizService {
       levelUp,
       newLevel: levelUp ? newLevel : currentLevel,
       questions: reviewQuestions,
-    }
+    } }
+    }, { timeout: 15000 })
+    if (!result) return this.getSummary(userId, sessionId)
+    await invalidateTrailCache(userId, result.summary.vestibularSlug)
+    await captureSnapshot(userId, result.vestibularId).catch((err) => {
+      console.warn('[QuizService] Falha ao capturar IndexSnapshot:', err)
+    })
+    return result.summary
   }
 
   async getSummary(userId: string, sessionId: string): Promise<SessionSummary> {
@@ -616,7 +674,7 @@ class QuizService {
             subject: { include: { vestibular: true } },
           },
         },
-        generatedQuestions: { where: { active: true }, orderBy: { createdAt: 'asc' } },
+        generatedQuestions: { where: { active: true }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] },
       },
     })
 
@@ -630,15 +688,16 @@ class QuizService {
       where: { userId_topicId: { userId, topicId: session.topicId } },
     })
 
-    const reviewQuestions: ReviewQuestion[] = session.answers.map((answer) => {
-      const options = answer.question.options as unknown as QuestionOption[]
+    const reviewQuestions: ReviewQuestion[] = session.generatedQuestions.map((question) => {
+      const answer = session.answers.find((item) => item.questionId === question.id)
+      const options = question.options as unknown as QuestionOption[]
       return {
-        id: answer.question.id,
-        body: answer.question.body,
+        id: question.id,
+        body: question.body,
         options,
-        userAnswerId: answer.optionId,
-        isCorrect: answer.isCorrect,
-        explanation: answer.question.explanation,
+        userAnswerId: answer?.optionId ?? null,
+        isCorrect: answer?.isCorrect ?? false,
+        explanation: question.explanation,
       }
     })
 

@@ -32,6 +32,7 @@ export function useStartSimulado(vestibularSlug: string) {
 
 export function useSaveAnswer() {
   return useMutation({
+    scope: { id: 'simulado-answer' },
     mutationFn: async ({
       attemptId,
       questionId,
@@ -55,10 +56,16 @@ export function useToggleFlag() {
 }
 
 export function useFinishSimulado() {
+  const qc = useQueryClient()
   return useMutation({
     mutationFn: async (attemptId: string) => {
       const res = await api.post<FinishResult>(`/simulado/attempt/${attemptId}/finish`)
       return res.data
+    },
+    onSuccess: async () => {
+      await Promise.all(['simulado', 'trail', 'index', 'enrollments'].map((key) =>
+        qc.invalidateQueries({ queryKey: [key] }),
+      ))
     },
   })
 }

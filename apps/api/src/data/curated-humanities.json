@@ -1,0 +1,338 @@
+[
+  {
+    "id": "humanas-001",
+    "topicTags": ["interpretacao de texto", "interpretacao e analise de texto", "leitura e interpretacao"],
+    "body": "Texto autoral: Durante anos, a biblioteca fechou às cinco. Quando passou a fechar às oito, Joana finalmente conseguiu devolver o livro sem pedir licença no trabalho. Na reunião, alguém comentou que o novo horário era um luxo. Joana colocou sobre a mesa seu cartão de ponto. Que sentido tem esse gesto no contexto?",
+    "options": [
+      {"id": "A", "text": "Solicitar que a biblioteca fiscalize a jornada de seus leitores.", "isCorrect": false},
+      {"id": "B", "text": "Mostrar que o horário ampliado permite o acesso de quem trabalha.", "isCorrect": true},
+      {"id": "C", "text": "Sugerir que funcionários da biblioteca trabalhem no emprego de Joana.", "isCorrect": false},
+      {"id": "D", "text": "Demonstrar que a devolução ocorreu depois do prazo do empréstimo.", "isCorrect": false},
+      {"id": "E", "text": "Propor que apenas trabalhadores registrados possam retirar livros.", "isCorrect": false}
+    ],
+    "explanation": "O cartão materializa a restrição de horário imposta pelo trabalho e contesta a ideia de luxo: a ampliação viabiliza o acesso. O texto não informa atraso no empréstimo nem propõe fiscalização, troca de empregos ou exclusividade para trabalhadores registrados.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-002",
+    "topicTags": ["interpretacao de texto", "interpretacao e analise de texto", "leitura e interpretacao"],
+    "body": "Texto autoral: A praça ganhou uma placa: 'Espaço de convivência'. Na mesma semana, retiraram os bancos para evitar que as pessoas permanecessem ali por muito tempo. O narrador conclui: 'Agora, a convivência está garantida, desde que ninguém pare'. O comentário final produz ironia porque:",
+    "options": [
+      {"id": "A", "text": "Apresenta a circulação rápida como prova de aumento dos encontros.", "isCorrect": false},
+      {"id": "B", "text": "Atribui à placa o poder concreto de instalar novos bancos.", "isCorrect": false},
+      {"id": "C", "text": "Defende a permanência apenas de quem participa de reuniões formais.", "isCorrect": false},
+      {"id": "D", "text": "Expõe a contradição entre a finalidade anunciada e a restrição à permanência.", "isCorrect": true},
+      {"id": "E", "text": "Considera a retirada dos bancos uma medida suficiente de acessibilidade.", "isCorrect": false}
+    ],
+    "explanation": "A expressão 'desde que ninguém pare' esvazia a promessa de convivência ao revelar uma medida que dificulta permanecer e encontrar outras pessoas. A concordância aparente do narrador é crítica, não uma defesa da circulação rápida ou uma avaliação da acessibilidade.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-003",
+    "topicTags": ["interpretacao de texto", "interpretacao e analise de texto", "leitura e interpretacao"],
+    "body": "Boletim fictício de uma escola: em março, 40 dos 100 alunos matriculados no clube de leitura retiraram livros; em abril, foram 60 dos mesmos 100 alunos. O boletim registra empréstimos, mas não acompanha a leitura em casa. Qual conclusão é sustentada pelos dados?",
+    "options": [
+      {"id": "A", "text": "A proporção de alunos que retiraram livros aumentou 20 pontos percentuais.", "isCorrect": true},
+      {"id": "B", "text": "O número total de livros retirados aumentou exatamente 20 unidades.", "isCorrect": false},
+      {"id": "C", "text": "Todos os alunos que retiraram livros em março repetiram a ação em abril.", "isCorrect": false},
+      {"id": "D", "text": "A proporção de alunos que concluíram um livro passou de 40% para 60%.", "isCorrect": false},
+      {"id": "E", "text": "O número de alunos que retiraram livros cresceu 20% em relação a março.", "isCorrect": false}
+    ],
+    "explanation": "A participação passou de 40% para 60%, diferença de 20 pontos percentuais. O crescimento relativo foi de 50% (20/40). Contar alunos com empréstimos não revela o total de exemplares, a identidade dos participantes em ambos os meses nem a conclusão das leituras.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-004",
+    "topicTags": ["gramatica e norma culta", "gramatica contextualizada"],
+    "body": "Situação autoral: um boletim precisa informar que somente os estudantes que entregaram a autorização participaram de uma visita, pois alguns não entregaram. Qual redação preserva essa restrição e segue a norma-padrão?",
+    "options": [
+      {"id": "A", "text": "Os estudantes, que entregaram a autorização, participaram da visita.", "isCorrect": false},
+      {"id": "B", "text": "Os estudantes que entregou a autorização participaram da visita.", "isCorrect": false},
+      {"id": "C", "text": "Os estudantes que entregaram a autorização participaram da visita.", "isCorrect": true},
+      {"id": "D", "text": "Os estudantes que entregaram a autorização, participaram da visita.", "isCorrect": false},
+      {"id": "E", "text": "Os estudantes participaram da visita, embora alguns não tenham entregado a autorização.", "isCorrect": false}
+    ],
+    "explanation": "Sem vírgulas, a oração 'que entregaram a autorização' restringe o grupo participante. Entre vírgulas, ela seria explicativa. 'Entregou' viola a concordância; a vírgula antes de 'participaram' separa indevidamente sujeito e predicado. A última alternativa admite participantes sem autorização, contrariando a informação solicitada.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-005",
+    "topicTags": ["coesao e coerencia", "gramatica contextualizada"],
+    "body": "Texto autoral: O reservatório recebeu mais água neste mês; ainda assim, o abastecimento continuou irregular, pois uma tubulação permaneceu danificada. Qual substituição de 'ainda assim' mantém a relação de sentido e se ajusta à frase?",
+    "options": [
+      {"id": "A", "text": "Por esse motivo.", "isCorrect": false},
+      {"id": "B", "text": "Em outras palavras.", "isCorrect": false},
+      {"id": "C", "text": "Além disso.", "isCorrect": false},
+      {"id": "D", "text": "Por exemplo.", "isCorrect": false},
+      {"id": "E", "text": "Apesar disso.", "isCorrect": true}
+    ],
+    "explanation": "'Apesar disso' conserva a quebra da expectativa de que mais água regularizaria o abastecimento. 'Por esse motivo' introduziria consequência; 'em outras palavras', reformulação; 'além disso', adição; e 'por exemplo', exemplificação. A tubulação danificada explica a persistência da irregularidade.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-006",
+    "topicTags": ["variacao linguistica", "gramatica e norma culta"],
+    "body": "Situação fictícia: ao conversar com amigos, uma pesquisadora diz 'A gente vai apresentar os resultados amanhã'. No resumo de um congresso, escreve 'Apresentaremos os resultados na sessão de amanhã'. Qual análise relaciona adequadamente os dois usos?",
+    "options": [
+      {"id": "A", "text": "A primeira formulação comprova desconhecimento da concordância verbal.", "isCorrect": false},
+      {"id": "B", "text": "A mudança revela adequação de registro a diferentes situações comunicativas.", "isCorrect": true},
+      {"id": "C", "text": "A segunda formulação altera necessariamente o conjunto de pessoas que apresentará.", "isCorrect": false},
+      {"id": "D", "text": "O uso de 'a gente' identifica com segurança a região de origem da pesquisadora.", "isCorrect": false},
+      {"id": "E", "text": "O primeiro enunciado situa a apresentação no presente, enquanto o segundo a situa no futuro.", "isCorrect": false}
+    ],
+    "explanation": "A falante mobiliza recursos de registros distintos conforme interlocutores e gênero. 'A gente vai' apresenta concordância no singular e pode expressar futuro próximo. As formas não determinam regiões de origem nem exigem mudança de participantes; 'amanhã' situa ambas as apresentações no futuro.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-007",
+    "topicTags": ["intertextualidade", "leitura e interpretacao"],
+    "body": "Dois textos autorais de uma campanha fictícia. Texto I, anúncio de uma imobiliária: 'Onde havia silêncio, nosso condomínio trouxe vida'. Texto II, cartaz de moradores após a retirada de uma área verde: 'Onde havia vida, seu condomínio trouxe silêncio'. Que operação o texto II realiza?",
+    "options": [
+      {"id": "A", "text": "Resume de forma neutra a promessa comercial do anúncio.", "isCorrect": false},
+      {"id": "B", "text": "Reforça a avaliação positiva do empreendimento por meio de sinônimos.", "isCorrect": false},
+      {"id": "C", "text": "Cita literalmente o anúncio para atribuir a ele autoridade científica.", "isCorrect": false},
+      {"id": "D", "text": "Reaproveita a estrutura do anúncio e inverte seus termos para contestar sua avaliação.", "isCorrect": true},
+      {"id": "E", "text": "Abandona a referência ao anúncio e descreve apenas o isolamento acústico das casas.", "isCorrect": false}
+    ],
+    "explanation": "A inversão de 'vida' e 'silêncio', acompanhada da troca de 'nosso' por 'seu', transforma a promessa publicitária em crítica à perda da área verde. Há retomada intertextual com inversão avaliativa, não resumo neutro, reprodução literal ou descrição técnica de acústica.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-008",
+    "topicTags": ["literatura brasileira", "literatura portuguesa e brasileira"],
+    "body": "Fragmento autoral, criado para esta questão: 'O comendador doou duas cadeiras à escola. Encomendou, para registrar a generosidade, uma placa maior que a porta. Quando faltou dinheiro para os cadernos, recomendou às crianças o estudo da gratidão.' Qual traço aproxima o fragmento de procedimentos frequentes na prosa realista brasileira do século XIX?",
+    "options": [
+      {"id": "A", "text": "A exposição irônica da distância entre a imagem pública de virtude e os interesses sociais.", "isCorrect": true},
+      {"id": "B", "text": "A idealização de um benfeitor cuja superioridade moral resolve o conflito coletivo.", "isCorrect": false},
+      {"id": "C", "text": "A explicação da conduta das personagens por fatores hereditários explicitados pelo narrador.", "isCorrect": false},
+      {"id": "D", "text": "A reconstrução heroica das origens nacionais por meio de personagens indígenas.", "isCorrect": false},
+      {"id": "E", "text": "A dissolução do conflito social em imagens oníricas de transcendência espiritual.", "isCorrect": false}
+    ],
+    "explanation": "A desproporção entre doação e placa, seguida da cobrança de gratidão, ironiza a filantropia como autopromoção. Essa crítica das aparências sociais aproxima o texto de procedimentos realistas. Não há idealização heroica, determinismo hereditário explicitado, construção indianista ou transcendência onírica. O fragmento é autoral, não de um escritor histórico.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-009",
+    "topicTags": ["literatura brasileira", "literatura portuguesa e brasileira"],
+    "body": "Poema autoral: 'O bonde engasgou na esquina. / A cidade perdeu o compasso. / Seu Joel disse: calma, gente, / até o progresso pede um descanso.' Qual conjunto de recursos aproxima o poema de experiências do modernismo brasileiro?",
+    "options": [
+      {"id": "A", "text": "Vocabulário solene e louvação sem ressalvas da ordem urbana.", "isCorrect": false},
+      {"id": "B", "text": "Ambientação pastoril e eliminação de marcas da vida cotidiana.", "isCorrect": false},
+      {"id": "C", "text": "Cena cotidiana, linguagem coloquial e tratamento humorístico da modernização.", "isCorrect": true},
+      {"id": "D", "text": "Narrativa épica de conquista territorial com herói individual idealizado.", "isCorrect": false},
+      {"id": "E", "text": "Descrição impessoal de uma máquina sem atribuição de características humanas.", "isCorrect": false}
+    ],
+    "explanation": "O bonde e a fala de Seu Joel aproximam o poema do cotidiano urbano; o progresso que 'pede um descanso' introduz humor e personificação. Esses recursos dialogam com experiências modernistas, sem serem exclusivos delas. O texto não tem cenário pastoril, herói épico ou descrição impessoal, e sua relação com o progresso não é uma louvação irrestrita.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-010",
+    "topicTags": ["literatura portuguesa e brasileira"],
+    "body": "Texto autoral inspirado em uma situação de análise da poesia medieval portuguesa, sem reproduzir cantiga existente: 'Minha irmã, se fores à fonte, / pergunta à água por quem espero; / voltou a primavera ao monte, / só ele não voltou tão cedo.' Qual característica aproxima a composição da cantiga de amigo?",
+    "options": [
+      {"id": "A", "text": "Uma voz masculina dirige vassalagem amorosa a uma senhora socialmente superior.", "isCorrect": false},
+      {"id": "B", "text": "Um narrador celebra feitos militares para legitimar uma dinastia.", "isCorrect": false},
+      {"id": "C", "text": "Uma voz satírica nomeia um adversário para denunciar sua corrupção.", "isCorrect": false},
+      {"id": "D", "text": "Uma argumentação religiosa condena a expectativa do reencontro amoroso.", "isCorrect": false},
+      {"id": "E", "text": "Uma voz de espera amorosa dialoga com uma confidente e evoca elementos da natureza.", "isCorrect": true}
+    ],
+    "explanation": "A espera do amado, a interlocução com a irmã e a presença da fonte e da primavera remetem a motivos das cantigas de amigo, tradicionalmente construídas com voz lírica feminina. A alternativa A descreve uma convenção da cantiga de amor; as demais introduzem dimensões épicas, satíricas ou doutrinárias ausentes. Trata-se de aproximação temática, não de classificação de um documento medieval autêntico.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-011",
+    "topicTags": ["producao textual", "adequacao ao tema", "estrutura dissertativa argumentativa", "generos textuais dissertativos"],
+    "body": "Parágrafo autoral: 'O calor não atinge todos os bairros do mesmo modo. Onde há pouca arborização, esperar o ônibus pode significar exposição prolongada ao sol. Por isso, a prefeitura deve priorizar árvores e abrigos nos pontos das áreas mais expostas, em vez de distribuir as obras igualmente pelo mapa.' Qual é a tese defendida?",
+    "options": [
+      {"id": "A", "text": "A espera por ônibus é a principal causa das diferenças de temperatura entre bairros.", "isCorrect": false},
+      {"id": "B", "text": "A distribuição das intervenções deve priorizar a exposição desigual ao calor.", "isCorrect": true},
+      {"id": "C", "text": "A prefeitura já concluiu a instalação de abrigos em todas as áreas expostas.", "isCorrect": false},
+      {"id": "D", "text": "A arborização deve substituir integralmente os abrigos nos pontos de ônibus.", "isCorrect": false},
+      {"id": "E", "text": "A oferta de transporte deve ser reduzida nos bairros menos arborizados.", "isCorrect": false}
+    ],
+    "explanation": "A tese é a orientação defendida após 'por isso': priorizar áreas mais expostas, considerando a desigualdade territorial. As frases anteriores fundamentam essa posição. Não se afirma que a espera cause o calor, que as obras estejam concluídas ou que árvores substituam abrigos ou transporte.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-012",
+    "topicTags": ["argumentacao e refutacao", "producao textual", "estrutura dissertativa argumentativa", "generos textuais dissertativos"],
+    "body": "Situação e dados fictícios: uma empresa afirma que o curso oferecido a seus empregados causou aumento salarial, pois o salário médio dos participantes passou de R$ 2.000 para R$ 2.200. No mesmo período, empregados comparáveis que não fizeram o curso tiveram exatamente o mesmo reajuste, previsto para toda a empresa. Qual avaliação do argumento é mais bem sustentada?",
+    "options": [
+      {"id": "A", "text": "O aumento de R$ 200 demonstra que o curso elevou a produtividade em 10%.", "isCorrect": false},
+      {"id": "B", "text": "O reajuste dos não participantes comprova que eles estudaram o conteúdo por conta própria.", "isCorrect": false},
+      {"id": "C", "text": "A igualdade dos reajustes demonstra que o curso prejudicou a aprendizagem dos participantes.", "isCorrect": false},
+      {"id": "D", "text": "O reajuste geral oferece uma explicação alternativa, impedindo atribuir o aumento ao curso com esses dados.", "isCorrect": true},
+      {"id": "E", "text": "A comparação confirma o efeito salarial do curso, pois ambos os grupos terminaram com salários maiores.", "isCorrect": false}
+    ],
+    "explanation": "O aumento também ocorreu entre não participantes e estava previsto para todos, de modo que a sucessão temporal não estabelece causalidade. Isso enfraquece a atribuição do reajuste ao curso, mas não prova ausência de aprendizagem, dano ou estudo autônomo. Tampouco há medida de produtividade.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-013",
+    "topicTags": ["argumentacao e refutacao", "producao textual"],
+    "body": "Debate fictício: 'Não vale manter a biblioteca aberta à noite: só doze pessoas a frequentam por noite'. Um levantamento registra que essas doze pessoas usam o espaço para estudar após o trabalho e não conseguem comparecer de dia. Qual réplica refuta a conclusão sem negar o dado da frequência?",
+    "options": [
+      {"id": "A", "text": "A frequência é pequena, mas o horário garante acesso a um grupo sem alternativa diurna; a decisão também deve considerar essa função.", "isCorrect": true},
+      {"id": "B", "text": "A frequência é pequena, portanto o fechamento ampliará o acesso dos trabalhadores à leitura.", "isCorrect": false},
+      {"id": "C", "text": "As doze pessoas demonstram que a biblioteca fica lotada todas as noites.", "isCorrect": false},
+      {"id": "D", "text": "Como bibliotecas são importantes, não é necessário examinar horários, custos ou frequência.", "isCorrect": false},
+      {"id": "E", "text": "O uso noturno comprova que todos os usuários diurnos poderiam mudar para a noite.", "isCorrect": false}
+    ],
+    "explanation": "A réplica correta concede a baixa frequência e questiona sua suficiência como critério, acrescentando o acesso de trabalhadores. Não inventa lotação nem transfere automaticamente usuários entre horários. Também não dispensa a análise de custos: apenas mostra que a conclusão exige mais critérios que o número isolado.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-014",
+    "topicTags": ["generos textuais dissertativos", "producao textual", "proposta de intervencao"],
+    "body": "Situação autoral: moradores redigem uma carta aberta à secretaria municipal de transportes. Querem solicitar iluminação em dois pontos de ônibus, pois as lâmpadas estão apagadas há três semanas. Qual trecho cumpre a finalidade pública e reivindicatória desse gênero?",
+    "options": [
+      {"id": "A", "text": "Naquela noite, Elisa olhou o ponto vazio e lembrou a infância, sem saber que o último ônibus já passara.", "isCorrect": false},
+      {"id": "B", "text": "Vende-se luminária de baixo consumo, com entrega imediata e desconto para pagamento à vista.", "isCorrect": false},
+      {"id": "C", "text": "Solicitamos à secretaria o reparo da iluminação dos dois pontos da Rua do Mercado e a divulgação de um prazo, pois a falha dificulta a espera noturna.", "isCorrect": true},
+      {"id": "D", "text": "Querido primo, a rua continua escura; quando você vier, ligue para eu buscá-lo na esquina.", "isCorrect": false},
+      {"id": "E", "text": "Para trocar a lâmpada deste modelo, desligue o circuito e consulte as especificações do fabricante.", "isCorrect": false}
+    ],
+    "explanation": "O trecho correto identifica o destinatário institucional, apresenta uma demanda concreta e a justifica por um problema coletivo, compatível com carta aberta. Os outros trechos realizam, respectivamente, narração ficcional, anúncio comercial, correspondência privada e instrução técnica, sem cumprir a finalidade reivindicatória proposta.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-015",
+    "topicTags": ["historia do brasil republica"],
+    "body": "Situação histórica ficcional situada na Primeira República brasileira: um grande proprietário oferece empregos e intermedeia pedidos ao governo estadual. Na eleição, seus representantes cobram dos moradores apoio ao candidato indicado e ameaçam retirar favores. Qual interpretação melhor caracteriza a relação descrita?",
+    "options": [
+      {"id": "A", "text": "Uma competição eleitoral baseada exclusivamente em programas partidários e escolhas independentes.", "isCorrect": false},
+      {"id": "B", "text": "Uma forma de democracia direta em que cada morador decide as políticas estaduais.", "isCorrect": false},
+      {"id": "C", "text": "Uma política universal de direitos sociais sem intermediação de lideranças locais.", "isCorrect": false},
+      {"id": "D", "text": "Uma mobilização sindical que elimina a influência da propriedade da terra.", "isCorrect": false},
+      {"id": "E", "text": "Uma articulação de dependência local e controle eleitoral associada ao coronelismo.", "isCorrect": true}
+    ],
+    "explanation": "O controle de recursos e a intermediação de favores sustentam coerção eleitoral, mecanismo associado ao coronelismo na Primeira República. A cena não descreve direitos universais, voto autônomo ou democracia direta. Trata-se de uma representação didática de uma relação histórica, não de um testemunho documental nem de uma explicação de todas as eleições do período.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-016",
+    "topicTags": ["historia do brasil republica"],
+    "body": "Síntese didática autoral: durante o Estado Novo (1937–1945), o governo Vargas ampliou mecanismos de regulação trabalhista e, ao mesmo tempo, restringiu a competição política e submeteu a organização sindical a controles estatais. Qual conclusão considera as duas dimensões?",
+    "options": [
+      {"id": "A", "text": "A regulação do trabalho dependeu da existência de eleições presidenciais competitivas durante todo o regime.", "isCorrect": false},
+      {"id": "B", "text": "O reconhecimento de direitos trabalhistas coexistiu com autoritarismo e limites à autonomia sindical.", "isCorrect": true},
+      {"id": "C", "text": "A intervenção estatal retirou o trabalho da esfera de qualquer regulamentação pública.", "isCorrect": false},
+      {"id": "D", "text": "A política sindical transferiu aos sindicatos plena independência em relação ao Estado.", "isCorrect": false},
+      {"id": "E", "text": "A ampliação da legislação trabalhista tornou desnecessários mecanismos de controle político.", "isCorrect": false}
+    ],
+    "explanation": "Direitos sociais e liberdades políticas não avançam necessariamente juntos. No Estado Novo, a regulação trabalhista coexistiu com ditadura e tutela sindical. As demais alternativas apagam uma dessas dimensões ao presumir eleições competitivas, ausência de regulação, independência sindical plena ou desaparecimento do controle político.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-017",
+    "topicTags": ["historia do brasil republica", "cultura e sociedade"],
+    "body": "Situação ficcional situada no Brasil de 1984: uma estudante participa de um comício das Diretas Já e escreve em seu diário que deseja escolher o presidente pelo voto. Em aula, compara essa mobilização à eleição presidencial indireta de 1985. O contraste evidencia que:",
+    "options": [
+      {"id": "A", "text": "O movimento defendia a continuidade permanente da escolha presidencial por um colégio eleitoral.", "isCorrect": false},
+      {"id": "B", "text": "A eleição de 1985 foi uma votação direta que concretizou integralmente a reivindicação do comício.", "isCorrect": false},
+      {"id": "C", "text": "A transição política ocorreu sem participação de movimentos populares.", "isCorrect": false},
+      {"id": "D", "text": "A pressão por participação direta não se traduziu imediatamente no mecanismo de escolha presidencial de 1985.", "isCorrect": true},
+      {"id": "E", "text": "A eleição indireta encerrou definitivamente a possibilidade de eleições presidenciais diretas no país.", "isCorrect": false}
+    ],
+    "explanation": "As Diretas Já reivindicavam voto direto para presidente, mas a escolha de 1985 ocorreu por colégio eleitoral. A diferença mostra uma transição com mobilização social e limites institucionais, não ausência de participação nem realização imediata da demanda. O voto presidencial direto seria retomado em 1989.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-018",
+    "topicTags": ["geografia fisica e humana"],
+    "body": "Cenário hipotético: duas pequenas bacias têm área, declividade e solo semelhantes e recebem a mesma chuva. Na bacia X predominam vegetação e solo exposto permeável; na Y, ruas asfaltadas e telhados, sem estruturas de retenção. Qual comportamento é mais esperado na bacia Y?",
+    "options": [
+      {"id": "A", "text": "Menor infiltração e chegada mais rápida do escoamento superficial ao canal.", "isCorrect": true},
+      {"id": "B", "text": "Maior infiltração e redução do volume de água que chega ao canal pela superfície.", "isCorrect": false},
+      {"id": "C", "text": "Maior retenção pela vegetação e atraso do pico de vazão em relação a X.", "isCorrect": false},
+      {"id": "D", "text": "Menor escoamento superficial porque o asfalto absorve a chuva mais rapidamente que o solo.", "isCorrect": false},
+      {"id": "E", "text": "Infiltração semelhante à de X, pois apenas o volume de chuva determina a entrada de água no solo.", "isCorrect": false}
+    ],
+    "explanation": "Superfícies impermeáveis dificultam a infiltração e aceleram o escoamento, favorecendo resposta mais rápida do canal à chuva. A comparação mantém semelhantes outros fatores relevantes e exclui retenção artificial. Cobertura do solo também importa: não basta conhecer o volume precipitado para estimar a infiltração.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-019",
+    "topicTags": ["geografia fisica e humana"],
+    "body": "Dados fictícios de uma região metropolitana: muitos moradores do município A saem pela manhã para trabalhar no município B e retornam à noite, mantendo residência em A durante anos. O fenômeno descrito corresponde principalmente a:",
+    "options": [
+      {"id": "A", "text": "Êxodo rural, com transferência definitiva de residência do campo para a cidade.", "isCorrect": false},
+      {"id": "B", "text": "Migração de retorno, com reinstalação permanente no município de origem.", "isCorrect": false},
+      {"id": "C", "text": "Mobilidade pendular, relacionada à separação espacial entre moradia e trabalho.", "isCorrect": true},
+      {"id": "D", "text": "Transumância, associada ao deslocamento sazonal de rebanhos e pastores.", "isCorrect": false},
+      {"id": "E", "text": "Migração sazonal, com mudança de residência por meses durante uma colheita.", "isCorrect": false}
+    ],
+    "explanation": "A ida e volta frequente entre residência e trabalho caracteriza mobilidade pendular, comum em espaços metropolitanos com funções distribuídas entre municípios. Não há mudança permanente de residência, origem rural indicada, sazonalidade agrícola ou deslocamento de rebanhos que sustente as demais classificações.",
+    "difficulty": 2
+  },
+  {
+    "id": "humanas-020",
+    "topicTags": ["geopolitica mundial", "cenario internacional"],
+    "body": "Cenário fictício: os países Alfa, Beta e Gama eliminam tarifas sobre mercadorias originárias entre si e adotam uma tarifa externa comum para importações de países de fora. O acordo não institui moeda única nem livre circulação de trabalhadores. Qual modalidade de integração corresponde a essas regras?",
+    "options": [
+      {"id": "A", "text": "Área de livre-comércio, com tarifas externas definidas separadamente por cada membro como regra do acordo.", "isCorrect": false},
+      {"id": "B", "text": "União monetária, com substituição das moedas nacionais por uma moeda compartilhada.", "isCorrect": false},
+      {"id": "C", "text": "Mercado comum, com liberdade de circulação de trabalhadores garantida pelo acordo.", "isCorrect": false},
+      {"id": "D", "text": "Federação política, com transformação dos países em unidades de um único Estado.", "isCorrect": false},
+      {"id": "E", "text": "União aduaneira, com liberalização interna de mercadorias e política tarifária externa comum.", "isCorrect": true}
+    ],
+    "explanation": "A tarifa externa comum distingue a união aduaneira de uma simples área de livre-comércio. Livre circulação de fatores de produção caracteriza um estágio de mercado comum, e moeda única envolve integração monetária. Nada no cenário estabelece unificação política dos Estados.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-021",
+    "topicTags": ["filosofia e sociologia"],
+    "body": "Dilema autoral: uma gestora pode fraudar um relatório para preservar a boa imagem de seu setor. Ela recusa e argumenta: 'Se a falsificação conveniente pudesse valer como regra para todos, os relatórios perderiam a credibilidade de que a própria fraude depende'. Qual orientação filosófica está mais próxima desse raciocínio?",
+    "options": [
+      {"id": "A", "text": "O cálculo utilitarista do saldo agregado de satisfação dos envolvidos.", "isCorrect": false},
+      {"id": "B", "text": "O exame kantiano da possibilidade de universalizar a máxima da ação.", "isCorrect": true},
+      {"id": "C", "text": "O relativismo que considera suficiente a aprovação do grupo profissional.", "isCorrect": false},
+      {"id": "D", "text": "O egoísmo ético que toma a reputação individual como critério decisivo.", "isCorrect": false},
+      {"id": "E", "text": "A obediência à tradição como fundamento independente de justificação racional.", "isCorrect": false}
+    ],
+    "explanation": "A gestora testa a máxima de falsificar por conveniência como regra universal e identifica a destruição da confiança que a prática pressupõe. Isso aproxima o argumento da universalização kantiana. Ela não soma benefícios, consulta a aprovação do grupo nem adota reputação própria ou tradição como critério central.",
+    "difficulty": 4
+  },
+  {
+    "id": "humanas-022",
+    "topicTags": ["filosofia e sociologia", "cultura e sociedade"],
+    "body": "Situação fictícia: uma estudante muda de escola e percebe que interromper a fala alheia provoca olhares de reprovação e advertências. Mesmo discordando da regra, passa a esperar sua vez. Em uma leitura durkheimiana, a situação ilustra:",
+    "options": [
+      {"id": "A", "text": "Uma preferência puramente individual, sem existência anterior à chegada da estudante.", "isCorrect": false},
+      {"id": "B", "text": "Um reflexo biológico que dispensa aprendizagem na convivência escolar.", "isCorrect": false},
+      {"id": "C", "text": "Uma ausência de normas coletivas, já que a estudante inicialmente discorda.", "isCorrect": false},
+      {"id": "D", "text": "Uma norma exterior ao indivíduo cuja força coercitiva aparece nas sanções sociais.", "isCorrect": true},
+      {"id": "E", "text": "Uma relação econômica definida pela compra do direito de participar da conversa.", "isCorrect": false}
+    ],
+    "explanation": "A regra preexiste à estudante e exerce pressão por reprovação e advertência, evidenciando exterioridade e coerção, características do fato social em Durkheim. Coerção não se limita à força física. Discordância individual não elimina a norma, e o cenário não descreve reflexo biológico ou compra de direitos.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-023",
+    "topicTags": ["politica e economia brasileira"],
+    "body": "Dados fictícios de uma família brasileira: em um ano, a renda mensal passa de R$ 2.000 para R$ 2.100. A mesma cesta de bens e serviços que custava R$ 1.000 passa a custar R$ 1.100. Considerando apenas essa cesta como referência de preços, o que ocorre com o poder de compra da renda?",
+    "options": [
+      {"id": "A", "text": "Diminui, porque a renda cresce 5%, enquanto o custo da cesta cresce 10%.", "isCorrect": true},
+      {"id": "B", "text": "Permanece igual, porque renda e cesta aumentam os mesmos R$ 100.", "isCorrect": false},
+      {"id": "C", "text": "Aumenta 5%, porque qualquer crescimento nominal representa ganho real.", "isCorrect": false},
+      {"id": "D", "text": "Diminui 10%, exatamente a variação percentual do preço da cesta.", "isCorrect": false},
+      {"id": "E", "text": "Aumenta 10%, acompanhando a valorização dos bens consumidos.", "isCorrect": false}
+    ],
+    "explanation": "Antes, a renda comprava duas cestas; depois, compra 2.100/1.100, aproximadamente 1,91 cesta. O ganho nominal de 5% fica abaixo da alta de preços de 10%; a perda real é de aproximadamente 4,55% (1,05/1,10 − 1). Variações iguais em reais não implicam variações percentuais iguais, e o cenário não representa um índice oficial de inflação.",
+    "difficulty": 3
+  },
+  {
+    "id": "humanas-024",
+    "topicTags": ["cultura e sociedade", "filosofia e sociologia"],
+    "body": "Situação fictícia: uma comunidade ensina a jovens os ritmos e os passos de uma celebração transmitida por gerações. Na edição mais recente, adapta o percurso para incluir participantes com mobilidade reduzida, mantendo o sentido coletivo da festa. Que interpretação melhor compreende essa prática cultural?",
+    "options": [
+      {"id": "A", "text": "A continuidade cultural exige conservar o percurso original, mesmo que isso exclua participantes.", "isCorrect": false},
+      {"id": "B", "text": "A transmissão aos jovens transforma necessariamente a celebração em produto comercial.", "isCorrect": false},
+      {"id": "C", "text": "Saberes e práticas transmitidos podem manter continuidade cultural enquanto são recriados pela comunidade.", "isCorrect": true},
+      {"id": "D", "text": "A mudança do percurso elimina todos os vínculos entre a festa atual e as gerações anteriores.", "isCorrect": false},
+      {"id": "E", "text": "O valor cultural da celebração reside somente nos objetos físicos utilizados durante o evento.", "isCorrect": false}
+    ],
+    "explanation": "A continuidade de uma prática cultural pode envolver transmissão e recriação, sem imobilidade absoluta. Ritmos, passos e sentidos coletivos não se reduzem aos objetos da festa. A adaptação inclusiva não apaga necessariamente vínculos históricos, e o enunciado não informa comercialização nem reconhecimento patrimonial oficial.",
+    "difficulty": 2
+  }
+]

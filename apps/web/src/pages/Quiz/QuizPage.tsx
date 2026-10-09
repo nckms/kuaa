@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSession, useAnswer, useFinish } from '../../hooks/useQuiz'
@@ -23,7 +23,7 @@ const MOTIVATIONAL_CORRECT = [
   'Correto! Você está no caminho certo.',
   'Muito bem! Conhecimento que abre asas.',
   'Perfeito! Siga em frente.',
-  'Ótimo! Você domina este conteúdo.',
+  'Ótimo! Você acertou esta questão.',
 ]
 
 const MOTIVATIONAL_WRONG = [
@@ -44,15 +44,16 @@ export default function QuizPage() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null)
   const [isConfirmed, setIsConfirmed] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(50 * 60)
+  const [elapsedTime, setElapsedTime] = useState(0)
   const [markedForReview, setMarkedForReview] = useState<Set<string>>(new Set())
   const [answeredMap, setAnsweredMap] = useState<Record<string, AnswerResult>>({})
   const [showFinishModal, setShowFinishModal] = useState(false)
   const [questionStartTime, setQuestionStartTime] = useState(Date.now())
   const [motivationalMsg, setMotivationalMsg] = useState('')
+  const restoredSession = useRef<string | null>(null)
 
   useEffect(() => {
-    const interval = setInterval(() => setTimeLeft((t) => Math.max(0, t - 1)), 1000)
+    const interval = setInterval(() => setElapsedTime((t) => t + 1), 1000)
     return () => clearInterval(interval)
   }, [])
 
@@ -70,10 +71,14 @@ export default function QuizPage() {
       (session.answeredResults ?? []).map((answer) => [answer.questionId, answer]),
     )
     setAnsweredMap(restored)
-    goToQuestion(0)
+    if (restoredSession.current !== session.sessionId) {
+      restoredSession.current = session.sessionId
+      const next = session.questions.findIndex((question) => !session.answeredIds.includes(question.id))
+      goToQuestion(next >= 0 ? next : 0)
+    }
   }, [session, goToQuestion])
 
-  if (isLoading || !session) {
+  if (isLoading) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif' }}>
         <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 16 }}>Carregando sessão...</p>
@@ -81,7 +86,7 @@ export default function QuizPage() {
     )
   }
 
-  if (isError) {
+  if (isError || !session) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, fontFamily: 'Inter, Arial, sans-serif' }}>
         <p style={{ color: '#fca5a5', fontSize: 16 }}>Erro ao carregar a sessão.</p>
@@ -97,7 +102,7 @@ export default function QuizPage() {
 
   async function handleConfirm() {
     if (!selectedOption || !currentQ) return
-    const timeSpentMs = Date.now() - questionStartTime
+    const timeSpentMs = Math.min(300000, Math.max(0, Date.now() - questionStartTime))
     try {
       const result = await answerMutation.mutateAsync({
         questionId: currentQ.id,
@@ -136,8 +141,8 @@ export default function QuizPage() {
 
       {/* Header */}
       <div style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'rgba(26,8,38,.95)', borderBottom: '1px solid rgba(255,255,255,.08)', padding: '14px 24px' }}>
-        <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <div className="quiz-header" style={{ maxWidth: 960, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div className="quiz-title" style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
             <WingGlyph />
             <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 13 }}>{vestibularName} · {topicName}</span>
           </div>
@@ -149,12 +154,13 @@ export default function QuizPage() {
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <button
-              onClick={() => setShowFinishModal(true)}
+              onClick={() => navigate(`/trilha/${session.vestibularSlug}`)}
+              disabled={answerMutation.isPending || finishMutation.isPending}
               style={{ background: 'none', border: '1px solid rgba(255,255,255,.25)', color: 'rgba(255,255,255,.6)', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Inter, Arial, sans-serif' }}
-            >Pausar</button>
+            >Voltar</button>
             <button
               onClick={() => setShowFinishModal(true)}
-              disabled={finishMutation.isPending}
+              disabled={finishMutation.isPending || answerMutation.isPending}
               style={{ backgroundColor: '#840033', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Inter, Arial, sans-serif', fontWeight: 600 }}
             >{finishMutation.isPending ? 'Finalizando...' : 'Finalizar'}</button>
           </div>
@@ -166,6 +172,12 @@ export default function QuizPage() {
 
         {/* Questão */}
         <div>
+          <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
+            {session.generation?.source === 'AI_GENERATED' ? 'Questões geradas por IA; podem conter imprecisões.' : 'Banco de reserva: geração por IA indisponível nesta sessão.'}
+          </p>
+          {(answerMutation.isError || finishMutation.isError) && (
+            <p role="alert" style={{ color: '#fca5a5', marginBottom: 16 }}>Não foi possível salvar. Confira sua conexão e tente novamente.</p>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <span style={{ fontSize: 11, color: '#FFDC5C', letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 700 }}>
               QUESTÃO {currentIndex + 1} DE {total}
@@ -193,7 +205,7 @@ export default function QuizPage() {
               const chosenOptionId = res?.selectedOptionId ?? selectedOption
               const isRestoredSelected = !!res && opt.id === chosenOptionId
               const isConfirmedWrong = res && isRestoredSelected && !res.isCorrect
-              const isDisabled = isConfirmed || isAlreadyAnswered
+              const isDisabled = isConfirmed || isAlreadyAnswered || answerMutation.isPending || finishMutation.isPending
 
               let bg = 'rgba(255,255,255,.05)'
               let border = '1.5px solid rgba(255,255,255,.12)'
@@ -205,14 +217,17 @@ export default function QuizPage() {
               if (isConfirmedWrong) { bg = 'rgba(132,0,51,.4)'; border = '1.5px solid #840033'; letterColor = '#840033' }
 
               return (
-                <div
+                <button
+                  type="button"
+                  disabled={isDisabled}
+                  aria-pressed={isSelected || isRestoredSelected}
                   key={opt.id}
                   onClick={() => { if (!isDisabled) setSelectedOption(opt.id) }}
-                  style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 18px', borderRadius: 14, backgroundColor: bg, border, cursor: isDisabled ? 'default' : 'pointer', transition: 'all 0.15s', opacity: textOpacity }}
+                  style={{ textAlign: 'left', width: '100%', display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 18px', borderRadius: 14, backgroundColor: bg, border, cursor: isDisabled ? 'default' : 'pointer', transition: 'all 0.15s', opacity: textOpacity }}
                 >
                   <span style={{ fontSize: 14, fontWeight: 700, color: letterColor, width: 22, flexShrink: 0, marginTop: 1 }}>{opt.id}</span>
                   <span style={{ fontSize: 15, color: '#fff', lineHeight: 1.5, flex: 1 }}>{opt.text}</span>
-                </div>
+                </button>
               )
             })}
           </div>
@@ -264,11 +279,10 @@ export default function QuizPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Cronômetro */}
           <div style={{ backgroundColor: '#FFDC5C', borderRadius: 20, padding: 20 }}>
-            <p style={{ fontSize: 11, color: 'rgba(83,26,97,.6)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 6 }}>TEMPO RESTANTE</p>
-            <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 40, fontWeight: 700, color: timeLeft < 300 ? '#840033' : '#531A61', letterSpacing: '-0.04em', lineHeight: 1 }}>
-              {formatTime(timeLeft)}
+            <p style={{ fontSize: 11, color: 'rgba(83,26,97,.6)', letterSpacing: 0, textTransform: 'uppercase', marginBottom: 6 }}>TEMPO NESTA VISITA</p>
+            <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 40, fontWeight: 700, color: '#531A61', letterSpacing: 0, lineHeight: 1 }}>
+              {formatTime(elapsedTime)}
             </div>
-            {timeLeft < 300 && <p style={{ color: '#840033', fontSize: 12, marginTop: 6, fontWeight: 700 }}>Menos de 5 minutos!</p>}
           </div>
 
           {/* Progresso */}
@@ -304,16 +318,6 @@ export default function QuizPage() {
             </div>
           </div>
 
-          {/* Corações */}
-          <div style={{ backgroundColor: 'rgba(255,255,255,.06)', borderRadius: 20, padding: 16 }}>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 8 }}>Corações restantes</p>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {Array.from({ length: 5 }).map((_, i) => {
-                const hearts = answerResult?.heartsRemaining ?? 5
-                return <span key={i} style={{ fontSize: 20, color: i < hearts ? '#840033' : 'rgba(255,255,255,.15)' }}>♥</span>
-              })}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -352,7 +356,13 @@ export default function QuizPage() {
       </AnimatePresence>
 
       <style>{`
-        @media (max-width: 768px) { .quiz-grid { grid-template-columns: 1fr !important; } }
+        .quiz-grid > * { min-width: 0; overflow-wrap: anywhere; }
+        .quiz-title svg { flex-shrink: 0; }
+        @media (max-width: 768px) {
+          .quiz-grid { grid-template-columns: minmax(0, 1fr) !important; }
+          .quiz-header { flex-wrap: wrap; gap: 10px !important; }
+          .quiz-title { flex-basis: 100%; }
+        }
       `}</style>
     </div>
   )

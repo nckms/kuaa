@@ -63,7 +63,7 @@ export default function () {
   errorRate.add(!ok1)
   if (!ok1) return
 
-  const { accessToken, refreshToken } = registerRes.json()
+  const { accessToken } = registerRes.json()
   const authParams = {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
   }

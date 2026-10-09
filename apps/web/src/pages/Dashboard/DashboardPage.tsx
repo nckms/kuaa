@@ -67,7 +67,7 @@ function AgendaCard({ borderColor, label, sublabel, time, badge }: { borderColor
 
 export default function DashboardPage() {
   const { user, firstVestibularSlug, enrollments } = useAuthStore()
-  const { data: trail } = useTrail(firstVestibularSlug ?? '')
+  const { data: trail, isLoading, isError, refetch } = useTrail(firstVestibularSlug ?? '')
   const { data: indexData } = useIndex(firstVestibularSlug ?? '')
   const navigate = useNavigate()
   const generateQuiz = useGenerateQuiz()
@@ -95,12 +95,11 @@ export default function DashboardPage() {
   const completedTopics = trail?.summary.completedTopics ?? 0
 
   const subjectMetrics = useMemo(() => (
-    trail?.subjects.slice(0, 3).map((subject) => {
-      const total = subject.topics.length
-      const score = subject.topics.reduce((sum, topic) => sum + topicScore(topic), 0)
-      return { name: subject.name, percent: total > 0 ? Math.round((score / total) * 100) : 0 }
-    }) ?? []
-  ), [trail])
+    trail?.subjects.map((subject) => ({
+      name: subject.name,
+      percent: indexData?.subjectBreakdown.find((item) => item.subjectId === subject.id)?.score ?? null,
+    })) ?? []
+  ), [trail, indexData])
 
   const vestibularName = trail?.vestibular.name ?? (enrollments[0]?.vestibular.name ?? 'ENEM')
   const subtitleMessage = !trail || answeredTopics === 0
@@ -118,9 +117,9 @@ export default function DashboardPage() {
   const dateStr = now.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' }).toUpperCase()
   const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'
 
-  const currentTopic = allTopics.find((topic) => topic.progress.unlocked && !topic.progress.completed)
-  const inProgressTopic = allTopics.find((topic) => topic.progress.unlocked && !topic.progress.completed && (topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0))
-  const recommendedTopic = inProgressTopic ?? currentTopic
+  const currentTopic = allTopics.find((topic) => topic.id === trail?.recommendation?.topicId)
+  const inProgressTopic = currentTopic && currentTopic.progress.answeredQuestionsCount > 0 ? currentTopic : undefined
+  const recommendedTopic = currentTopic
 
   function handleContinueStudy() {
     if (currentTopic) {
@@ -129,6 +128,15 @@ export default function DashboardPage() {
     }
 
     navigate(trailHref)
+  }
+
+  if (isLoading || isError) {
+    return <AppLayout>
+      <div style={{ padding: 28 }} role={isError ? 'alert' : 'status'}>
+        <p>{isError ? 'Nao foi possivel carregar seu progresso.' : 'Carregando seu progresso...'}</p>
+        {isError && <button onClick={() => void refetch()}>Tentar novamente</button>}
+      </div>
+    </AppLayout>
   }
 
   return (
@@ -176,11 +184,13 @@ export default function DashboardPage() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20, backgroundColor: generateQuiz.isPending ? 'rgba(132,0,51,.55)' : '#840033', color: '#fff', padding: '12px 24px', borderRadius: 999, fontSize: 14, fontWeight: 600, textDecoration: 'none', boxShadow: '0 4px 12px -3px rgba(132,0,51,.4)', border: 'none', cursor: generateQuiz.isPending ? 'not-allowed' : 'pointer' }}
             >
               <i className="bi bi-arrow-right" />
-              {generateQuiz.isPending ? 'Preparando...' : 'Continuar de onde parei'}
+              {generateQuiz.isPending ? 'Preparando...' : 'Continuar estudo'}
             </button>
+            {trail?.recommendation && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--muted)' }}>{trail.recommendation.reason}</p>}
+            {generateQuiz.isError && <p role="alert" style={{ color: '#840033', marginTop: 12 }}>Não foi possível preparar a sessão. Tente novamente.</p>}
           </div>
 
-          <div className="dashboard-card" style={{ backgroundColor: '#FFDC5C', borderRadius: 24, padding: 28 }}>
+          <div className="dashboard-card dashboard-index-card" style={{ backgroundColor: '#FFDC5C', borderRadius: 24, padding: 28 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
               <p style={{ fontSize: 11, color: 'rgba(83,26,97,.6)', letterSpacing: '.1em', textTransform: 'uppercase' }}>INDICE KUAA</p>
               <span style={{ backgroundColor: '#840033', color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 999, letterSpacing: '.04em' }}>ATUAL</span>
@@ -193,7 +203,7 @@ export default function DashboardPage() {
             <div className="dashboard-metric-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {subjectMetrics.map((metric) => (
                 <div key={metric.name} style={{ backgroundColor: 'rgba(83,26,97,.08)', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: '#531A61', fontFamily: "'Unbounded', sans-serif", letterSpacing: '-0.02em' }}>{metric.percent}%</p>
+                  <p style={{ fontSize: 17, fontWeight: 700, color: '#531A61', fontFamily: "'Unbounded', sans-serif", letterSpacing: '-0.02em' }}>{metric.percent === null ? '—' : `${metric.percent}%`}</p>
                   <p style={{ fontSize: 10, color: 'rgba(83,26,97,.6)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '.06em' }}>{metric.name}</p>
                 </div>
               ))}
@@ -223,7 +233,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="dashboard-card" style={{ backgroundColor: '#2a0d33', borderRadius: 24, padding: 28 }}>
+          <div className="dashboard-card dashboard-recommendations" style={{ backgroundColor: '#2a0d33', borderRadius: 24, padding: 28 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 18, color: '#fff' }}>Trilhas recomendadas</p>
               <Link to={trailHref} style={{ fontSize: 12, color: '#FFDC5C', textDecoration: 'none', fontWeight: 600 }}>VER TODAS</Link>
@@ -242,6 +252,8 @@ export default function DashboardPage() {
                   <div style={{ marginTop: 8, height: 3, backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 999 }}>
                     <div style={{ width: `${Math.round(topicScore(recommendedTopic) * 100)}%`, height: '100%', backgroundColor: '#FFDC5C', borderRadius: 999 }} />
                   </div>
+                  <p style={{ marginTop: 10, fontSize: 12, color: '#fff' }}>{trail?.recommendation?.reason}</p>
+                  <button className="btn btn-sm btn-light" onClick={handleContinueStudy} disabled={generateQuiz.isPending}>Estudar agora</button>
                 </div>
               ) : (
                 <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 14, textAlign: 'center', padding: '20px 0' }}>Trilha concluida.</p>
@@ -314,9 +326,21 @@ export default function DashboardPage() {
           }
 
           .dashboard-card {
-            border-radius: 18px !important;
-            padding: 20px !important;
+            border-radius: 6px !important;
+            padding: 18px !important;
+            box-shadow: none !important;
+            border: 1px solid var(--line-soft);
           }
+
+          .dashboard-grid { gap: 12px !important; margin-bottom: 12px !important; }
+
+          .dashboard-index-card {
+            background: #fff !important;
+          }
+
+          .dashboard-card button { border-radius: 6px !important; box-shadow: none !important; }
+
+          .dashboard-card span[style*="border-radius: 999px"] { border-radius: 4px !important; }
 
           .dashboard-hero-progress-row,
           .dashboard-chart-head,
@@ -327,7 +351,7 @@ export default function DashboardPage() {
           }
 
           .dashboard-progress-number {
-            font-size: 58px !important;
+            font-size: 42px !important;
             letter-spacing: 0 !important;
           }
 
@@ -336,8 +360,11 @@ export default function DashboardPage() {
           }
 
           .dashboard-metric-grid {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
           }
+
+          .dashboard-metric-grid > div { min-width: 0; }
+          .dashboard-metric-grid p { overflow-wrap: anywhere; }
 
           .dashboard-agenda-list {
             flex-direction: column !important;
@@ -349,7 +376,7 @@ export default function DashboardPage() {
           .agenda-card {
             min-width: 0 !important;
             width: 100% !important;
-            border-radius: 0 14px 14px 0 !important;
+            border-radius: 0 6px 6px 0 !important;
           }
         }
 

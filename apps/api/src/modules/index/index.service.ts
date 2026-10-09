@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma'
+import { getCompletedSimuladoActivity } from '../simulado/simulado.results'
 
 const PT_MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
@@ -7,24 +8,36 @@ function difficultyWeight(difficulty: number): number {
   return 0.5 + 0.5 * difficulty
 }
 
-export async function calculateScore(userId: string, vestibularId: string): Promise<number> {
-  const answers = await prisma.userAnswer.findMany({
+async function getAssessmentAnswers(userId: string, vestibularId: string) {
+  const [answers, simulados] = await Promise.all([prisma.userAnswer.findMany({
     where: {
       userId,
       question: { topic: { subject: { vestibularId } } },
     },
     select: {
       isCorrect: true,
-      question: { select: { difficulty: true } },
+      question: { select: { difficulty: true, topic: { select: { subjectId: true } } } },
     },
-  })
+  }), getCompletedSimuladoActivity(userId, vestibularId)])
+  return [
+    ...answers.map((answer) => ({
+      isCorrect: answer.isCorrect,
+      difficulty: answer.question.difficulty,
+      subjectId: answer.question.topic.subjectId,
+    })),
+    ...simulados.flatMap((attempt) => attempt.answers),
+  ]
+}
+
+export async function calculateScore(userId: string, vestibularId: string): Promise<number> {
+  const answers = await getAssessmentAnswers(userId, vestibularId)
 
   if (answers.length === 0) return 300
 
   let totalWeight = 0
   let correctWeight = 0
   for (const a of answers) {
-    const w = difficultyWeight(a.question.difficulty)
+    const w = difficultyWeight(a.difficulty)
     totalWeight += w
     if (a.isCorrect) correctWeight += w
   }
@@ -33,27 +46,13 @@ export async function calculateScore(userId: string, vestibularId: string): Prom
 }
 
 async function calculateSubjectScores(userId: string, vestibularId: string): Promise<Record<string, number>> {
-  const answers = await prisma.userAnswer.findMany({
-    where: {
-      userId,
-      question: { topic: { subject: { vestibularId } } },
-    },
-    select: {
-      isCorrect: true,
-      question: {
-        select: {
-          difficulty: true,
-          topic: { select: { subject: { select: { id: true } } } },
-        },
-      },
-    },
-  })
+  const answers = await getAssessmentAnswers(userId, vestibularId)
 
   const bySubject: Record<string, { correctWeight: number; totalWeight: number }> = {}
   for (const a of answers) {
-    const subjectId = a.question.topic.subject.id
+    const subjectId = a.subjectId
     if (!bySubject[subjectId]) bySubject[subjectId] = { correctWeight: 0, totalWeight: 0 }
-    const w = difficultyWeight(a.question.difficulty)
+    const w = difficultyWeight(a.difficulty)
     bySubject[subjectId].totalWeight += w
     if (a.isCorrect) bySubject[subjectId].correctWeight += w
   }

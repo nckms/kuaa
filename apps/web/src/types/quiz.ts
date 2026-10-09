@@ -12,6 +12,7 @@ export interface QuizQuestion {
 }
 
 export interface SessionData {
+  generation?: { source: 'AI_GENERATED' | 'CURATED'; promptVersion?: string; referenceIds?: string[] } | null
   sessionId: string
   topicId: string
   topicName: string
@@ -45,7 +46,7 @@ export interface ReviewQuestion {
   id: string
   body: string
   options: Array<QuizOption & { isCorrect: boolean }>
-  userAnswerId: string
+  userAnswerId: string | null
   isCorrect: boolean
   explanation: string
 }

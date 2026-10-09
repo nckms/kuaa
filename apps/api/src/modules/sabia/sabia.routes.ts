@@ -1,8 +1,11 @@
 import { Router } from 'express'
 import { requireAuth } from '../../middleware/requireAuth'
 import { sabiaRateLimit } from '../../middleware/sabiaRateLimit'
-import { ask } from './sabia.controller'
+import { ask, history, conversations } from './sabia.controller'
 
 export const sabiaRouter = Router()
 
-sabiaRouter.post('/ask', requireAuth, sabiaRateLimit, ask)
+sabiaRouter.use(requireAuth)
+sabiaRouter.get('/history', history)
+sabiaRouter.get('/conversations', conversations)
+sabiaRouter.post('/ask', sabiaRateLimit, ask)

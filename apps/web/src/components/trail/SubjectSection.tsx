@@ -1,7 +1,7 @@
 import type { TrailSubject, TrailTopic } from '../../types/trail'
 import { getIcon } from '../../utils/iconMap'
-import TopicNode from './TopicNode'
 import ProgressBar from '../ui/ProgressBar'
+import './SubjectSection.css'
 
 interface SubjectSectionProps {
   subject: TrailSubject
@@ -10,64 +10,50 @@ interface SubjectSectionProps {
 }
 
 export default function SubjectSection({ subject, activeTopicId, onTopicClick }: SubjectSectionProps) {
-  const completedCount = subject.topics.filter((t) => t.progress.completed).length
-  const answeredCount = subject.topics.filter((t) => t.progress.sessionsCount > 0 || t.progress.answeredQuestionsCount > 0).length
+  const completedCount = subject.topics.filter((topic) => topic.progress.completed).length
+  const answeredCount = subject.topics.filter((topic) => topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0).length
   const totalCount = subject.topics.length
-  const progressScore = subject.topics.reduce((sum, topic) => {
-    if (topic.progress.completed) return sum + 1
-    if (topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0) return sum + 0.5
-    return sum
-  }, 0)
+  const progressScore = subject.topics.reduce((sum, topic) => sum + (topic.progress.completed ? 1 : topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0 ? 0.5 : 0), 0)
   const progressPercent = totalCount > 0 ? Math.round((progressScore / totalCount) * 100) : 0
-  const subjectIcon = getIcon(subject.iconSlug)
+  const currentId = activeTopicId ?? subject.topics.find((topic) => topic.progress.unlocked && !topic.progress.completed)?.id
 
   return (
-    <section style={{ paddingBottom: 40 }}>
-      <div className="card border-0 shadow-sm mx-auto" style={{ maxWidth: 520, borderRadius: 8 }}>
-        <div className="card-body">
-          <div className="d-flex align-items-center gap-3">
-            <div className="rounded-3 d-grid flex-shrink-0" style={{ width: 48, height: 48, placeItems: 'center', backgroundColor: 'var(--roxo-light)', color: '#531A61' }}>
-              <i className={`bi ${subjectIcon}`} style={{ fontSize: 24 }} />
-            </div>
-            <div className="flex-grow-1 min-w-0">
-              <div className="d-flex justify-content-between align-items-center gap-3 mb-2">
-                <h3 className="mb-0 text-truncate" style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: 'var(--text)' }}>{subject.name}</h3>
-                <span className="text-muted flex-shrink-0" style={{ fontSize: 12 }}>{completedCount}/{totalCount}</span>
-              </div>
-              <ProgressBar value={progressPercent} color="vinho" size="sm" />
-              {answeredCount > 0 && (
-                <p className="mb-0 text-muted mt-1" style={{ fontSize: 11 }}>{answeredCount} topico(s) respondido(s)</p>
-              )}
-            </div>
-          </div>
+    <section className="study-path" aria-label={`Trilha de ${subject.name}`}>
+      <header className="study-path-heading">
+        <div className="study-path-heading-title">
+          <i className={`bi ${getIcon(subject.iconSlug)}`} aria-hidden="true" />
+          <h3>{subject.name}</h3>
+          <span>{completedCount}/{totalCount} etapas</span>
         </div>
-      </div>
-
-      <div className="d-flex flex-column align-items-center pt-4">
+        <ProgressBar value={progressPercent} color="vinho" size="sm" />
+        <p>{answeredCount} {answeredCount === 1 ? 'tópico respondido' : 'tópicos respondidos'}</p>
+      </header>
+      <ol className="study-path-stages">
         {subject.topics.map((topic, index) => {
-          const prevTopic = index > 0 ? subject.topics[index - 1] : null
-          const connectorColor = prevTopic?.progress.completed
-            ? (topic.progress.unlocked ? '#531A61' : '#dfe3e8')
-            : '#dfe3e8'
-          const offset = index % 2 === 0 ? -28 : 28
-
-          return (
-            <div key={topic.id} className="d-flex flex-column align-items-center">
-              {index > 0 && (
-                <div style={{ width: 2, height: 38, borderLeft: `2px dashed ${connectorColor}` }} />
-              )}
-              <div className="trail-topic-offset" style={{ transform: `translateX(${offset}px)` }}>
-                <TopicNode
-                  topic={topic}
-                  icon={subjectIcon}
-                  isActive={activeTopicId === topic.id}
-                  onClick={(t) => onTopicClick(t, subject)}
-                />
-              </div>
-            </div>
-          )
+          const { progress } = topic
+          const current = topic.id === currentId && progress.unlocked
+          const answered = progress.answeredQuestionsCount > 0
+          const state = progress.completed ? 'complete' : !progress.unlocked ? 'locked' : current ? 'current' : 'available'
+          const status = progress.completed ? 'Concluído' : !progress.unlocked ? 'Próxima etapa' : answered ? 'Em andamento' : current ? 'Comece aqui' : 'Disponível'
+          const icon = progress.completed ? 'bi-check-lg' : !progress.unlocked ? 'bi-lock' : current ? 'bi-arrow-right' : 'bi-book'
+          const contents = <>
+            <span className="study-path-marker"><i className={`bi ${icon}`} aria-hidden="true" /><span className="study-path-number">{String(index + 1).padStart(2, '0')}</span></span>
+            <span className="study-path-caption">
+              <span className="study-path-status">{status}</span>
+              <strong>{topic.name}</strong>
+              {answered ? <small>{progress.correctAnswersCount}/{progress.answeredQuestionsCount} acertos{progress.accuracy !== null ? ` · ${Math.round(progress.accuracy)}%` : ''}</small> : !progress.unlocked ? <small>Conclua a etapa anterior</small> : null}
+              {current && <span className="study-path-action">{answered ? 'Continuar' : 'Estudar'} <i className="bi bi-arrow-up-right" aria-hidden="true" /></span>}
+            </span>
+          </>
+          return <li key={topic.id} className={`study-path-stage is-${state} ${index % 2 ? 'is-right' : 'is-left'}`}>
+            {index < totalCount - 1 && <svg className="study-path-connector" viewBox="0 0 400 168" preserveAspectRatio="none" aria-hidden="true">
+              <path d={index % 2 ? 'M288 40 C288 122 112 86 112 208' : 'M112 40 C112 122 288 86 288 208'} />
+            </svg>}
+            {progress.unlocked ? <button type="button" className="study-path-step" aria-current={current ? 'step' : undefined} onClick={() => onTopicClick(topic, subject)}>{contents}</button> : <div className="study-path-step">{contents}</div>}
+          </li>
         })}
-      </div>
+      </ol>
+      <div className="study-path-end"><i className="bi bi-flag" aria-hidden="true" /><span>{completedCount === totalCount ? 'Percurso concluído' : `Seu percurso em ${subject.name}`}</span></div>
     </section>
   )
 }

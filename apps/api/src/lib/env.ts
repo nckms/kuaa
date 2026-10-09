@@ -9,6 +9,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   // Opcionais — o sistema já degrada bem sem eles
   GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-3.5-flash-lite'),
+  SABIA_MODEL: z.string().default('gemini-3.5-flash-lite'),
   REDIS_URL: z.string().optional(),
   FRONTEND_URL: z.string().optional(),
 })

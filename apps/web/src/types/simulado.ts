@@ -10,6 +10,9 @@ export interface SimuladoQuestion {
   subjectName: string
   subjectSlug: string
   body: string
+  source?: string
+  correctOptionId?: string | null
+  explanation?: string | null
   options: SimuladoOption[]
 }
 

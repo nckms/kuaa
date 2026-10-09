@@ -62,6 +62,17 @@ Deixe `GEMINI_API_KEY=` vazio — os testes usam fallback questions automaticame
 npm test
 ```
 
+Para usar outro banco de teste sem alterar `.env.test`, defina `TEST_DATABASE_URL`.
+No PowerShell, a partir da raiz do repositorio:
+
+```powershell
+$env:TEST_DATABASE_URL='postgresql://USER:PASS@localhost:5432/kuaa_test'
+npm.cmd test --workspace=apps/api
+```
+
+A URL deve apontar para o schema `test_vitest` ou um banco com sufixo `_test`.
+Os testes desabilitam chamadas Gemini e nao dependem de Redis.
+
 O `globalSetup` cria o schema de teste, aplica migrations e roda o seed automaticamente. O `teardown` descarta o schema ao final.
 
 ---

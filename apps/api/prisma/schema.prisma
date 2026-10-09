@@ -34,6 +34,8 @@ model User {
   hearts         Int       @default(5)
   lastActivityAt DateTime?
   emailVerified  Boolean   @default(false)
+  preferences    Json      @default("{}")
+  activeVestibularId String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -45,6 +47,9 @@ model User {
   refreshTokens     RefreshToken[]
   indexSnapshots    IndexSnapshot[]
   simuladoAttempts  SimuladoAttempt[]
+  usabilityEvaluation UsabilityEvaluation?
+  sabiaMessages SabiaMessage[]
+  sabiaConversations SabiaConversation[]
 }
 
 model RefreshToken {
@@ -146,6 +151,7 @@ model QuizSession {
   wrong              Int          @default(0)
   skipped            Int          @default(0)
   isPerfect          Boolean      @default(false)
+  generationMetadata Json?
   user               User         @relation(fields: [userId], references: [id])
   topic              Topic        @relation(fields: [topicId], references: [id])
   answers            UserAnswer[]
@@ -231,4 +237,41 @@ model UserAchievement {
   achievement   Achievement @relation(fields: [achievementId], references: [id])
 
   @@id([userId, achievementId])
+}
+
+model UsabilityEvaluation {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  answers   Json
+  score     Float
+  feedback  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SabiaMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversationId String?
+  conversation SabiaConversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([conversationId, createdAt])
+}
+
+model SabiaConversation {
+  id String @id @default(cuid())
+  userId String
+  title String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages SabiaMessage[]
+
+  @@index([userId, updatedAt])
 }
