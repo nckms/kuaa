@@ -17,6 +17,7 @@ export interface TrailTopic {
   description: string
   order: number
   xpReward: number
+  guideAvailable: boolean
   progress: TopicProgress
 }
 

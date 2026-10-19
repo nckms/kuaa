@@ -1,0 +1,29 @@
+.study-page { min-height: 100vh; background: #faf8f3; color: #25212a; padding: 24px 20px 80px; overflow-wrap: anywhere; }
+.study-inner { width: min(100%, 760px); margin: 0 auto; }
+.study-back { border: 0; background: none; color: #531a61; padding: 8px 0; font-weight: 600; }
+.study-header { border-bottom: 1px solid #ded9d5; padding: 28px 0; }
+.study-header > p { margin: 0 0 8px; color: #6f6575; font-size: 13px; }
+.study-header h1 { margin: 0 0 20px; font-size: clamp(25px, 3vw, 34px); line-height: 1.2; }
+.study-objective { border-left: 3px solid #237463; padding: 8px 0 8px 16px; line-height: 1.6; }
+.study-section { padding: 30px 0; border-bottom: 1px solid #ded9d5; }
+.study-section h2 { font-size: 20px; margin: 0 0 16px; }
+.study-section p, .study-section li { font-size: 16px; line-height: 1.7; }
+.study-section > p + p { margin-top: 14px; }
+.study-section ol { list-style: decimal; padding-left: 24px; margin: 14px 0; }
+.study-section li { margin-bottom: 8px; }
+.study-example { background: #f0f5f3; margin-inline: -20px; padding-inline: 20px; }
+.study-answer { font-weight: 500; }
+.study-errors { display: grid; gap: 14px; }
+.study-errors article { border-left: 3px solid #a4515c; padding: 2px 0 2px 16px; }
+.study-errors h3 { font-size: 15px; line-height: 1.5; margin: 0 0 6px; }
+.study-errors p { margin: 0; font-size: 14px; }
+.study-options { display: grid; gap: 8px; }
+.study-options button { min-height: 48px; text-align: left; padding: 10px 14px; border: 1px solid #a9a0aa; border-radius: 6px; color: inherit; background: #fff; }
+.study-options button.selected { border: 2px solid #237463; background: #eff7f3; }
+.study-options button:focus-visible, .study-actions button:focus-visible, .study-back:focus-visible { outline: 3px solid #237463; outline-offset: 3px; }
+.study-feedback { border-left: 3px solid #237463; padding-left: 14px; margin-top: 18px; }
+.study-actions { padding-top: 30px; }
+.study-actions button { width: 100%; min-height: 50px; border: 0; border-radius: 6px; background: #531a61; color: #fff; font-weight: 700; }
+.study-actions button:disabled { opacity: .6; }
+.study-actions p { color: #840033; }
+@media (max-width: 540px) { .study-page { padding: 16px 16px 80px; } .study-example { margin-inline: -16px; padding-inline: 16px; } .study-section { padding-block: 24px; } }

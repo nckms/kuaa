@@ -155,6 +155,14 @@ export default function ResultPage() {
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32 }}>
+            {summary.guideAvailable && (wrong > 0 || summary.skipped > 0) && (
+              <button
+                onClick={() => navigate(`/estudar/${summary.topicId}`)}
+                style={{ width: '100%', padding: 14, borderRadius: 6, backgroundColor: '#f0f5f3', border: 'none', color: '#163d34', cursor: 'pointer', fontSize: 15, fontWeight: 700 }}
+              >
+                Estudar os pontos de dúvida
+              </button>
+            )}
             <button
               onClick={() => navigate(`/revisao/${sessionId}`, { state: { questions, topicName, vestibularSlug, correct, total: correct + wrong + summary.skipped, accuracy } })}
               style={{ width: '100%', padding: 14, borderRadius: 12, backgroundColor: 'transparent', border: '1.5px solid rgba(255,255,255,.25)', color: '#fff', cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, Arial, sans-serif' }}

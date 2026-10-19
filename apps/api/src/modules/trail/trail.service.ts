@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma'
 import { initialDifficulty, readDiagnostic, summarizeDiagnostic } from '../diagnostic/diagnostic.engine'
+import { getStudyGuide } from '../study/guides'
 import { redis } from '../../lib/redis'
 import { makeError } from '../../utils/errors'
 import { getCompletedSimuladoActivity } from '../simulado/simulado.results'
@@ -24,6 +25,7 @@ interface TrailTopicShape {
   description: string
   order: number
   xpReward: number
+  guideAvailable: boolean
   progress: TopicProgressShape
 }
 
@@ -317,6 +319,7 @@ class TrailService {
           description: topic.description,
           order: topic.order,
           xpReward: topic.xpReward,
+          guideAvailable: getStudyGuide(topic.name) !== null,
           activity: summarizeActivity(activity?.answers ?? []),
           progress: {
             masteryLevel: prog?.masteryLevel ?? 0,

@@ -23,6 +23,7 @@ import SimuladoPage from './pages/Quiz/SimuladoPage'
 import SabiaPage from './pages/Sabia/SabiaPage'
 import SettingsPage from './pages/Settings/SettingsPage'
 import EvaluationPage from './pages/Evaluation/EvaluationPage'
+import StudyPage from './pages/Study/StudyPage'
 
 function TrailIndex() {
   const navigate = useNavigate()
@@ -81,6 +82,7 @@ function AppRoutes() {
         <Route path="/diagnostico/:vestibularSlug" element={<DiagnosticPage />} />
         <Route path="/trilha" element={<TrailIndex />} />
         <Route path="/trilha/:vestibularSlug" element={<TrailPage />} />
+        <Route path="/estudar/:topicId" element={<StudyPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/quiz/loading/:sessionId" element={<QuizLoadingPage />} />
         <Route path="/quiz/:sessionId" element={<QuizPage />} />

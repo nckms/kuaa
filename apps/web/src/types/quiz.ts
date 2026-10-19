@@ -67,7 +67,9 @@ export interface ReviewQuestion extends QuestionMediaData {
 
 export interface SessionSummary {
   sessionId: string
+  topicId: string
   topicName: string
+  guideAvailable: boolean
   vestibularSlug: string
   xpEarned: number
   correct: number

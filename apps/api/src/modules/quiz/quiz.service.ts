@@ -11,6 +11,7 @@ import type { GenerateInput, AnswerInput } from './quiz.schemas'
 import type { AnswerResult, SessionSummary, AchievementData, QuestionOption, ReviewQuestion, GenerationJobData } from './quiz.types'
 import { generateCuratedQuestions as generateFallbackQuestions, getCuratedQuestions } from './curatedQuestions'
 import { invalidateTrailCache, trailService } from '../trail/trail.service'
+import { getStudyGuide } from '../study/guides'
 import { captureSnapshot } from '../index/index.service'
 import { buildFewShotContext, selectReferences, validateGeneratedQuestions, generationResponseSchema, PROMPT_VERSION } from './fewShot'
 import { getQuestionMedia, readQuestionMedia } from './questionMedia'
@@ -671,7 +672,9 @@ class QuizService {
 
     return { vestibularId: session.topic.subject.vestibularId, summary: {
       sessionId,
+      topicId: session.topic.id,
       topicName: session.topic.name,
+      guideAvailable: getStudyGuide(session.topic.name) !== null,
       vestibularSlug: session.topic.subject.vestibular.slug,
       xpEarned,
       correct,
@@ -740,7 +743,9 @@ class QuizService {
 
     return {
       sessionId,
+      topicId: session.topic.id,
       topicName: session.topic.name,
+      guideAvailable: getStudyGuide(session.topic.name) !== null,
       vestibularSlug: session.topic.subject.vestibular.slug,
       xpEarned: session.xpEarned,
       correct: session.correct,

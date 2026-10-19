@@ -3,6 +3,7 @@ import type { TrailSubject, TrailTopic } from '../../types/trail'
 import { getIcon } from '../../utils/iconMap'
 import ProgressBar from '../ui/ProgressBar'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
+import { useNavigate } from 'react-router-dom'
 
 interface TopicModalProps {
   topic: TrailTopic | null
@@ -11,6 +12,7 @@ interface TopicModalProps {
 }
 
 export default function TopicModal({ topic, subject, onClose }: TopicModalProps) {
+  const navigate = useNavigate()
   const generateMutation = useGenerateQuiz()
   const answeredQuestions = topic?.progress.answeredQuestionsCount ?? 0
   const correctAnswers = topic?.progress.correctAnswersCount ?? 0
@@ -115,6 +117,17 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
 
                 <hr className="my-3" />
 
+                {topic.guideAvailable && (
+                  <button
+                    className="btn w-100 d-flex align-items-center justify-content-center gap-2 fw-semibold mb-2"
+                    onClick={() => navigate(`/estudar/${topic.id}`)}
+                    style={{ minHeight: 46, border: '1px solid #531A61', color: '#531A61' }}
+                  >
+                    <i className="bi bi-book" />
+                    Estudar este tópico
+                  </button>
+                )}
+
                 <button
                   className="btn w-100 rounded-pill d-flex align-items-center justify-content-center gap-2 text-white fw-bold"
                   onClick={handleStart}
@@ -129,7 +142,7 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
                   ) : (
                     <>
                       <i className="bi bi-play-fill" />
-                      {getButtonLabel()}
+                      {topic.guideAvailable ? 'Praticar agora' : getButtonLabel()}
                     </>
                   )}
                 </button>
