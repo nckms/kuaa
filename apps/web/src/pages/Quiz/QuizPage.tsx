@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSession, useAnswer, useFinish } from '../../hooks/useQuiz'
 import ProgressBar from '../../components/ui/ProgressBar'
+import QuestionMedia from '../../components/quiz/QuestionMedia'
 import type { AnswerResult } from '../../types/quiz'
 
 const WingGlyph = () => (
@@ -171,7 +172,7 @@ export default function QuizPage() {
       <div style={{ flex: 1, maxWidth: 960, margin: '0 auto', width: '100%', padding: '32px 24px 80px', display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }} className="quiz-grid">
 
         {/* Questão */}
-        <div>
+        <div style={{ minWidth: 0 }}>
           <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
             {session.generation?.source === 'AI_GENERATED' ? 'Questões geradas por IA; podem conter imprecisões.' : 'Banco de reserva: geração por IA indisponível nesta sessão.'}
           </p>
@@ -195,6 +196,7 @@ export default function QuizPage() {
           </div>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 16 }}>{subjectName} · Nível {currentQ.difficulty}/5</p>
           <p style={{ fontSize: 18, color: '#fff', lineHeight: 1.8 }}>{currentQ.body}</p>
+          <QuestionMedia key={currentQ.id} {...currentQ} />
 
           {/* Opções */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 24 }}>

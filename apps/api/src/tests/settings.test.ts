@@ -15,7 +15,7 @@ describe('User settings', () => {
     const { token } = await registerAndLogin('settings_defaults')
     const res = await api.get('/api/v1/users/me').set('Authorization', `Bearer ${token}`)
     expect(res.status).toBe(200)
-    expect(res.body.preferences).toEqual({ dailyStudyMinutes: 30, reducedMotion: false, highContrast: false })
+    expect(res.body.preferences).toEqual({ dailyStudyMinutes: 30, reducedMotion: false, highContrast: false, enemLanguage: 'ingles' })
     expect(res.body.activeVestibularId).toBeNull()
     expect(res.body).not.toHaveProperty('passwordHash')
   })
@@ -25,7 +25,7 @@ describe('User settings', () => {
     await testPrisma.user.update({ where: { id: userId }, data: { preferences: { dailyStudyMinutes: 60, highContrast: true, futurePreference: 'preserved' } } })
     const patch = await api.patch('/api/v1/users/me').set('Authorization', `Bearer ${token}`).send({ preferences: { reducedMotion: true }, name: 'Novo Nome' })
     expect(patch.status).toBe(200)
-    expect(patch.body.preferences).toEqual({ dailyStudyMinutes: 60, highContrast: true, reducedMotion: true, futurePreference: 'preserved' })
+    expect(patch.body.preferences).toEqual({ dailyStudyMinutes: 60, highContrast: true, reducedMotion: true, enemLanguage: 'ingles', futurePreference: 'preserved' })
     expect(patch.body.name).toBe('Novo Nome')
     expect(patch.body).not.toHaveProperty('passwordHash')
     const read = await api.get('/api/v1/users/me').set('Authorization', `Bearer ${token}`)
@@ -36,7 +36,7 @@ describe('User settings', () => {
 
   it.each([
     { dailyStudyMinutes: 4 }, { dailyStudyMinutes: 241 }, { dailyStudyMinutes: 30.5 },
-    { dailyStudyMinutes: '30' }, { reducedMotion: 'false' }, { highContrast: 1 }, { unknown: true },
+    { dailyStudyMinutes: '30' }, { reducedMotion: 'false' }, { highContrast: 1 }, { unknown: true }, { enemLanguage: 'frances' },
   ])('rejects invalid preferences %j without changing stored settings', async (preferences) => {
     const { token } = await registerAndLogin('settings_invalid')
     const res = await api.patch('/api/v1/users/me').set('Authorization', `Bearer ${token}`).send({ preferences })

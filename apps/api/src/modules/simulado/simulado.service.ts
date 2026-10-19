@@ -7,6 +7,7 @@ import { shuffleOptions } from '../quiz/quiz.service'
 import { invalidateTrailCache } from '../trail/trail.service'
 import { captureSnapshot } from '../index/index.service'
 import { SIMULADO_DURATION_SECONDS, scoreAttempt, type StoredQuestion } from './simulado.results'
+import { getQuestionMedia, readQuestionMedia } from '../quiz/questionMedia'
 
 const TOTAL_QUESTIONS = 45
 export { SIMULADO_DURATION_SECONDS } from './simulado.results'
@@ -33,7 +34,7 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a
 }
 
-async function buildQuestions(vestibularId: string, vestibularName: string): Promise<StoredQuestion[]> {
+async function buildQuestions(vestibularId: string, vestibularName: string, language: 'ingles' | 'espanhol'): Promise<StoredQuestion[]> {
   const subjects = await prisma.subject.findMany({
     where: { vestibularId },
     orderBy: { order: 'asc' },
@@ -49,24 +50,28 @@ async function buildQuestions(vestibularId: string, vestibularName: string): Pro
           name: true,
           questions: {
             where: { active: true, generatedForSessionId: null, source: { in: ['CURATED', 'OFFICIAL'] } },
-            select: { id: true, topicId: true, body: true, options: true, difficulty: true, source: true, explanation: true },
+            select: { id: true, topicId: true, body: true, options: true, difficulty: true, source: true, explanation: true, imageUrl: true, media: true },
           },
         },
       },
     },
   })
 
-  const perSubject = subjects.map((s) => ({
+  const eligibleSubjects = subjects.filter((subject) => !vestibularName.toLowerCase().includes('enem')
+    || (subject.weight > 0 && subject.slug !== 'redacao'
+      && !(['ingles', 'espanhol'].includes(subject.slug) && subject.slug !== language)))
+  const perSubject = eligibleSubjects.map((s) => ({
     id: s.id,
     name: s.name,
     slug: s.slug,
     weight: s.weight,
     firstTopic: s.topics[0] ?? null,
     questions: s.topics.flatMap((topic) => [
-      ...topic.questions,
+      ...topic.questions.map((question) => ({ ...question, ...readQuestionMedia(question.imageUrl, question.media) })),
       ...getCuratedQuestions(topic.name).map((question) => ({
         id: randomUUID(), topicId: topic.id, body: question.body, options: question.options,
         difficulty: question.difficulty, source: 'CURATED' as const, explanation: question.explanation,
+        ...getQuestionMedia(question),
       })),
     ]),
   })).filter((subject) => subject.firstTopic)
@@ -116,6 +121,7 @@ async function buildQuestions(vestibularId: string, vestibularName: string): Pro
         source: q.source,
         explanation: q.explanation,
         body: q.body,
+        ...getQuestionMedia(q),
         // Embaralha opções antes de armazenar — garante posição aleatória independente da fonte
         options: shuffleOptions((q.options as unknown as StoredQuestion['options'])
           .filter((option, index, options) => !vestibularName.toLowerCase().includes('unicamp')
@@ -139,6 +145,7 @@ async function buildQuestions(vestibularId: string, vestibularName: string): Pro
         id: q.id, order: 0, subjectId: subj.id, subjectName: subj.name, subjectSlug: subj.slug,
         topicId: q.topicId, difficulty: q.difficulty, source: q.source,
         explanation: q.explanation, body: q.body,
+        ...getQuestionMedia(q),
         options: shuffleOptions(options.filter((_, index) => index !== omit)),
       })
     }
@@ -180,6 +187,7 @@ function formatAttempt(attempt: {
       subjectName: q.subjectName,
       subjectSlug: q.subjectSlug,
       body: q.body,
+      ...readQuestionMedia(q.imageUrl, q),
       source: q.source ?? 'UNKNOWN',
       options: q.options.map(({ id, text }) => ({ id, text })),
       ...(attempt.finishedAt ? {
@@ -218,7 +226,10 @@ export async function startOrGetSimulado(vestibularId: string, vestibularName: s
     )
   }
 
-  const questions = await buildQuestions(vestibularId, vestibularName)
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { preferences: true } })
+  const preferences = user.preferences as Prisma.JsonObject | null
+  const questions = await buildQuestions(vestibularId, vestibularName,
+    preferences?.enemLanguage === 'espanhol' ? 'espanhol' : 'ingles')
   if (questions.length === 0) {
     throw makeError('Nao foi possivel preparar todas as questoes. Tente novamente.', 503, 'NO_QUESTIONS')
   }

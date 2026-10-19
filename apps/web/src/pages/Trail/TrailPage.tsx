@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTrail } from '../../hooks/useTrail'
 import { useAuthStore } from '../../stores/auth.store'
 import { useMyEnrollments } from '../../hooks/useEnrollments'
@@ -7,6 +7,7 @@ import AppLayout from '../../components/layout/AppLayout'
 import ProgressBar from '../../components/ui/ProgressBar'
 import StatChip from '../../components/ui/StatChip'
 import SubjectSection from '../../components/trail/SubjectSection'
+import SubjectNavigation from '../../components/trail/SubjectNavigation'
 import TopicModal from '../../components/trail/TopicModal'
 import { getIcon } from '../../utils/iconMap'
 import type { TrailSubject, TrailTopic } from '../../types/trail'
@@ -215,7 +216,7 @@ export default function TrailPage() {
         </div>
 
         {trail && (
-          <div className="trail-subject-tabs d-flex gap-2 overflow-auto pb-1">
+          <SubjectNavigation activeId={currentSubjectId}>
             {trail.subjects.map((subject) => {
               const total = subject.topics.length
               const score = subject.topics.reduce((sum, topic) => {
@@ -246,11 +247,18 @@ export default function TrailPage() {
                 </button>
               )
             })}
-          </div>
+          </SubjectNavigation>
         )}
       </div>
 
       <div className="trail-content" style={{ padding: '24px 0 40px' }}>
+        <section className="trail-recommendation" aria-label="Diagnóstico inicial">
+          <div>
+            <h2>Diagnóstico inicial</h2>
+            <p className="mb-0 text-muted" style={{ fontSize: 13 }}>Opcional: personalize seu ponto de partida ou retome de onde parou.</p>
+            <Link to={`/diagnostico/${vestibularSlug}`}>Abrir diagnóstico</Link>
+          </div>
+        </section>
         {trail?.recommendation && (() => {
           const subject = trail.subjects.find((item) => item.topics.some((topic) => topic.id === trail.recommendation!.topicId))
           const topic = subject?.topics.find((item) => item.id === trail.recommendation!.topicId)
@@ -295,7 +303,14 @@ export default function TrailPage() {
         .trail-recommendation-label { font-size: 11px; color: #840033; margin: 0 0 4px; font-weight: 600; }
         .trail-recommendation h2 { font-size: 16px; line-height: 1.4; margin: 0; color: var(--text); }
         .trail-recommendation button { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid #d9cddd; background: white; border-radius: 50%; color: #531a61; }
+        .trail-subject-navigation { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .trail-subject-arrow { flex: 0 0 36px; height: 40px; border: 1px solid var(--line-soft); border-radius: 6px; background: white; color: #531a61; }
+        .trail-subject-arrow:disabled { opacity: .3; }
         .trail-subject-tabs {
+          min-width: 0;
+          flex: 1;
+          overflow-x: auto !important;
+          flex-wrap: nowrap !important;
           scrollbar-width: none;
           -webkit-overflow-scrolling: touch;
         }
@@ -319,14 +334,14 @@ export default function TrailPage() {
           }
 
           .trail-subject-tab {
-            flex: 1 1 calc(50% - 8px) !important;
+            flex: 0 0 auto !important;
             justify-content: center !important;
             min-width: 0;
           }
 
           .trail-subject-tabs {
-            flex-wrap: wrap !important;
-            overflow-x: visible !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
           }
 
           .trail-subject-tab span:nth-child(2) {

@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma'
+import { initialDifficulty, readDiagnostic, summarizeDiagnostic } from '../diagnostic/diagnostic.engine'
 import { redis } from '../../lib/redis'
 import { makeError } from '../../utils/errors'
 import { getCompletedSimuladoActivity } from '../simulado/simulado.results'
@@ -335,7 +336,18 @@ class TrailService {
     }))
 
     const allTopics = subjects.flatMap((s) => s.topics)
-    const recommendation = recommendTopic(allTopics)
+    const diagnostic = readDiagnostic(enrollment.diagnostic)
+    const estimates = diagnostic?.finishedAt ? summarizeDiagnostic(diagnostic) : []
+    const ranked = subjects.flatMap((subject) => {
+      const area = diagnostic?.areas.find((item) => item.subjectIds.includes(subject.id))
+      const estimate = estimates.find((item) => item.key === area?.key)
+      return subject.topics.map((topic) => ({ ...topic,
+        initialDifficulty: initialDifficulty(enrollment.diagnostic, subject.id),
+        priority: estimate ? estimate.correct / Math.max(1, estimate.answered) : 2,
+        selfReported: diagnostic?.profile.difficultSubjects.includes(subject.id) ?? false,
+      }))
+    }).sort((a, b) => a.priority - b.priority || Number(b.selfReported) - Number(a.selfReported))
+    const recommendation = recommendTopic(ranked)
     const recommended = allTopics.find((topic) => topic.id === recommendation?.topicId)
     if (recommended && !recommended.progress.unlocked) {
       await prisma.userTopicProgress.update({

@@ -113,6 +113,7 @@ model Question {
   topicId               String
   body                  String
   imageUrl              String?
+  media                 Json?
   options               Json
   explanation           String
   difficulty            Int
@@ -134,6 +135,7 @@ model Enrollment {
   userId       String
   vestibularId String
   enrolledAt   DateTime   @default(now())
+  diagnostic   Json?
   user         User       @relation(fields: [userId], references: [id])
   vestibular   Vestibular @relation(fields: [vestibularId], references: [id])
 

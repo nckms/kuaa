@@ -90,7 +90,7 @@ export default function SelectVestibular() {
 
     enroll.mutate(selectedId, {
       onSuccess: () => {
-        navigate(`/trilha/${vestibular.slug}`)
+        navigate(`/diagnostico/${vestibular.slug}`)
       },
     })
   }
@@ -124,7 +124,7 @@ export default function SelectVestibular() {
 
         <div className="k-pill ghost-dark" style={{ marginBottom: 24 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#FFDC5C', flexShrink: 0 }} />
-          Passo 1 de 1
+          Escolha do vestibular
         </div>
 
         <h1 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 'clamp(24px, 3.5vw, 38px)', color: '#fff', letterSpacing: '-.03em', lineHeight: 1.1, marginBottom: 12 }}>
@@ -174,7 +174,7 @@ export default function SelectVestibular() {
               transition: 'background-color .15s',
             }}
           >
-            {enroll.isPending ? 'Matriculando…' : 'Começar minha trilha →'}
+            {enroll.isPending ? 'Matriculando…' : 'Continuar para o diagnóstico →'}
           </button>
           {enroll.isError && (
             <p style={{ color: '#fca5a5', fontSize: 13, textAlign: 'center', marginTop: 10 }}>

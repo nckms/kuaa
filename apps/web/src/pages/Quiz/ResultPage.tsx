@@ -139,6 +139,21 @@ export default function ResultPage() {
             </div>
           </div>
 
+          {summary.performance && (
+            <section aria-label="Evolução neste tópico" style={{ marginTop: 24, textAlign: 'left', borderTop: '1px solid rgba(255,255,255,.2)', paddingTop: 20 }}>
+              <h2 style={{ fontSize: 17, color: '#fff', marginBottom: 8 }}>
+                {summary.performance.decision === 'advance' ? 'Você avançou neste tópico'
+                  : summary.performance.decision === 'reinforce' ? 'Próximo passo: reforçar'
+                    : summary.performance.decision === 'collect' ? 'Construindo seu diagnóstico' : 'Consolidando seu domínio'}
+              </h2>
+              <p style={{ fontSize: 14, color: '#e5e7eb', lineHeight: 1.6 }}>{summary.performance.reason}</p>
+              <p style={{ fontSize: 13, color: '#d1d5db', lineHeight: 1.6, marginTop: 8 }}>
+                Domínio: {summary.performance.previousLevel}/5 → {summary.performance.newLevel}/5.
+                {' '}{summary.performance.evidenceCount} resposta(s) consideradas nesta avaliação.
+              </p>
+            </section>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32 }}>
             <button
               onClick={() => navigate(`/revisao/${sessionId}`, { state: { questions, topicName, vestibularSlug, correct, total: correct + wrong + summary.skipped, accuracy } })}

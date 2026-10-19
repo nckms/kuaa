@@ -1,5 +1,6 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
+import QuestionMedia from '../../components/quiz/QuestionMedia'
 import type { ReviewQuestion } from '../../types/quiz'
 import { useSessionSummary } from '../../hooks/useQuiz'
 
@@ -73,6 +74,7 @@ export default function ReviewPage() {
                 </span>
               </div>
               <p style={{ fontSize: 16, color: '#1a1a1a', lineHeight: 1.7, marginBottom: 16 }}>{q.body}</p>
+              <QuestionMedia {...q} />
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                 {q.options.map((opt) => {

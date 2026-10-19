@@ -11,6 +11,7 @@ const PreferencesSchema = z.object({
   dailyStudyMinutes: z.number().int().min(5).max(240).default(30),
   reducedMotion: z.boolean().default(false),
   highContrast: z.boolean().default(false),
+  enemLanguage: z.enum(['ingles', 'espanhol']).default('ingles'),
 })
 
 function preferencesWithDefaults(value: unknown) {

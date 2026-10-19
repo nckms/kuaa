@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { ENEM_SUBJECTS } from '../src/data/enem-curriculum'
 
 const prisma = new PrismaClient()
 
@@ -35,60 +36,7 @@ const DATA: VestibularSeed[] = [
     state: 'BR',
     year: 2024,
     description: 'Exame Nacional do Ensino Médio',
-    subjects: [
-      {
-        name: 'Linguagens',
-        slug: 'linguagens',
-        weight: 0.25,
-        order: 1,
-        iconSlug: 'lang',
-        topics: [
-          { name: 'Interpretação de Texto', description: 'Desenvolvimento das habilidades de leitura e análise de textos variados.', order: 1 },
-          { name: 'Literatura Brasileira', description: 'Estudo dos principais movimentos literários e autores da literatura brasileira.', order: 2 },
-          { name: 'Gramática e Norma Culta', description: 'Estudo da língua portuguesa segundo a norma-padrão e usos contextuais.', order: 3 },
-          { name: 'Produção Textual', description: 'Técnicas de redação dissertativa-argumentativa e diferentes gêneros textuais.', order: 4 },
-        ],
-      },
-      {
-        name: 'Matemática',
-        slug: 'matematica',
-        weight: 0.25,
-        order: 2,
-        iconSlug: 'math',
-        topics: [
-          { name: 'Funções e Gráficos', description: 'Estudo das funções reais, suas representações gráficas e propriedades.', order: 1 },
-          { name: 'Geometria Plana e Espacial', description: 'Cálculo de áreas, volumes e propriedades de figuras planas e sólidos.', order: 2 },
-          { name: 'Probabilidade e Estatística', description: 'Análise de dados, probabilidade e interpretação de gráficos estatísticos.', order: 3 },
-          { name: 'Progressões e Sequências', description: 'Progressões aritméticas, geométricas e suas aplicações.', order: 4 },
-        ],
-      },
-      {
-        name: 'Ciências da Natureza',
-        slug: 'ciencias-natureza',
-        weight: 0.25,
-        order: 3,
-        iconSlug: 'science',
-        topics: [
-          { name: 'Cinemática e Dinâmica', description: 'Estudo do movimento dos corpos e das forças que os provocam.', order: 1 },
-          { name: 'Termologia e Óptica', description: 'Calor, temperatura, fenômenos ópticos e propagação da luz.', order: 2 },
-          { name: 'Química Orgânica', description: 'Compostos de carbono, funções orgânicas e reações químicas.', order: 3 },
-          { name: 'Biologia Celular e Genética', description: 'Estrutura celular, hereditariedade e expressão gênica.', order: 4 },
-        ],
-      },
-      {
-        name: 'Ciências Humanas',
-        slug: 'ciencias-humanas',
-        weight: 0.25,
-        order: 4,
-        iconSlug: 'humanities',
-        topics: [
-          { name: 'História do Brasil República', description: 'Do período republicano à contemporaneidade brasileira.', order: 1 },
-          { name: 'Geopolítica Mundial', description: 'Relações de poder, blocos econômicos e conflitos internacionais.', order: 2 },
-          { name: 'Filosofia e Sociologia', description: 'Pensamento filosófico, estrutura social e movimentos culturais.', order: 3 },
-          { name: 'Geografia Física e Humana', description: 'Relevo, clima, biomas, urbanização e dinâmicas populacionais.', order: 4 },
-        ],
-      },
-    ],
+    subjects: ENEM_SUBJECTS,
   },
   {
     slug: 'fuvest',

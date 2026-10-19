@@ -2,6 +2,7 @@ export interface UserPreferences {
   dailyStudyMinutes: number
   reducedMotion: boolean
   highContrast: boolean
+  enemLanguage?: 'ingles' | 'espanhol'
 }
 
 export interface User {

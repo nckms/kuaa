@@ -42,8 +42,20 @@ export function summarizeActivity(answers: LearningAnswer[], now = new Date()): 
 
 interface Candidate {
   id: string
+  initialDifficulty?: number
   progress: { masteryLevel: number; completed: boolean; unlocked: boolean }
   activity: AdaptiveActivity
+}
+
+export function getTargetDifficulty(masteryLevel: number, activity?: AdaptiveActivity, diagnosticDifficulty?: number): number {
+  if (activity && activity.recentAnswersCount >= 5 && activity.recentAccuracy! < 0.7) {
+    return Math.max(1, Math.min(5, Math.round(activity.recentAverageDifficulty!)
+      - (activity.recentAccuracy! < 0.4 ? 1 : 0)))
+  }
+  if (masteryLevel === 0 && (activity?.recentAnswersCount ?? 0) < 5 && diagnosticDifficulty != null) {
+    return Math.max(1, Math.min(3, diagnosticDifficulty))
+  }
+  return Math.max(1, Math.min(5, masteryLevel + 1))
 }
 
 export function recommendTopic(topics: Candidate[]): Recommendation | null {
@@ -65,7 +77,7 @@ export function recommendTopic(topics: Candidate[]): Recommendation | null {
     return {
       topicId: topic.id,
       kind: 'reinforcement',
-      targetDifficulty: Math.max(1, Math.min(5, Math.round(a.recentAverageDifficulty!) - (a.recentAccuracy! < 0.4 ? 1 : 0))),
+      targetDifficulty: getTargetDifficulty(topic.progress.masteryLevel, a),
       reason: `${Math.round(a.recentAccuracy! * 100)}% de acerto nas ${a.recentAnswersCount} respostas recentes, com dificuldade media ${a.recentAverageDifficulty!.toFixed(1)}. Reforce este topico${slow ? ' com mais tempo para resolver e revisar os erros' : ' antes de avancar'}.`,
     }
   }
@@ -74,9 +86,11 @@ export function recommendTopic(topics: Candidate[]): Recommendation | null {
   return {
     topicId: next.id,
     kind: next.activity.recentAnswersCount ? 'continue' : 'advance',
-    targetDifficulty: Math.max(1, Math.min(5, next.progress.masteryLevel || 1)),
+    targetDifficulty: getTargetDifficulty(next.progress.masteryLevel, next.activity, next.initialDifficulty),
     reason: next.activity.recentAnswersCount
       ? 'Continue este topico para consolidar o aprendizado; ainda nao ha evidencia recente suficiente de necessidade de reforco.'
-      : 'Proximo topico disponivel na sua trilha. Comece para avaliar seu conhecimento.',
+      : next.initialDifficulty != null
+        ? 'Ponto de partida sugerido pelo diagnostico da area. Esta estimativa e provisoria; suas praticas vao refina-la.'
+        : 'Proximo topico disponivel na sua trilha. Comece para avaliar seu conhecimento.',
   }
 }

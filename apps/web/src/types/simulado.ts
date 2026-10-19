@@ -1,9 +1,11 @@
+import type { QuestionMediaData } from './quiz'
+
 export interface SimuladoOption {
   id: string
   text: string
 }
 
-export interface SimuladoQuestion {
+export interface SimuladoQuestion extends QuestionMediaData {
   id: string
   order: number
   subjectId: string

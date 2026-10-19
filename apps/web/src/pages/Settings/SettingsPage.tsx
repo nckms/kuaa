@@ -84,6 +84,18 @@ export default function SettingsPage() {
             <button type="submit" className="btn btn-outline-secondary" disabled={busy || !validMinutes}><i className="bi bi-check-lg" aria-hidden="true" /> Salvar meta</button>
           </form>
         </section>
+        <section style={{ borderBottom: '1px solid var(--line-soft)', paddingBottom: 24, marginBottom: 24 }}>
+          <h2 style={{ fontSize: 18, marginBottom: 16 }}>ENEM</h2>
+          <label style={{ display: 'grid', gap: 8 }}>
+            Língua estrangeira no simulado
+            <select value={user?.preferences?.enemLanguage ?? 'ingles'} disabled={busy}
+              onChange={(event) => save.mutate({ preferences: { enemLanguage: event.target.value as 'ingles' | 'espanhol' } })}
+              style={{ padding: 12, width: '100%', minWidth: 0 }}>
+              <option value="ingles">Inglês</option>
+              <option value="espanhol">Espanhol</option>
+            </select>
+          </label>
+        </section>
         <section>
           <h2 style={{ fontSize: 18, marginBottom: 16 }}>Acessibilidade</h2>
           <div style={{ display: 'grid', gap: 18 }}>

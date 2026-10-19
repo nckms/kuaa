@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import references from '../../data/exam-references.json'
 import type { GenerationJobData } from './quiz.types'
+import { QuestionMediaSchema } from './questionMedia'
 
 export interface ExamReference {
   id: string
@@ -18,6 +19,33 @@ export interface ExamReference {
 }
 
 export const PROMPT_VERSION = 'few-shot-v1'
+export function generationResponseSchema(optionCount: number) {
+  return {
+    type: 'object', required: ['questions'], properties: {
+      questions: { type: 'array', items: {
+        type: 'object', required: ['body', 'options', 'explanation', 'difficulty'], properties: {
+          body: { type: 'string' }, explanation: { type: 'string' },
+          difficulty: { type: 'integer', minimum: 1, maximum: 5 },
+          options: { type: 'array', items: {
+            type: 'object', required: ['id', 'text', 'isCorrect'], properties: {
+              id: { type: 'string', enum: ['A', 'B', 'C', 'D', 'E'].slice(0, optionCount) },
+              text: { type: 'string' }, isCorrect: { type: 'boolean' },
+            },
+          } },
+          visual: { type: 'object', required: ['type', 'title', 'xLabel', 'yLabel', 'points'], properties: {
+            type: { type: 'string', enum: ['line', 'bar'] }, title: { type: 'string' },
+            xLabel: { type: 'string' }, yLabel: { type: 'string' },
+            points: { type: 'array', items: {
+              type: 'object', required: ['label', 'value'], properties: {
+                label: { type: 'string' }, value: { type: 'number' },
+              },
+            } },
+          } },
+        },
+      } },
+    },
+  }
+}
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 export function selectReferences(data: GenerationJobData): ExamReference[] {
@@ -49,7 +77,7 @@ O topico solicitado tem prioridade sobre o assunto dos exemplos.
 Revise o raciocinio, a resposta e cada distrator antes de devolver o JSON.`
 }
 
-const questionSchema = z.object({
+const questionSchema = QuestionMediaSchema.extend({
   body: z.string().trim().min(10).max(12000),
   options: z.array(z.object({
     id: z.enum(['A', 'B', 'C', 'D', 'E']),

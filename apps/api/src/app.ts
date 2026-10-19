@@ -21,6 +21,19 @@ const allowedOrigins = new Set([
   ...configuredOrigins,
 ])
 
+// Local preview links may use either loopback hostname, on the same port.
+for (const origin of [...allowedOrigins]) {
+  try {
+    const url = new URL(origin)
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+      url.hostname = url.hostname === 'localhost' ? '127.0.0.1' : 'localhost'
+      allowedOrigins.add(url.origin)
+    }
+  } catch {
+    // Invalid configured origins cannot match a browser Origin header.
+  }
+}
+
 app.use(helmet())
 app.use(
   cors({

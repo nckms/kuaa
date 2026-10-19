@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import SelectVestibular from './pages/Onboarding/SelectVestibular'
+import DiagnosticPage from './pages/Onboarding/DiagnosticPage'
 import TrailPage from './pages/Trail/TrailPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardPage from './pages/Dashboard/DashboardPage'
@@ -77,6 +78,7 @@ function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/onboarding" element={<SelectVestibular />} />
+        <Route path="/diagnostico/:vestibularSlug" element={<DiagnosticPage />} />
         <Route path="/trilha" element={<TrailIndex />} />
         <Route path="/trilha/:vestibularSlug" element={<TrailPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />

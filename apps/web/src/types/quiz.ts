@@ -3,10 +3,24 @@ export interface QuizOption {
   text: string
 }
 
-export interface QuizQuestion {
+export interface QuestionVisual {
+  type: 'line' | 'bar'
+  title: string
+  xLabel: string
+  yLabel: string
+  points: Array<{ label: string; value: number }>
+}
+
+export interface QuestionMediaData {
+  imageUrl?: string | null
+  imageAlt?: string | null
+  imageCaption?: string | null
+  visual?: QuestionVisual | null
+}
+
+export interface QuizQuestion extends QuestionMediaData {
   id: string
   body: string
-  imageUrl?: string
   options: QuizOption[]
   difficulty: number
 }
@@ -42,7 +56,7 @@ export interface AchievementData {
   xpBonus: number
 }
 
-export interface ReviewQuestion {
+export interface ReviewQuestion extends QuestionMediaData {
   id: string
   body: string
   options: Array<QuizOption & { isCorrect: boolean }>
@@ -62,6 +76,15 @@ export interface SessionSummary {
   isPerfect: boolean
   accuracy: number
   newMasteryLevel: number
+  performance?: {
+    previousLevel: number
+    newLevel: number
+    evidenceCount: number
+    pendingAnswers: number
+    accuracy: number | null
+    decision: 'advance' | 'reinforce' | 'maintain' | 'collect'
+    reason: string
+  } | null
   newAchievements: AchievementData[]
   levelUp: boolean
   newLevel: number

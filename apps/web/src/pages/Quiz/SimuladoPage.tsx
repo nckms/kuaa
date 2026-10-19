@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import KuaaLogo from '../../components/ui/KuaaLogo'
 import KuaaIcon from '../../components/ui/KuaaIcon'
+import QuestionMedia from '../../components/quiz/QuestionMedia'
 import { useAuthStore } from '../../stores/auth.store'
 import {
   useCurrentSimulado,
@@ -164,6 +165,7 @@ function SimuladoResults({ attempt, result }: { attempt: SimuladoAttempt; result
                   {index + 1}. {question.subjectName} · {!answer ? 'Em branco' : !correctOption ? 'Respondida' : answer === correctOption.id ? 'Correta' : 'Errada'}
                 </summary>
                 <p style={{ marginTop: 12 }}>{question.body}</p>
+                <QuestionMedia {...question} />
                 <p>Sua resposta: {selected ? `${selected.id}) ${selected.text}` : 'Em branco'}</p>
                 {correctOption && <p><strong>Resposta correta:</strong> {correctOption.id}) {correctOption.text}</p>}
                 <p>{question.explanation ?? 'Explicação não disponível nesta tentativa antiga.'}</p>
@@ -287,6 +289,7 @@ function SimuladoExam({
           <p style={{ color: 'var(--k-tinta-2)', fontSize: 15, lineHeight: 1.65, marginBottom: 28 }}>
             {q.body}
           </p>
+          <QuestionMedia key={q.id} {...q} />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {q.options.map(({ id, text }) => {

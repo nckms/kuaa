@@ -1,8 +1,9 @@
 import { prisma } from '../../lib/prisma'
+import type { QuestionMediaData } from '../quiz/questionMedia'
 
 export const SIMULADO_DURATION_SECONDS = 90 * 60
 
-export interface StoredQuestion {
+export interface StoredQuestion extends QuestionMediaData {
   id: string
   order: number
   subjectId: string

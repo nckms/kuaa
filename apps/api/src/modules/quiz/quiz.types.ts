@@ -1,10 +1,13 @@
+import type { PerformanceSummary } from '../../services/adaptive/PerformanceEngine'
+import type { QuestionMediaData } from './questionMedia'
+
 export interface QuestionOption {
   id: string       // "A" | "B" | "C" | "D" | "E"
   text: string
   isCorrect: boolean
 }
 
-export interface GeneratedQuestion {
+export interface GeneratedQuestion extends QuestionMediaData {
   body: string
   options: QuestionOption[]
   explanation: string
@@ -22,6 +25,7 @@ export interface GenerationJobData {
   targetDifficulty?: number
   userMasteryLevel: number
   recentErrorTopics: string[]
+  recentQuestionBodies?: string[]
   questionCount: number
 }
 
@@ -46,13 +50,14 @@ export interface SessionSummary {
   isPerfect: boolean
   accuracy: number
   newMasteryLevel: number
+  performance: PerformanceSummary | null
   newAchievements: AchievementData[]
   levelUp: boolean
   newLevel: number
   questions: ReviewQuestion[]
 }
 
-export interface ReviewQuestion {
+export interface ReviewQuestion extends QuestionMediaData {
   id: string
   body: string
   options: QuestionOption[]
