@@ -10,7 +10,9 @@ RUN npm ci --no-audit --no-fund
 COPY prisma ./prisma
 COPY src ./src
 COPY tsconfig.json ./tsconfig.json
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN npm run build
 
 ENV NODE_ENV=production
-CMD ["sh", "-c", "npx prisma db push && npx prisma db seed && node dist/index.js"]
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
+CMD ["node", "dist/index.js"]
