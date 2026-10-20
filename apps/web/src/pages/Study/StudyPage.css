@@ -9,6 +9,7 @@
 .study-section h2 { font-size: 20px; margin: 0 0 16px; }
 .study-section p, .study-section li { font-size: 16px; line-height: 1.7; }
 .study-section > p + p { margin-top: 14px; }
+.study-section .study-lead { font-weight: 600; color: #2f493f; }
 .study-section ol { list-style: decimal; padding-left: 24px; margin: 14px 0; }
 .study-section li { margin-bottom: 8px; }
 .study-example { background: #f0f5f3; margin-inline: -20px; padding-inline: 20px; }
@@ -19,9 +20,12 @@
 .study-errors p { margin: 0; font-size: 14px; }
 .study-options { display: grid; gap: 8px; }
 .study-options button { min-height: 48px; text-align: left; padding: 10px 14px; border: 1px solid #a9a0aa; border-radius: 6px; color: inherit; background: #fff; }
-.study-options button.selected { border: 2px solid #237463; background: #eff7f3; }
+.study-options button.selected.correct { border: 2px solid #237463; background: #eff7f3; }
+.study-options button.selected.incorrect { border: 2px solid #a4515c; background: #fcf3f2; }
+.study-options button:disabled { cursor: default; }
 .study-options button:focus-visible, .study-actions button:focus-visible, .study-back:focus-visible { outline: 3px solid #237463; outline-offset: 3px; }
 .study-feedback { border-left: 3px solid #237463; padding-left: 14px; margin-top: 18px; }
+.study-feedback p { margin: 0; }
 .study-actions { padding-top: 30px; }
 .study-actions button { width: 100%; min-height: 50px; border: 0; border-radius: 6px; background: #531a61; color: #fff; font-weight: 700; }
 .study-actions button:disabled { opacity: .6; }

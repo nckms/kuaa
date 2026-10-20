@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
@@ -23,17 +23,22 @@ export default function StudyPage() {
   const { topicId } = useParams<{ topicId: string }>()
   const navigate = useNavigate()
   const [choice, setChoice] = useState<number | null>(null)
+  const [attempts, setAttempts] = useState(0)
   const generate = useGenerateQuiz()
   const { data, isLoading, isError } = useQuery({
     queryKey: ['study-guide', topicId], enabled: Boolean(topicId),
     queryFn: async () => (await api.get<StudyData>(`/study/topics/${topicId}`)).data,
   })
 
+  useEffect(() => { setChoice(null); setAttempts(0) }, [topicId])
+
   if (isLoading) return <main className="study-page"><p>Carregando estudo...</p></main>
   if (isError || !data) return <main className="study-page"><p>Não foi possível carregar este material.</p><button onClick={() => navigate(-1)}>Voltar</button></main>
 
   const { topic, guide, mistakes } = data
   const answered = choice !== null
+  const correct = choice === guide.check.correctIndex
+  const revealAnswer = correct || attempts >= 2
   return (
     <main className="study-page">
       <div className="study-inner">
@@ -48,7 +53,7 @@ export default function StudyPage() {
 
         <section className="study-section" aria-labelledby="study-concept">
           <h2 id="study-concept">Entenda o conceito</h2>
-          {guide.explanation.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+          {guide.explanation.map((paragraph, index) => <p key={index} className={index === 0 ? 'study-lead' : undefined}>{paragraph}</p>)}
         </section>
 
         <section className="study-section study-example" aria-labelledby="study-example">
@@ -81,15 +86,17 @@ export default function StudyPage() {
           <p>{guide.check.question}</p>
           <div className="study-options" role="group" aria-label="Alternativas da checagem">
             {guide.check.options.map((option, index) => (
-              <button key={option} type="button" onClick={() => setChoice(index)}
-                aria-pressed={choice === index} className={choice === index ? 'selected' : ''}>
+              <button key={option} type="button" onClick={() => { setChoice(index); setAttempts((current) => current + 1) }}
+                aria-pressed={choice === index} disabled={revealAnswer || choice === index}
+                className={choice === index ? correct ? 'selected correct' : 'selected incorrect' : ''}>
                 {option}
               </button>
             ))}
           </div>
-          {answered && <p className="study-feedback" role="status">
-            <strong>{choice === guide.check.correctIndex ? 'Correto.' : 'Ainda não.'}</strong> {guide.check.feedback}
-          </p>}
+          {answered && <div className="study-feedback" role="status">
+            {revealAnswer ? <p><strong>{correct ? 'Isso mesmo.' : `Resposta: ${guide.check.options[guide.check.correctIndex]}.`}</strong> {guide.check.feedback}</p>
+              : <p><strong>Tente outra vez.</strong> {guide.commonMistake}</p>}
+          </div>}
         </section>
 
         <footer className="study-actions">

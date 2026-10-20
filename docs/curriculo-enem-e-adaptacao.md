@@ -2,7 +2,7 @@
 
 ## Conteudo
 
-O estudo guiado cobre os 94 topicos cadastrados nas tres trilhas. Cada guia traz objetivo, explicacao, exemplo resolvido, erro comum e checagem com feedback. A rota autenticada `/api/v1/study/topics/:topicId` inclui ate tres erros recentes do proprio usuario. O estudo nao marca topico como concluido nem concede XP. A cobertura foi verificada automaticamente contra o seed, mas ainda requer revisao pedagogica independente e testes com estudantes.
+O estudo guiado cobre os 94 topicos cadastrados nas tres trilhas. Cada guia traz objetivo, pelo menos cinco paragrafos de explicacao, exemplo resolvido em pelo menos quatro passos, erro comum e checagem com feedback. A primeira resposta errada na checagem mostra uma pista; a explicacao completa aparece ao acertar ou apos uma segunda tentativa. A rota autenticada `/api/v1/study/topics/:topicId` inclui ate tres erros recentes do proprio usuario. O estudo nao marca topico como concluido nem concede XP. A cobertura e a estrutura minima sao verificadas automaticamente contra o seed, mas ainda requerem revisao pedagogica independente e testes com estudantes.
 
 - 16 agrupamentos de materias e 73 topicos no ENEM: 14 disciplinas e duas revisoes integradas mantidas para preservar o historico.
 - Banco compartilhado com 236 questoes autorais, incluindo as de outros vestibulares. Cada topico do ENEM tem pelo menos tres questoes de reserva.

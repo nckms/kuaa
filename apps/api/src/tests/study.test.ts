@@ -23,10 +23,10 @@ describe('material de estudo', () => {
     expect(covered.length).toBe(94)
     for (const topic of covered) {
       const guide = getStudyGuide(topic.name)!
-      expect(guide.explanation.length).toBeGreaterThanOrEqual(2)
-      expect(guide.example.steps.length).toBeGreaterThanOrEqual(2)
+      expect(guide.explanation.length, topic.name).toBeGreaterThanOrEqual(5)
+      expect(guide.example.steps.length, topic.name).toBeGreaterThanOrEqual(4)
       expect(guide.check.options[guide.check.correctIndex]).toBeTruthy()
-      expect(guide.check.feedback.length).toBeGreaterThan(15)
+      expect(guide.check.feedback.length, topic.name).toBeGreaterThan(40)
     }
   })
 
