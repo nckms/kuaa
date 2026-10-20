@@ -2,7 +2,7 @@
 
 ## Conteudo
 
-O estudo guiado agora tem material editorial inicial para seis topicos: Interpretação de Texto, Funções e Gráficos, Probabilidade e Estatística, Cinemática e Dinâmica, Genética/Evolução/Biotecnologia e Tema/Repertório/Projeto de Texto. Cada guia traz objetivo, explicação, exemplo resolvido, erro comum e checagem com feedback. A rota autenticada `/api/v1/study/topics/:topicId` inclui ate tres erros recentes do proprio usuario. Topicos sem guia continuam com pratica, sem exibir aula generica. O estudo nao marca topico como concluido nem concede XP; falta ampliar e revisar pedagogicamente esta cobertura.
+O estudo guiado agora cobre 20 nomes de topicos nas tres trilhas, com 17 guias editoriais e tres correspondencias de conteudo equivalente. As primeiras etapas do ENEM, FUVEST e UNICAMP possuem guia. Cada guia traz objetivo, explicacao, exemplo resolvido, erro comum e checagem com feedback. A rota autenticada `/api/v1/study/topics/:topicId` inclui ate tres erros recentes do proprio usuario. Topicos sem guia continuam com pratica, sem exibir aula generica. O estudo nao marca topico como concluido nem concede XP; ainda falta ampliar a cobertura e fazer revisao pedagogica independente.
 
 - 16 agrupamentos de materias e 73 topicos no ENEM: 14 disciplinas e duas revisoes integradas mantidas para preservar o historico.
 - Banco compartilhado com 236 questoes autorais, incluindo as de outros vestibulares. Cada topico do ENEM tem pelo menos tres questoes de reserva.

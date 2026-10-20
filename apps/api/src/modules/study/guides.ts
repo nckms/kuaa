@@ -1,3 +1,5 @@
+import { foundationGuides } from './foundationGuides'
+
 export interface StudyGuide {
   objective: string
   explanation: string[]
@@ -97,8 +99,15 @@ const guides: Record<string, StudyGuide> = {
     commonMistake: 'Usar frases genéricas como “a sociedade precisa melhorar” sem indicar o problema e as causas que serão defendidas.',
     check: { question: 'Qual frase funciona melhor como tese para esse tema?', options: ['Ler é muito importante para todas as pessoas.', 'A distância dos espaços de leitura e a falta de acervos limitam o acesso nas áreas rurais.', 'Existem muitos livros diferentes no Brasil.'], correctIndex: 1, feedback: 'A segunda opção delimita o problema e apresenta dois eixos que podem ser desenvolvidos.' },
   },
+  ...foundationGuides,
+}
+
+const aliases: Record<string, string> = {
+  'Interpretação e Análise de Texto': 'Interpretação de Texto',
+  'Leitura e Interpretação': 'Interpretação de Texto',
+  'Álgebra e Funções': 'Funções e Gráficos',
 }
 
 export function getStudyGuide(topicName: string): StudyGuide | null {
-  return guides[topicName] ?? null
+  return guides[aliases[topicName] ?? topicName] ?? null
 }

@@ -1,16 +1,37 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { api, registerAndLogin } from './helpers/api'
 import { testPrisma, truncateUserData } from './helpers/truncate'
+import { getStudyGuide } from '../modules/study/guides'
 
 beforeAll(truncateUserData)
 afterAll(() => testPrisma.$disconnect())
 
 describe('material de estudo', () => {
+  it('cobre as entradas das tres trilhas e mantem checagens validas', async () => {
+    const exams = await testPrisma.vestibular.findMany({ where: { slug: { in: ['enem', 'fuvest', 'unicamp'] } },
+      include: { subjects: { orderBy: { order: 'asc' }, include: { topics: { orderBy: { order: 'asc' } } } } } })
+    for (const exam of exams) {
+      const firstTopic = exam.subjects[0]?.topics[0]
+      expect(firstTopic?.name).toBeTruthy()
+      expect(getStudyGuide(firstTopic.name)).not.toBeNull()
+    }
+    const covered = exams.flatMap((exam) => exam.subjects.flatMap((subject) => subject.topics))
+      .filter((topic) => getStudyGuide(topic.name))
+    expect(covered.length).toBeGreaterThanOrEqual(20)
+    for (const topic of covered) {
+      const guide = getStudyGuide(topic.name)!
+      expect(guide.explanation.length).toBeGreaterThanOrEqual(2)
+      expect(guide.example.steps.length).toBeGreaterThanOrEqual(2)
+      expect(guide.check.options[guide.check.correctIndex]).toBeTruthy()
+      expect(guide.check.feedback.length).toBeGreaterThan(15)
+    }
+  })
+
   it('exige autenticacao e matricula, e disponibiliza aula apenas onde ha conteudo editorial', async () => {
     const exam = await testPrisma.vestibular.findUniqueOrThrow({ where: { slug: 'enem' },
       include: { subjects: { include: { topics: true } } } })
     const topic = exam.subjects.flatMap((subject) => subject.topics).find((item) => item.name === 'Interpretação de Texto')!
-    const unavailable = exam.subjects.flatMap((subject) => subject.topics).find((item) => item.name === 'Literatura Brasileira')!
+    const unavailable = exam.subjects.flatMap((subject) => subject.topics).find((item) => item.name === 'Gramática e Norma Culta')!
     const path = `/api/v1/study/topics/${topic.id}`
     expect((await api.get(path)).status).toBe(401)
     const auth = await registerAndLogin('study_access')
