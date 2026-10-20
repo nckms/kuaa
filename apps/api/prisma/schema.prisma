@@ -17,6 +17,11 @@ enum QuestionSource {
   OFFICIAL
 }
 
+enum EssayStatus {
+  DRAFT
+  SUBMITTED
+}
+
 model User {
   id             String    @id @default(cuid())
   email          String    @unique
@@ -50,6 +55,7 @@ model User {
   usabilityEvaluation UsabilityEvaluation?
   sabiaMessages SabiaMessage[]
   sabiaConversations SabiaConversation[]
+  essays EssayDraft[]
 }
 
 model RefreshToken {
@@ -76,6 +82,30 @@ model Vestibular {
   enrollments       Enrollment[]
   indexSnapshots    IndexSnapshot[]
   simuladoAttempts  SimuladoAttempt[]
+  essays EssayDraft[]
+}
+
+model EssayDraft {
+  id String @id @default(cuid())
+  userId String
+  vestibularId String
+  themeId String
+  themeTitle String
+  prompt String
+  textType String
+  body String @default("") @db.Text
+  selfReview Json @default("{}")
+  feedback Json?
+  feedbackRequestedAt DateTime?
+  aiConsentAt DateTime?
+  status EssayStatus @default(DRAFT)
+  submittedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vestibular Vestibular @relation(fields: [vestibularId], references: [id])
+
+  @@index([userId, createdAt])
 }
 
 model Subject {

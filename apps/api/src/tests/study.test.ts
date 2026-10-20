@@ -17,7 +17,10 @@ describe('material de estudo', () => {
     }
     const covered = exams.flatMap((exam) => exam.subjects.flatMap((subject) => subject.topics))
       .filter((topic) => getStudyGuide(topic.name))
-    expect(covered.length).toBeGreaterThanOrEqual(20)
+    const missing = exams.flatMap((exam) => exam.subjects.flatMap((subject) => subject.topics))
+      .filter((topic) => !getStudyGuide(topic.name)).map((topic) => topic.name)
+    expect(missing).toEqual([])
+    expect(covered.length).toBe(94)
     for (const topic of covered) {
       const guide = getStudyGuide(topic.name)!
       expect(guide.explanation.length).toBeGreaterThanOrEqual(2)
@@ -31,7 +34,6 @@ describe('material de estudo', () => {
     const exam = await testPrisma.vestibular.findUniqueOrThrow({ where: { slug: 'enem' },
       include: { subjects: { include: { topics: true } } } })
     const topic = exam.subjects.flatMap((subject) => subject.topics).find((item) => item.name === 'Interpretação de Texto')!
-    const unavailable = exam.subjects.flatMap((subject) => subject.topics).find((item) => item.name === 'Gramática e Norma Culta')!
     const path = `/api/v1/study/topics/${topic.id}`
     expect((await api.get(path)).status).toBe(401)
     const auth = await registerAndLogin('study_access')
@@ -43,11 +45,11 @@ describe('material de estudo', () => {
     expect(lesson.body.guide.example.steps.length).toBeGreaterThan(0)
     expect(lesson.body.guide.check.options[lesson.body.guide.check.correctIndex]).toBeTruthy()
     expect(lesson.body.mistakes).toEqual([])
-    expect((await api.get(`/api/v1/study/topics/${unavailable.id}`).set('Authorization', authorization)).status).toBe(404)
+    expect((await api.get('/api/v1/study/topics/unknown-topic').set('Authorization', authorization)).status).toBe(404)
     const trail = await api.get('/api/v1/trail/enem').set('Authorization', authorization)
     const topics = trail.body.subjects.flatMap((subject: { topics: Array<{ id: string; guideAvailable: boolean }> }) => subject.topics)
     expect(topics.find((item: { id: string }) => item.id === topic.id).guideAvailable).toBe(true)
-    expect(topics.find((item: { id: string }) => item.id === unavailable.id).guideAvailable).toBe(false)
+    expect(topics.every((item: { guideAvailable: boolean }) => item.guideAvailable)).toBe(true)
   })
 
   it('mostra apenas os erros recentes do proprio aluno naquele topico', async () => {

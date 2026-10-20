@@ -1,4 +1,8 @@
 import { foundationGuides } from './foundationGuides'
+import { scienceMathGuides } from './scienceMathGuides'
+import { humanitiesGuides } from './humanitiesGuides'
+import { languagesGuides } from './languagesGuides'
+import { vestibularGuides } from './vestibularGuides'
 
 export interface StudyGuide {
   objective: string
@@ -100,6 +104,10 @@ const guides: Record<string, StudyGuide> = {
     check: { question: 'Qual frase funciona melhor como tese para esse tema?', options: ['Ler é muito importante para todas as pessoas.', 'A distância dos espaços de leitura e a falta de acervos limitam o acesso nas áreas rurais.', 'Existem muitos livros diferentes no Brasil.'], correctIndex: 1, feedback: 'A segunda opção delimita o problema e apresenta dois eixos que podem ser desenvolvidos.' },
   },
   ...foundationGuides,
+  ...scienceMathGuides,
+  ...humanitiesGuides,
+  ...languagesGuides,
+  ...vestibularGuides,
 }
 
 const aliases: Record<string, string> = {

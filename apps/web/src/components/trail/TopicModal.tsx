@@ -4,6 +4,7 @@ import { getIcon } from '../../utils/iconMap'
 import ProgressBar from '../ui/ProgressBar'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
 import { useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 interface TopicModalProps {
   topic: TrailTopic | null
@@ -13,6 +14,7 @@ interface TopicModalProps {
 
 export default function TopicModal({ topic, subject, onClose }: TopicModalProps) {
   const navigate = useNavigate()
+  const { vestibularSlug } = useParams<{ vestibularSlug: string }>()
   const generateMutation = useGenerateQuiz()
   const answeredQuestions = topic?.progress.answeredQuestionsCount ?? 0
   const correctAnswers = topic?.progress.correctAnswersCount ?? 0
@@ -116,6 +118,14 @@ export default function TopicModal({ topic, subject, onClose }: TopicModalProps)
                 )}
 
                 <hr className="my-3" />
+
+                {subject?.slug === 'redacao' && vestibularSlug && (
+                  <button className="btn w-100 d-flex align-items-center justify-content-center gap-2 fw-semibold mb-2"
+                    onClick={() => navigate(`/redacao/${vestibularSlug}`)}
+                    style={{ minHeight: 46, border: '1px solid #531A61', color: '#531A61' }}>
+                    <i className="bi bi-pencil-square" aria-hidden="true" /> Escrever redação
+                  </button>
+                )}
 
                 {topic.guideAvailable && (
                   <button

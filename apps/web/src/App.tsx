@@ -24,6 +24,7 @@ import SabiaPage from './pages/Sabia/SabiaPage'
 import SettingsPage from './pages/Settings/SettingsPage'
 import EvaluationPage from './pages/Evaluation/EvaluationPage'
 import StudyPage from './pages/Study/StudyPage'
+import EssayPage from './pages/Essay/EssayPage'
 
 function TrailIndex() {
   const navigate = useNavigate()
@@ -83,6 +84,8 @@ function AppRoutes() {
         <Route path="/trilha" element={<TrailIndex />} />
         <Route path="/trilha/:vestibularSlug" element={<TrailPage />} />
         <Route path="/estudar/:topicId" element={<StudyPage />} />
+        <Route path="/redacao/:vestibularSlug" element={<EssayPage />} />
+        <Route path="/redacao/:vestibularSlug/:essayId" element={<EssayPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/quiz/loading/:sessionId" element={<QuizLoadingPage />} />
         <Route path="/quiz/:sessionId" element={<QuizPage />} />

@@ -1,6 +1,51 @@
 import type { StudyGuide } from './guides'
 
 export const foundationGuides: Record<string, StudyGuide> = {
+  'Norma Escrita e Adequação Linguística': {
+    objective: 'Revisar escolhas de linguagem considerando clareza, registro e contexto da redação.',
+    explanation: [
+      'A norma escrita formal exige atenção à concordância, à pontuação e à construção das frases, mas revisão não é trocar toda palavra simples por outra difícil.',
+      'Verifique se cada frase expressa uma relação clara entre as ideias. Períodos longos demais podem esconder o sujeito, acumular informações e dificultar a leitura.',
+      'Na revisão final, leia um parágrafo por vez e procure problemas recorrentes. Reescrever uma frase confusa costuma ajudar mais do que corrigir apenas uma palavra isolada.',
+    ],
+    example: {
+      prompt: 'Como melhorar a frase “A falta de bibliotecas, que é um problema, as pessoas não leem porque não tem acesso”?',
+      steps: ['Separe o problema da consequência.', 'Dê um sujeito claro à frase e organize a relação de causa.'],
+      answer: 'Uma possibilidade: “A falta de bibliotecas dificulta o acesso aos livros e reduz as oportunidades de leitura.”',
+    },
+    commonMistake: 'Usar palavras rebuscadas para parecer formal, mesmo quando tornam o argumento vago ou incorreto.',
+    check: { question: 'Qual frase apresenta relação de causa mais clara?', options: ['A leitura, que a biblioteca, a falta é grande.', 'A escassez de bibliotecas limita o acesso a livros.', 'Porque bibliotecas e livros, portanto.',], correctIndex: 1, feedback: 'A segunda frase liga causa e efeito de modo direto e compreensível.' },
+  },
+  'Coesão e Progressão Argumentativa': {
+    objective: 'Conectar parágrafos e fazer cada argumento avançar sem repetir a tese.',
+    explanation: [
+      'Coesão é a ligação entre partes do texto por referências e conectores. Ela serve ao raciocínio: um conector só funciona se a relação lógica realmente existir.',
+      'Progressão argumentativa significa acrescentar uma etapa à defesa da tese. Depois de afirmar uma causa, explique como ela atua e quais consequências produz.',
+      'Ao revisar, leia apenas a primeira frase de cada parágrafo. Se todas dizem a mesma coisa, falta avanço; se não dialogam, falta uma ligação explícita.',
+    ],
+    example: {
+      prompt: 'Tese: a distância dificulta o acesso à leitura. Como evitar repetir essa frase no parágrafo seguinte?',
+      steps: ['Explique o mecanismo: o deslocamento exige tempo e dinheiro.', 'Mostre o efeito: visitas regulares a espaços de leitura tornam-se menos viáveis.', 'Relacione o efeito à tese.'],
+      answer: 'O parágrafo avança quando mostra por que a distância pesa na rotina do leitor, em vez de apenas reafirmar que ela é um problema.',
+    },
+    commonMistake: 'Inserir “portanto” ou “além disso” sem que a frase seguinte seja conclusão ou acréscimo de fato.',
+    check: { question: 'Depois de apresentar uma causa, qual passo desenvolve melhor o argumento?', options: ['Repetir a tese com sinônimos', 'Explicar como a causa produz o efeito discutido', 'Mudar para um tema sem relação'], correctIndex: 1, feedback: 'Explicar o mecanismo faz o argumento avançar e sustenta a tese.' },
+  },
+  'Intervenção e Direitos Humanos': {
+    objective: 'Planejar uma proposta de intervenção concreta, relacionada ao problema e respeitosa aos direitos humanos.',
+    explanation: [
+      'Uma proposta de intervenção deve responder ao problema discutido. Defina quem agirá, o que fará, por qual meio e com que finalidade.',
+      'Detalhes tornam a proposta verificável. “O governo deve resolver” não indica órgão, ação ou forma de execução.',
+      'Verifique se a medida não exclui ou prejudica o grupo que pretende atender. Respeitar direitos humanos não é apenas mencionar a expressão: é considerar seus efeitos na prática.',
+    ],
+    example: {
+      prompt: 'Problema: bibliotecas ficam distantes de comunidades rurais. Como formular uma intervenção?',
+      steps: ['Escolha um agente com capacidade de agir: secretarias municipais de educação e cultura.', 'Defina ação e meio: organizar acervos itinerantes com calendário divulgado nas escolas locais.', 'Explique finalidade: ampliar o acesso regular a livros.'],
+      answer: 'Uma proposta possível é que secretarias municipais mantenham acervos itinerantes com visitas programadas às comunidades, para ampliar o acesso contínuo à leitura.',
+    },
+    commonMistake: 'Apresentar uma ação sem ligação com a causa analisada ou sem indicar como ela chegaria às pessoas afetadas.',
+    check: { question: 'Qual proposta é mais concreta para o problema apresentado?', options: ['É preciso melhorar tudo.', 'Secretarias municipais podem levar acervos itinerantes em calendário regular às comunidades.', 'As pessoas devem simplesmente ler mais.'], correctIndex: 1, feedback: 'A segunda alternativa identifica agente, ação e meio relacionados ao acesso aos livros.' },
+  },
   'História do Brasil República': {
     objective: 'Relacionar mudanças políticas da República aos grupos sociais e aos interesses em disputa.',
     explanation: [

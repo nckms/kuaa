@@ -12,6 +12,7 @@ import { sabiaRouter } from '../modules/sabia/sabia.routes'
 import { evaluationRouter } from '../modules/evaluation/evaluation.routes'
 import { diagnosticRouter } from '../modules/diagnostic/diagnostic.routes'
 import { studyRouter } from '../modules/study/study.routes'
+import { essaysRouter } from '../modules/essays/essays.routes'
 
 export const router = Router()
 
@@ -36,3 +37,4 @@ router.use('/sabia', sabiaRouter)
 router.use('/evaluation', evaluationRouter)
 router.use('/diagnostic', diagnosticRouter)
 router.use('/study', studyRouter)
+router.use('/essays', essaysRouter)

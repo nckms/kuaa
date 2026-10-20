@@ -2,7 +2,7 @@
 
 ## Conteudo
 
-O estudo guiado agora cobre 20 nomes de topicos nas tres trilhas, com 17 guias editoriais e tres correspondencias de conteudo equivalente. As primeiras etapas do ENEM, FUVEST e UNICAMP possuem guia. Cada guia traz objetivo, explicacao, exemplo resolvido, erro comum e checagem com feedback. A rota autenticada `/api/v1/study/topics/:topicId` inclui ate tres erros recentes do proprio usuario. Topicos sem guia continuam com pratica, sem exibir aula generica. O estudo nao marca topico como concluido nem concede XP; ainda falta ampliar a cobertura e fazer revisao pedagogica independente.
+O estudo guiado cobre os 94 topicos cadastrados nas tres trilhas. Cada guia traz objetivo, explicacao, exemplo resolvido, erro comum e checagem com feedback. A rota autenticada `/api/v1/study/topics/:topicId` inclui ate tres erros recentes do proprio usuario. O estudo nao marca topico como concluido nem concede XP. A cobertura foi verificada automaticamente contra o seed, mas ainda requer revisao pedagogica independente e testes com estudantes.
 
 - 16 agrupamentos de materias e 73 topicos no ENEM: 14 disciplinas e duas revisoes integradas mantidas para preservar o historico.
 - Banco compartilhado com 236 questoes autorais, incluindo as de outros vestibulares. Cada topico do ENEM tem pelo menos tres questoes de reserva.
@@ -28,10 +28,14 @@ O banco de reserva tem variedade limitada, sobretudo nos niveis avancados. Nao h
 
 Trilha, revisao e simulado exibem a mesma midia. O simulado salva uma copia da figura junto da questao. Imagens podem ser HTTPS ou arquivos locais em `/question-media/`; ha ampliacao e recuperacao de falha. Nao foi criado um painel de upload: a midia entra pelo banco/geracao de questoes.
 
+## Pratica de redacao
+
+Cada vestibular tem propostas autorais de pratica. O aluno pode planejar, escrever, salvar automaticamente, retomar e enviar um texto, que fica congelado no historico. Ha uma autoavaliacao simples sem nota. Apos o envio, o aluno pode solicitar feedback formativo por IA mediante consentimento explicito; isso depende de `GEMINI_API_KEY`, nao atribui nota oficial e pode falhar sem perder o texto. O conteudo do texto e enviado ao provedor somente quando o aluno aciona essa analise. As propostas nao sao temas oficiais das bancas, e o sistema nao substitui correcao humana.
+
 ## Atualizacao do ambiente publicado
 
 1. Fazer backup do PostgreSQL e conferir o historico de migrations antes de atualizar.
-2. Em bancos gerenciados por migrations, aplicar `npx prisma migrate deploy` a partir de `apps/api`. A migration `20261011000100_question_media` adiciona somente a coluna JSONB opcional.
+2. Em bancos gerenciados por migrations, aplicar `npx prisma migrate deploy` a partir de `apps/api`. As migrations de redacao criam `EssayDraft` e acrescentam campos opcionais de feedback. Em bancos legados inicializados por `db push`, conferir o estado antes e aplicar `npx prisma db push` sem `--accept-data-loss`.
 3. Executar `npx prisma db seed` no mesmo ambiente. O seed faz upsert e preserva os IDs dos topicos existentes; nao renumerar suas chaves de ordem.
 4. Publicar API e frontend. Conferir se o comando configurado diretamente no Railway nao sobrepoe o arquivo `railway.json`. O fluxo legado nesse arquivo usa `prisma db push` sem `--accept-data-loss`, seguido do seed; nao executar migrations sobre um banco legado nao baselined sem revisar seu estado.
 5. Validar as 16 materias na trilha, responder duas sessoes curtas do mesmo topico e conferir resultado/painel. Abrir uma questao visual e sua revisao no celular.
