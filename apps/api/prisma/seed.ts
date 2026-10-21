@@ -28,6 +28,36 @@ interface VestibularSeed {
   subjects: SubjectSeed[]
 }
 
+const subjectFromEnem = (slug: string, order: number, weight: number): SubjectSeed => {
+  const subject = ENEM_SUBJECTS.find((item) => item.slug === slug)
+  if (!subject) throw new Error(`Materia base nao encontrada: ${slug}`)
+  return { ...subject, order, weight, topics: subject.topics.map((topic) => ({ ...topic })) }
+}
+
+const fuvestAdditionalSubjects: SubjectSeed[] = [
+  subjectFromEnem('fisica', 5, 0.08),
+  subjectFromEnem('quimica', 6, 0.08),
+  subjectFromEnem('biologia', 7, 0.08),
+  subjectFromEnem('historia', 8, 0.08),
+  subjectFromEnem('geografia', 9, 0.08),
+  subjectFromEnem('ingles', 10, 0.06),
+  subjectFromEnem('filosofia', 11, 0.04),
+  subjectFromEnem('sociologia', 12, 0.04),
+  subjectFromEnem('artes', 13, 0.03),
+  subjectFromEnem('educacao-fisica', 14, 0.03),
+]
+
+const unicampAdditionalSubjects: SubjectSeed[] = [
+  subjectFromEnem('fisica', 4, 0.09),
+  subjectFromEnem('quimica', 5, 0.09),
+  subjectFromEnem('biologia', 6, 0.09),
+  subjectFromEnem('historia', 7, 0.09),
+  subjectFromEnem('geografia', 8, 0.09),
+  subjectFromEnem('ingles', 9, 0.09),
+  subjectFromEnem('filosofia', 10, 0.04),
+  subjectFromEnem('sociologia', 11, 0.04),
+]
+
 const DATA: VestibularSeed[] = [
   {
     slug: 'enem',
@@ -49,7 +79,7 @@ const DATA: VestibularSeed[] = [
       {
         name: 'Português',
         slug: 'portugues',
-        weight: 0.30,
+        weight: 0.12,
         order: 1,
         iconSlug: 'lang',
         topics: [
@@ -61,7 +91,7 @@ const DATA: VestibularSeed[] = [
       {
         name: 'Matemática',
         slug: 'matematica',
-        weight: 0.30,
+        weight: 0.12,
         order: 2,
         iconSlug: 'math',
         topics: [
@@ -73,7 +103,7 @@ const DATA: VestibularSeed[] = [
       {
         name: 'Redação',
         slug: 'redacao',
-        weight: 0.20,
+        weight: 0,
         order: 3,
         iconSlug: 'write',
         topics: [
@@ -85,7 +115,7 @@ const DATA: VestibularSeed[] = [
       {
         name: 'Atualidades',
         slug: 'atualidades',
-        weight: 0.20,
+        weight: 0.04,
         order: 4,
         iconSlug: 'world',
         topics: [
@@ -94,6 +124,7 @@ const DATA: VestibularSeed[] = [
           { name: 'Cultura e Sociedade', description: 'Tendências culturais, diversidade e transformações sociais recentes.', order: 3 },
         ],
       },
+      ...fuvestAdditionalSubjects,
     ],
   },
   {
@@ -107,7 +138,7 @@ const DATA: VestibularSeed[] = [
       {
         name: 'Redação',
         slug: 'redacao',
-        weight: 0.34,
+        weight: 0,
         order: 1,
         iconSlug: 'write',
         topics: [
@@ -119,7 +150,7 @@ const DATA: VestibularSeed[] = [
       {
         name: 'Língua Portuguesa',
         slug: 'lingua-portuguesa',
-        weight: 0.33,
+        weight: 0.15,
         order: 2,
         iconSlug: 'lang',
         topics: [
@@ -131,7 +162,7 @@ const DATA: VestibularSeed[] = [
       {
         name: 'Matemática',
         slug: 'matematica',
-        weight: 0.33,
+        weight: 0.15,
         order: 3,
         iconSlug: 'math',
         topics: [
@@ -140,6 +171,7 @@ const DATA: VestibularSeed[] = [
           { name: 'Combinatória e Probabilidade', description: 'Contagem, arranjos, combinações e cálculo de probabilidades.', order: 3 },
         ],
       },
+      ...unicampAdditionalSubjects,
     ],
   },
 ]

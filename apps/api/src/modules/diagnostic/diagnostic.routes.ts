@@ -47,14 +47,13 @@ diagnosticRouter.post('/:slug/profile', async (req, res, next) => {
     }
     const user = await prisma.user.findUniqueOrThrow({ where: { id: req.userId! }, select: { preferences: true } })
     const language = (user.preferences as { enemLanguage?: string }).enemLanguage ?? 'ingles'
-    const enem = record.vestibular.slug === 'enem'
     const groups = [
-      { key: 'linguagens', name: 'Linguagens', slugs: ['linguagens', 'artes', 'educacao-fisica', language] },
+      { key: 'linguagens', name: 'Linguagens', slugs: ['linguagens', 'portugues', 'lingua-portuguesa', 'artes', 'educacao-fisica', record.vestibular.slug === 'enem' ? language : 'ingles'] },
       { key: 'matematica', name: 'Matematica', slugs: ['matematica'] },
       { key: 'natureza', name: 'Ciencias da Natureza', slugs: ['fisica', 'quimica', 'biologia'] },
-      { key: 'humanas', name: 'Ciencias Humanas', slugs: ['historia', 'geografia', 'filosofia', 'sociologia'] },
+      { key: 'humanas', name: 'Ciencias Humanas', slugs: ['historia', 'geografia', 'filosofia', 'sociologia', 'atualidades'] },
     ]
-    const areas = (enem ? groups : record.vestibular.subjects.map((s) => ({ key: s.slug, name: s.name, slugs: [s.slug] })))
+    const areas = groups
       .map((group) => ({ key: group.key, name: group.name,
         subjectIds: record.vestibular.subjects.filter((s) => group.slugs.includes(s.slug)).map((s) => s.id) }))
     const seen = new Set<string>()

@@ -57,9 +57,9 @@ async function buildQuestions(vestibularId: string, vestibularName: string, lang
     },
   })
 
-  const eligibleSubjects = subjects.filter((subject) => !vestibularName.toLowerCase().includes('enem')
-    || (subject.weight > 0 && subject.slug !== 'redacao'
-      && !(['ingles', 'espanhol'].includes(subject.slug) && subject.slug !== language)))
+  const eligibleSubjects = subjects.filter((subject) => subject.weight > 0 && subject.slug !== 'redacao'
+    && (!vestibularName.toLowerCase().includes('enem')
+      || !(['ingles', 'espanhol'].includes(subject.slug) && subject.slug !== language)))
   const perSubject = eligibleSubjects.map((s) => ({
     id: s.id,
     name: s.name,
