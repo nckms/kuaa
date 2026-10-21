@@ -4,13 +4,18 @@ import { curatedQuestions, getCuratedQuestions, generateCuratedQuestions } from 
 import { ENEM_SUBJECTS } from '../data/enem-curriculum'
 
 describe('banco autoral de reserva', () => {
-  it('prioriza questoes ainda nao vistas', () => {
+  it('prioriza dificuldade proxima e usa ineditismo para desempatar', () => {
     const topicName = 'Interpretação de Texto'
     const bank = getCuratedQuestions(topicName)
-    const unseen = bank[2]!
+    const targetDifficulty = 1
     const selected = generateCuratedQuestions({ topicName, userMasteryLevel: 1, questionCount: 1,
+      targetDifficulty,
       recentQuestionBodies: bank.slice(0, 2).map((question) => question.body) })
-    expect(selected[0]!.body).toBe(unseen.body)
+    const closest = Math.min(...bank.map((question) => Math.abs(question.difficulty - targetDifficulty)))
+    expect(Math.abs(selected[0]!.difficulty - targetDifficulty)).toBe(closest)
+    const unseenAtClosest = bank.filter((question) => Math.abs(question.difficulty - targetDifficulty) === closest
+      && !bank.slice(0, 2).some((seen) => seen.body === question.body))
+    if (unseenAtClosest.length) expect(unseenAtClosest.some((question) => question.body === selected[0]!.body)).toBe(true)
   })
   it('inclui figura pertinente ainda nao vista sem duplicar questoes', () => {
     const selected = generateCuratedQuestions({ topicName: 'Mecânica, Trabalho e Energia', userMasteryLevel: 1, questionCount: 3 })
@@ -39,7 +44,9 @@ describe('banco autoral de reserva', () => {
   })
   it('nao preenche sessoes curtas com questoes repetidas', () => {
     const questions = generateCuratedQuestions({ topicName: 'Interpretação de Texto', userMasteryLevel: 1, questionCount: 10 })
-    expect(questions).toHaveLength(3)
+    expect(questions.length).toBeGreaterThan(0)
+    expect(questions.length).toBeLessThanOrEqual(3)
+    expect(questions.every((question) => Math.abs(question.difficulty - 1) <= 1)).toBe(true)
     expect(new Set(questions.map((q) => q.body)).size).toBe(questions.length)
   })
 })

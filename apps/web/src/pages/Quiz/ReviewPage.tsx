@@ -2,10 +2,12 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import QuestionMedia from '../../components/quiz/QuestionMedia'
 import type { ReviewQuestion } from '../../types/quiz'
-import { useSessionSummary } from '../../hooks/useQuiz'
+import { useGenerateQuiz, useSessionSummary } from '../../hooks/useQuiz'
+import './ReviewPage.css'
 
 interface LocationState {
   questions: ReviewQuestion[]
+  topicId?: string
   topicName: string
   vestibularSlug: string
   correct: number
@@ -18,15 +20,18 @@ export default function ReviewPage() {
   const navigate = useNavigate()
   const { sessionId } = useParams<{ sessionId: string }>()
   const routeState = location.state as LocationState | null
-  const { data: summary, isLoading, isError } = useSessionSummary(sessionId, !routeState)
+  const { data: summary, isLoading, isError } = useSessionSummary(sessionId, !routeState?.topicId)
+  const generateQuiz = useGenerateQuiz()
   const state: LocationState | null = routeState ?? (summary ? {
     questions: summary.questions,
+    topicId: summary.topicId,
     topicName: summary.topicName,
     vestibularSlug: summary.vestibularSlug,
     correct: summary.correct,
     total: summary.correct + summary.wrong + summary.skipped,
     accuracy: summary.accuracy,
   } : null)
+  const topicId = state?.topicId ?? summary?.topicId
 
   if (isLoading && !state) {
     return (
@@ -38,7 +43,7 @@ export default function ReviewPage() {
     )
   }
 
-  if (!state || !state.questions || isError) {
+  if (!state || !state.questions || (isError && !state.topicId)) {
     return (
       <AppLayout>
         <div style={{ padding: 32, textAlign: 'center' }}>
@@ -57,7 +62,7 @@ export default function ReviewPage() {
 
         {/* Header */}
         <div style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#fff', borderBottom: '1px solid #f3f4f6', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <button onClick={() => navigate(`/trilha/${vestibularSlug}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#531A61', fontSize: 18 }}>←</button>
+          <button aria-label="Voltar à trilha" onClick={() => navigate(`/trilha/${vestibularSlug}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#531A61', fontSize: 18 }}>←</button>
           <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: '#1a1a1a', flex: 1 }}>Revisão · {topicName}</p>
           <span style={{ backgroundColor: '#f3f4f6', color: '#6b7280', fontSize: 12, padding: '4px 12px', borderRadius: 999 }}>{correct} de {total} corretas</span>
           <span style={{ backgroundColor: 'rgba(255,220,92,.2)', color: '#531A61', fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 999 }}>{Math.round(accuracy * 100)}% de acerto</span>
@@ -101,10 +106,38 @@ export default function ReviewPage() {
                 })}
               </div>
 
+              {!q.isCorrect && q.userAnswerId !== null && (() => {
+                const selected = q.options.find((opt) => opt.id === q.userAnswerId)
+                const correctOption = q.options.find((opt) => opt.isCorrect)
+                if (!selected || !correctOption) return null
+                return (
+                  <div className="review-comparison" aria-label="Comparação das respostas">
+                    <div><strong>Sua resposta</strong><p>{selected.id}. {selected.text}</p></div>
+                    <div><strong>Resposta correta</strong><p>{correctOption.id}. {correctOption.text}</p></div>
+                  </div>
+                )
+              })()}
+
               <div style={{ backgroundColor: '#f3eaf7', borderLeft: '4px solid #531A61', borderRadius: '0 12px 12px 0', padding: '14px 16px' }}>
                 <p style={{ fontSize: 13, color: '#531A61', fontWeight: 700, marginBottom: 6 }}>Explicação</p>
                 <p style={{ fontSize: 14, color: 'rgba(83,26,97,.8)', lineHeight: 1.6 }}>{q.explanation}</p>
               </div>
+              {!q.isCorrect && q.userAnswerId !== null && (
+                <div className="review-practice">
+                  <button
+                    type="button"
+                    disabled={!topicId || generateQuiz.isPending}
+                    onClick={() => {
+                      if (topicId) generateQuiz.mutate({ topicId, sourceQuestionId: q.id, count: 3 })
+                    }}
+                  >
+                    {generateQuiz.isPending && generateQuiz.variables?.sourceQuestionId === q.id ? 'Preparando questões...' : 'Praticar este erro'}
+                  </button>
+                  {generateQuiz.isError && generateQuiz.variables?.sourceQuestionId === q.id && (
+                    <p role="alert">Não foi possível preparar a prática. Tente novamente.</p>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -20,9 +20,11 @@ export function useGenerateQuiz() {
   const navigate = useNavigate()
 
   return useMutation({
-    mutationFn: async (data: { topicId: string; count?: number }) => {
-      const pending = await api.get<GenerateResult | null>(`/quiz/topic/${data.topicId}/resume`)
-      if (pending.data) return pending.data
+    mutationFn: async (data: { topicId: string; count?: number; sourceQuestionId?: string }) => {
+      if (!data.sourceQuestionId) {
+        const pending = await api.get<GenerateResult | null>(`/quiz/topic/${data.topicId}/resume`)
+        if (pending.data) return pending.data
+      }
       const res = await api.post<GenerateResult>('/quiz/generate', data)
       return res.data
     },

@@ -1,5 +1,6 @@
 import type { PerformanceSummary } from '../../services/adaptive/PerformanceEngine'
 import type { QuestionMediaData } from './questionMedia'
+import type { Prisma } from '@prisma/client'
 
 export interface QuestionOption {
   id: string       // "A" | "B" | "C" | "D" | "E"
@@ -27,6 +28,13 @@ export interface GenerationJobData {
   recentErrorTopics: string[]
   recentQuestionBodies?: string[]
   questionCount: number
+  remediation?: {
+    sourceQuestionId: string
+    questionBody: string
+    selectedOptionText: string
+    correctOptionText: string
+    explanation: string
+  }
 }
 
 export interface AnswerResult {
@@ -40,6 +48,7 @@ export interface AnswerResult {
 }
 
 export interface SessionSummary {
+  generation: Prisma.JsonValue | null
   sessionId: string
   topicId: string
   topicName: string

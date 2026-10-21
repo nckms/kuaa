@@ -109,6 +109,11 @@ export default function ResultPage() {
           </div>
 
           <p style={{ color: '#d1d5db', fontSize: 13 }}>{summary.skipped} questão(ões) em branco. O percentual considera todas as questões da sessão.</p>
+          {summary.generation?.targetSatisfied === false && (
+            <p style={{ color: '#d1d5db', fontSize: 13, lineHeight: 1.5, marginTop: 12 }}>
+              A dificuldade das questões disponíveis nesta sessão ficou fora da faixa planejada.
+            </p>
+          )}
 
           {isPerfect && (
             <div style={{ backgroundColor: 'rgba(255,220,92,.15)', border: '1px solid #FFDC5C', borderRadius: 16, padding: 16, marginBottom: 12 }}>
@@ -164,7 +169,7 @@ export default function ResultPage() {
               </button>
             )}
             <button
-              onClick={() => navigate(`/revisao/${sessionId}`, { state: { questions, topicName, vestibularSlug, correct, total: correct + wrong + summary.skipped, accuracy } })}
+              onClick={() => navigate(`/revisao/${sessionId}`, { state: { questions, topicId: summary.topicId, topicName, vestibularSlug, correct, total: correct + wrong + summary.skipped, accuracy } })}
               style={{ width: '100%', padding: 14, borderRadius: 12, backgroundColor: 'transparent', border: '1.5px solid rgba(255,255,255,.25)', color: '#fff', cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, Arial, sans-serif' }}
             >
               Revisar respostas

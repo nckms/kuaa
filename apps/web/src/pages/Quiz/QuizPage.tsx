@@ -176,6 +176,21 @@ export default function QuizPage() {
           <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
             {session.generation?.source === 'AI_GENERATED' ? 'Questões geradas por IA; podem conter imprecisões.' : 'Banco de reserva: geração por IA indisponível nesta sessão.'}
           </p>
+          {session.generation?.targetSatisfied === false && (
+            <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
+              A dificuldade das questões disponíveis ficou fora da faixa planejada para esta sessão.
+            </p>
+          )}
+          {(session.generation?.deliveredCount ?? session.questions.length) < (session.generation?.requestedCount ?? session.questions.length) && (
+            <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
+              Esta sessão tem menos questões porque não havia itens suficientes próximos do nível planejado.
+            </p>
+          )}
+          {session.generation?.remediationSourceQuestionId && session.generation.source === 'CURATED' && (
+            <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
+              Reforço do mesmo tópico com questões do banco; elas podem abordar um aspecto diferente do erro revisado.
+            </p>
+          )}
           {(answerMutation.isError || finishMutation.isError) && (
             <p role="alert" style={{ color: '#fca5a5', marginBottom: 16 }}>Não foi possível salvar. Confira sua conexão e tente novamente.</p>
           )}

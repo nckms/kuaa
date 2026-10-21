@@ -37,4 +37,8 @@ describe('few-shot e validacao estrutural', () => {
     const selected = selectReferences(data)
     expect(() => validateGeneratedQuestions({ questions: [{ ...question, body: selected[0].body }] }, 1, selected)).toThrow()
   })
+  it('rejeita dificuldade declarada distante do nivel solicitado', () => {
+    expect(() => validateGeneratedQuestions({ questions: [question] }, 1, [], 5, 3)).toThrow('Dificuldade declarada')
+    expect(validateGeneratedQuestions({ questions: [{ ...question, difficulty: 2 }] }, 1, [], 5, 3)).toHaveLength(1)
+  })
 })

@@ -20,7 +20,9 @@ O nivel e reavaliado ao finalizar uma sessao. Sessoes curtas acumulam evidencias
 
 O motor considera acertos e dificuldade: pelo menos 80% de acerto com dificuldade suficiente pode subir um nivel; abaixo de 40%, em dificuldade compativel, pode reduzir um nivel. A proxima sessao usa o dominio e o desempenho recente para selecionar sua dificuldade. A avaliacao consome as evidencias utilizadas e salva um resumo historico; finalizar duas vezes nao concede progresso novamente.
 
-O banco de reserva tem variedade limitada, sobretudo nos niveis avancados. Nao ha garantia de questoes ineditas em todas as sessoes, nem calibracao psicometrica ou TRI oficial. A geracao por IA depende da disponibilidade e configuracao do provedor.
+O banco de reserva tem variedade limitada, sobretudo nos niveis avancados. A geracao por IA rejeita itens cuja dificuldade declarada fique mais de um nivel distante do alvo. A reserva prioriza a faixa de um nivel ao redor do alvo e pode entregar uma sessao mais curta; se nao existir nenhum item nessa faixa, usa apenas os mais proximos disponiveis e registra `targetSatisfied: false`, `targetGap`, dificuldade media e quantidade entregue. O aluno recebe aviso quando o nivel pedido nao foi atendido. A classificacao de dificuldade continua editorial ou declarada pela IA, sem calibracao psicometrica nem TRI oficial.
+
+Na revisao, o aluno ve a alternativa que marcou, a correta e a explicacao da questao. Pode solicitar uma pratica de reforco vinculada a esse erro; a API confere que a resposta errada pertence a ele e a uma sessao finalizada. A IA recebe essa duvida para criar uma nova situacao que exercite o mesmo raciocinio. Quando ela falha, o banco oferece questoes do mesmo topico, que podem nao abordar exatamente o erro; essa limitacao e indicada na sessao. Nao ha garantia de questoes ineditas em todas as sessoes.
 
 ## Midia
 

@@ -95,7 +95,7 @@ const questionSchema = QuestionMediaSchema.extend({
   }
 })
 
-export function validateGeneratedQuestions(value: unknown, count: number, selected: ExamReference[] = [], optionCount = 5) {
+export function validateGeneratedQuestions(value: unknown, count: number, selected: ExamReference[] = [], optionCount = 5, targetDifficulty?: number) {
   const result = z.object({ questions: z.array(questionSchema).length(count) }).parse(value)
   const bodies = result.questions.map((question) => normalize(question.body))
   if (new Set(bodies).size !== count || bodies.some((body) => selected.some((ref) => normalize(ref.body) === body))) {
@@ -103,6 +103,9 @@ export function validateGeneratedQuestions(value: unknown, count: number, select
   }
   if (result.questions.some((question) => question.options.length !== optionCount)) {
     throw new Error('Quantidade de alternativas incompativel com a prova')
+  }
+  if (targetDifficulty != null && result.questions.some((question) => Math.abs(question.difficulty - targetDifficulty) > 1)) {
+    throw new Error('Dificuldade declarada fora da faixa solicitada')
   }
   return result.questions
 }

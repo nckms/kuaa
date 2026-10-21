@@ -25,8 +25,21 @@ export interface QuizQuestion extends QuestionMediaData {
   difficulty: number
 }
 
+export interface QuizGeneration {
+  source: 'AI_GENERATED' | 'CURATED'
+  promptVersion?: string
+  referenceIds?: string[]
+  targetDifficulty?: number | null
+  deliveredAverageDifficulty?: number | null
+  targetGap?: number | null
+  targetSatisfied?: boolean | null
+  requestedCount?: number | null
+  deliveredCount?: number | null
+  remediationSourceQuestionId?: string | null
+}
+
 export interface SessionData {
-  generation?: { source: 'AI_GENERATED' | 'CURATED'; promptVersion?: string; referenceIds?: string[] } | null
+  generation?: QuizGeneration | null
   sessionId: string
   topicId: string
   topicName: string
@@ -66,6 +79,7 @@ export interface ReviewQuestion extends QuestionMediaData {
 }
 
 export interface SessionSummary {
+  generation?: QuizGeneration | null
   sessionId: string
   topicId: string
   topicName: string

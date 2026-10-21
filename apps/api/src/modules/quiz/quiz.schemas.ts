@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const GenerateSchema = z.object({
   topicId: z.string().cuid(),
   count: z.number().int().min(3).max(15).default(5),
+  sourceQuestionId: z.string().cuid().optional(),
 })
 
 export const AnswerSchema = z.object({
