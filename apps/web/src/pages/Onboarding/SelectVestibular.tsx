@@ -5,11 +5,12 @@ import { useMyEnrollments, useEnroll } from '../../hooks/useEnrollments'
 import { useAuthStore } from '../../stores/auth.store'
 import KuaaLogo from '../../components/ui/KuaaLogo'
 import type { Vestibular } from '../../types/trail'
+import './SelectVestibular.css'
 
 const VESTIBULAR_META: Record<string, { color: string; bg: string; label: string; desc: string }> = {
   enem: { color: '#FFDC5C', bg: 'rgba(255,220,92,.12)', label: 'Nacional', desc: 'Acesso a universidades federais e estaduais em todo o Brasil.' },
-  fuvest: { color: '#c084fc', bg: 'rgba(192,132,252,.1)', label: 'USP', desc: 'Vestibular da Universidade de São Paulo — uma das melhores do Brasil.' },
-  unicamp: { color: '#6ee7b7', bg: 'rgba(110,231,183,.1)', label: 'UNICAMP', desc: 'Universidade Estadual de Campinas, referência em pesquisa e inovação.' },
+  fuvest: { color: '#840033', bg: 'rgba(132,0,51,.08)', label: 'USP', desc: 'Vestibular da Universidade de São Paulo.' },
+  unicamp: { color: '#531A61', bg: 'rgba(83,26,97,.08)', label: 'UNICAMP', desc: 'Vestibular da Universidade Estadual de Campinas.' },
 }
 
 function CardSkeleton() {
@@ -33,9 +34,10 @@ function VestibularCard({ vestibular, selected, enrolled, onClick }: CardProps) 
   const meta = VESTIBULAR_META[vestibular.slug] ?? { color: '#FFDC5C', bg: 'rgba(255,220,92,.12)', label: 'Vestibular', desc: vestibular.description }
 
   return (
-    <button
+    <button className="vestibular-card"
       onClick={onClick}
       disabled={enrolled}
+      aria-pressed={selected}
       style={{
         textAlign: 'left',
         borderRadius: 20,
@@ -54,7 +56,7 @@ function VestibularCard({ vestibular, selected, enrolled, onClick }: CardProps) 
           className="k-pill"
           style={{ backgroundColor: enrolled ? 'rgba(132,0,51,.18)' : meta.bg, color: enrolled ? '#fca5a5' : meta.color }}
         >
-          {enrolled ? 'Matriculado' : meta.label}
+          {enrolled ? 'Já escolhido' : meta.label}
         </span>
         {selected && !enrolled && (
           <div style={{ width: 22, height: 22, borderRadius: '50%', backgroundColor: meta.color, display: 'grid', placeItems: 'center' }}>
@@ -62,10 +64,10 @@ function VestibularCard({ vestibular, selected, enrolled, onClick }: CardProps) 
           </div>
         )}
       </div>
-      <h3 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 18, color: '#fff', letterSpacing: '-.025em', marginBottom: 6 }}>
+      <h3 style={{ fontWeight: 700, fontSize: 18, color: '#531A61', marginBottom: 6 }}>
         {vestibular.name}
       </h3>
-      <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 13, lineHeight: 1.6 }}>
+      <p style={{ color: '#594c5d', fontSize: 13, lineHeight: 1.6 }}>
         {meta.desc}
       </p>
     </button>
@@ -106,7 +108,7 @@ export default function SelectVestibular() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#1a0a1f', fontFamily: "'Questrial', Arial, sans-serif", display: 'flex', flexDirection: 'column' }}>
+    <div className="vestibular-page" style={{ minHeight: '100vh', fontFamily: "'Questrial', Arial, sans-serif", display: 'flex', flexDirection: 'column' }}>
 
       {/* Nav */}
       <nav style={{ borderBottom: '1px solid rgba(255,255,255,.06)', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
@@ -124,20 +126,22 @@ export default function SelectVestibular() {
 
         <div className="k-pill ghost-dark" style={{ marginBottom: 24 }}>
           <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#FFDC5C', flexShrink: 0 }} />
-          Escolha do vestibular
+          Etapa 1 de 2
         </div>
 
-        <h1 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 'clamp(24px, 3.5vw, 38px)', color: '#fff', letterSpacing: '-.03em', lineHeight: 1.1, marginBottom: 12 }}>
-          Para qual vestibular você<br />está se preparando?
+        <h1 style={{ fontWeight: 700, fontSize: 'clamp(26px, 3vw, 36px)', color: '#531A61', lineHeight: 1.2, marginBottom: 12 }}>
+          Qual vestibular você vai prestar?
         </h1>
-        <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 15, marginBottom: 44 }}>
-          Você pode adicionar mais vestibulares depois, sem custo.
+        <p style={{ color: '#594c5d', fontSize: 15, marginBottom: 36 }}>
+          Escolha um agora. Você poderá adicionar outros depois.
         </p>
 
         {isLoading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
             {[1, 2, 3].map((i) => <CardSkeleton key={i} />)}
           </div>
+        ) : !vestibulares?.length ? (
+          <p role="status">Nenhum vestibular disponível no momento. Tente novamente mais tarde.</p>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
             {vestibulares?.map((v) => (
@@ -174,11 +178,11 @@ export default function SelectVestibular() {
               transition: 'background-color .15s',
             }}
           >
-            {enroll.isPending ? 'Matriculando…' : 'Continuar para o diagnóstico →'}
+            {enroll.isPending ? 'Salvando escolha…' : 'Continuar para o diagnóstico'}
           </button>
           {enroll.isError && (
             <p style={{ color: '#fca5a5', fontSize: 13, textAlign: 'center', marginTop: 10 }}>
-              Erro ao matricular. Tente novamente.
+              Não foi possível salvar sua escolha. Tente novamente.
             </p>
           )}
         </div>

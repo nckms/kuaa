@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTrail } from '../../hooks/useTrail'
-import { useAuthStore } from '../../stores/auth.store'
 import { useMyEnrollments } from '../../hooks/useEnrollments'
 import AppLayout from '../../components/layout/AppLayout'
 import ProgressBar from '../../components/ui/ProgressBar'
-import StatChip from '../../components/ui/StatChip'
 import SubjectSection from '../../components/trail/SubjectSection'
 import SubjectNavigation from '../../components/trail/SubjectNavigation'
 import TopicModal from '../../components/trail/TopicModal'
@@ -49,11 +47,6 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
   const navigate = useNavigate()
   const { data: trail } = useTrail(vestibularSlug)
   const { data: enrollments } = useMyEnrollments()
-  const user = useAuthStore((s) => s.user)
-
-  if (!user) return null
-
-  const xpBar = Math.round(user.xp % 100)
   const correctAnswers = trail?.summary.correctAnswers ?? 0
   const wrongAnswers = trail?.summary.wrongAnswers ?? 0
   const accuracy = trail?.summary.accuracy ?? null
@@ -63,50 +56,17 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
     : 0
 
   return (
-    <div className="trail-right-sidebar d-flex flex-column gap-3 p-4 h-100 overflow-auto" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
-      <div className="d-flex align-items-center gap-3">
-        <div className="rounded-circle d-grid flex-shrink-0" style={{ width: 44, height: 44, placeItems: 'center', backgroundColor: '#531A61', color: '#fff' }}>
-          <span className="fw-bold">{user.name.charAt(0).toUpperCase()}</span>
-        </div>
-        <div className="min-w-0">
-          <p className="mb-0 fw-semibold text-truncate" style={{ color: 'var(--text)', fontSize: 14 }}>{user.name}</p>
-          <p className="mb-0 text-muted text-truncate" style={{ fontSize: 12 }}>{user.email}</p>
-        </div>
-      </div>
-
-      <div className="card border-0 shadow-sm" style={{ borderRadius: 8 }}>
-        <div className="card-body">
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <span className="fw-semibold" style={{ color: '#531A61' }}>Nivel {user.level}</span>
-            <span className="text-muted" style={{ fontSize: 12 }}>{user.xp} XP</span>
-          </div>
-          <ProgressBar value={xpBar} color="roxo" size="sm" />
-          <div className="row g-2 mt-3">
-            <div className="col-6">
-              <div className="border rounded-3 p-2 text-center">
-                <p className="mb-0 fw-bold" style={{ color: '#840033' }}><i className="bi bi-fire me-1" />{user.streakDays}</p>
-                <p className="mb-0 text-muted" style={{ fontSize: 11 }}>dias</p>
-              </div>
-            </div>
-            <div className="col-6">
-              <div className="border rounded-3 p-2 text-center">
-                <p className="mb-0 fw-bold" style={{ color: '#531A61' }}><i className="bi bi-clock me-1" />{user.preferences?.dailyStudyMinutes ?? 30} min</p>
-                <p className="mb-0 text-muted" style={{ fontSize: 11 }}>meta diária</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="trail-right-sidebar d-flex flex-column gap-3 p-4 h-100 overflow-auto">
 
       {trail && (
         <div className="card border-0 shadow-sm" style={{ borderRadius: 8 }}>
           <div className="card-body">
-            <p className="text-uppercase fw-semibold text-muted mb-2" style={{ fontSize: 11, letterSpacing: '.08em' }}>Progresso</p>
+              <p className="fw-semibold text-muted mb-2" style={{ fontSize: 12 }}>Seu progresso</p>
             <div className="d-flex align-items-end gap-2 mb-2">
               <p className="mb-0 fw-bold" style={{ fontSize: 30, color: '#531A61', lineHeight: 1 }}>
                 {trail.summary.answeredTopics}/{trail.summary.totalTopics}
               </p>
-              <p className="mb-1 text-muted" style={{ fontSize: 12 }}>topicos respondidos</p>
+              <p className="mb-1 text-muted" style={{ fontSize: 12 }}>tópicos respondidos</p>
             </div>
             <ProgressBar value={progressValue} color="roxo" />
 
@@ -122,7 +82,7 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
       {trail && (
         <div className="card border-0 shadow-sm" style={{ borderRadius: 8 }}>
           <div className="card-body">
-            <p className="text-uppercase fw-semibold text-muted mb-3" style={{ fontSize: 11, letterSpacing: '.08em' }}>Pontos de atencao</p>
+            <p className="fw-semibold text-muted mb-3" style={{ fontSize: 12 }}>Pontos de atenção</p>
             {knowledgeGaps.length > 0 ? (
               <div className="d-flex flex-column gap-2">
                 {knowledgeGaps.slice(0, 3).map((gap) => (
@@ -138,7 +98,7 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
                 ))}
               </div>
             ) : (
-              <p className="mb-0 text-muted" style={{ fontSize: 12, lineHeight: 1.45 }}>Responda mais questoes para formar o diagnostico.</p>
+              <p className="mb-0 text-muted" style={{ fontSize: 12, lineHeight: 1.45 }}>Seus pontos de atenção aparecerão após algumas questões.</p>
             )}
           </div>
         </div>
@@ -167,7 +127,8 @@ function TrailRightSidebarWrapper({ vestibularSlug }: { vestibularSlug: string }
 export default function TrailPage() {
   const { vestibularSlug = '' } = useParams<{ vestibularSlug: string }>()
   const { data: trail, isLoading, isError, refetch } = useTrail(vestibularSlug)
-  const user = useAuthStore((s) => s.user)
+  const { data: enrollments } = useMyEnrollments()
+  const navigate = useNavigate()
 
   const [activeSubjectId, setActiveSubjectId] = useState<string | null>(null)
   const [activeTopicId, setActiveTopicId] = useState<string | null>(null)
@@ -205,14 +166,13 @@ export default function TrailPage() {
         <div className="trail-header-top d-flex align-items-center justify-content-between gap-3" style={{ marginBottom: trail ? 12 : 0 }}>
           <div>
             <p className="text-uppercase fw-semibold mb-1" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '.14em' }}>Trilha de estudo</p>
-            <p className="mb-0" style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: 'var(--text)' }}>{trail?.vestibular.name ?? '...'}</p>
+            {(enrollments?.length ?? 0) > 1 ? (
+              <select className="trail-exam-select" aria-label="Vestibular" value={vestibularSlug} onChange={(event) => navigate(`/trilha/${event.target.value}`)}>
+                {enrollments?.map((item) => <option key={item.enrollment.vestibularId} value={item.vestibular.slug}>{item.vestibular.name}</option>)}
+              </select>
+            ) : <p className="mb-0" style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: 'var(--text)' }}>{trail?.vestibular.name ?? '...'}</p>}
           </div>
-          {user && (
-            <div className="trail-stats d-flex gap-2">
-              <StatChip icon="bi-lightning-charge-fill" value={user.xp} label="XP" />
-              <StatChip icon="bi-fire" value={user.streakDays} label="dias" />
-            </div>
-          )}
+          {trail && <span className="trail-header-count">{trail.summary.completedTopics}/{trail.summary.totalTopics} concluídos</span>}
         </div>
 
         {trail && (
@@ -230,7 +190,7 @@ export default function TrailPage() {
               return (
                 <button
                   key={subject.id}
-                  className={`trail-subject-tab btn btn-sm d-inline-flex align-items-center gap-2 rounded-pill flex-shrink-0 ${isActive ? 'active' : ''}`}
+                  className={`trail-subject-tab btn btn-sm d-inline-flex align-items-center gap-2 flex-shrink-0 ${isActive ? 'active' : ''}`}
                   onClick={() => setActiveSubjectId(subject.id)}
                   style={{
                     backgroundColor: isActive ? '#531A61' : '#fff',
@@ -252,13 +212,6 @@ export default function TrailPage() {
       </div>
 
       <div className="trail-content" style={{ padding: '24px 0 40px' }}>
-        <section className="trail-recommendation" aria-label="Diagnóstico inicial">
-          <div>
-            <h2>Diagnóstico inicial</h2>
-            <p className="mb-0 text-muted" style={{ fontSize: 13 }}>Opcional: personalize seu ponto de partida ou retome de onde parou.</p>
-            <Link to={`/diagnostico/${vestibularSlug}`}>Abrir diagnóstico</Link>
-          </div>
-        </section>
         {trail?.recommendation && (() => {
           const subject = trail.subjects.find((item) => item.topics.some((topic) => topic.id === trail.recommendation!.topicId))
           const topic = subject?.topics.find((item) => item.id === trail.recommendation!.topicId)
@@ -272,6 +225,7 @@ export default function TrailPage() {
             </section>
           ) : null
         })()}
+        {trail && <div className="trail-diagnostic"><Link to={`/diagnostico/${vestibularSlug}`}>Fazer diagnóstico <i className="bi bi-arrow-up-right" aria-hidden="true" /></Link></div>}
         {isLoading && <TrailSkeleton />}
 
         {isError && (
@@ -298,11 +252,16 @@ export default function TrailPage() {
       <TopicModal topic={modalTopic} subject={modalSubject} onClose={handleCloseModal} />
 
       <style>{`
-        .trail-recommendation { max-width: 560px; margin: 0 auto 24px; padding: 0 20px 20px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--line-soft); }
+        .trail-recommendation { max-width: 720px; margin: 0 auto 16px; padding: 18px 20px; display: flex; align-items: center; gap: 16px; background: #531A61; color: #fff; border-radius: 8px; }
         .trail-recommendation > div { min-width: 0; flex: 1; }
-        .trail-recommendation-label { font-size: 11px; color: #840033; margin: 0 0 4px; font-weight: 600; }
-        .trail-recommendation h2 { font-size: 16px; line-height: 1.4; margin: 0; color: var(--text); }
-        .trail-recommendation button { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid #d9cddd; background: white; border-radius: 50%; color: #531a61; }
+        .trail-recommendation-label { font-size: 12px; color: #FFDC5C; margin: 0 0 4px; font-weight: 600; }
+        .trail-recommendation h2 { font-size: 18px; line-height: 1.4; margin: 0; color: #fff; }
+        .trail-recommendation button { width: 44px; height: 44px; flex-shrink: 0; border: 0; background: #FFDC5C; border-radius: 6px; color: #531a61; }
+        .trail-diagnostic { max-width: 720px; margin: 0 auto 20px; padding: 0 4px; text-align: right; font-size: 13px; }
+        .trail-diagnostic a { color: #531A61; font-weight: 600; text-decoration: none; }
+        .trail-header-count { color: #531A61; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .trail-exam-select { width: auto; max-width: min(260px, 62vw); border: 1px solid var(--line-soft); border-radius: 6px; padding: 7px 30px 7px 9px; font-size: 16px; font-weight: 700; }
+        .trail-subject-tab { border-radius: 6px !important; }
         .trail-subject-navigation { display: flex; align-items: center; gap: 6px; min-width: 0; }
         .trail-subject-arrow { flex: 0 0 36px; height: 40px; border: 1px solid var(--line-soft); border-radius: 6px; background: white; color: #531a61; }
         .trail-subject-arrow:disabled { opacity: .3; }

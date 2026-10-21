@@ -5,6 +5,7 @@ import { useSession, useAnswer, useFinish } from '../../hooks/useQuiz'
 import ProgressBar from '../../components/ui/ProgressBar'
 import QuestionMedia from '../../components/quiz/QuestionMedia'
 import type { AnswerResult } from '../../types/quiz'
+import './QuizPage.css'
 
 const WingGlyph = () => (
   <svg width="20" height="17" viewBox="0 0 28 24" fill="none">
@@ -18,20 +19,6 @@ function formatTime(seconds: number): string {
   const s = (seconds % 60).toString().padStart(2, '0')
   return `${m}:${s}`
 }
-
-const MOTIVATIONAL_CORRECT = [
-  'Excelente! Continue assim.',
-  'Correto! Você está no caminho certo.',
-  'Muito bem! Conhecimento que abre asas.',
-  'Perfeito! Siga em frente.',
-  'Ótimo! Você acertou esta questão.',
-]
-
-const MOTIVATIONAL_WRONG = [
-  'Não desanime! Leia a explicação com atenção.',
-  'Erro faz parte do aprendizado. Siga em frente!',
-  'Continue! Cada erro é uma oportunidade de aprender.',
-]
 
 export default function QuizPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -50,7 +37,6 @@ export default function QuizPage() {
   const [answeredMap, setAnsweredMap] = useState<Record<string, AnswerResult>>({})
   const [showFinishModal, setShowFinishModal] = useState(false)
   const [questionStartTime, setQuestionStartTime] = useState(Date.now())
-  const [motivationalMsg, setMotivationalMsg] = useState('')
   const restoredSession = useRef<string | null>(null)
 
   useEffect(() => {
@@ -113,11 +99,6 @@ export default function QuizPage() {
       setAnswerResult(result)
       setIsConfirmed(true)
       setAnsweredMap((prev) => ({ ...prev, [currentQ.id]: { ...result, selectedOptionId: selectedOption } }))
-      if (result.isCorrect) {
-        setMotivationalMsg(MOTIVATIONAL_CORRECT[Math.floor(Math.random() * MOTIVATIONAL_CORRECT.length)])
-      } else {
-        setMotivationalMsg(MOTIVATIONAL_WRONG[Math.floor(Math.random() * MOTIVATIONAL_WRONG.length)])
-      }
     } catch (err) {
       console.error('Erro ao responder:', err)
     }
@@ -138,7 +119,7 @@ export default function QuizPage() {
   const isAlreadyAnswered = !!prevResult && !isConfirmed
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', flexDirection: 'column' }}>
+    <div className="quiz-page" style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', flexDirection: 'column' }}>
 
       {/* Header */}
       <div style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'rgba(26,8,38,.95)', borderBottom: '1px solid rgba(255,255,255,.08)', padding: '14px 24px' }}>
@@ -173,24 +154,13 @@ export default function QuizPage() {
 
         {/* Questão */}
         <div style={{ minWidth: 0 }}>
-          <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
-            {session.generation?.source === 'AI_GENERATED' ? 'Questões geradas por IA; podem conter imprecisões.' : 'Banco de reserva: geração por IA indisponível nesta sessão.'}
-          </p>
-          {session.generation?.targetSatisfied === false && (
-            <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
-              A dificuldade das questões disponíveis ficou fora da faixa planejada para esta sessão.
-            </p>
-          )}
-          {(session.generation?.deliveredCount ?? session.questions.length) < (session.generation?.requestedCount ?? session.questions.length) && (
-            <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
-              Esta sessão tem menos questões porque não havia itens suficientes próximos do nível planejado.
-            </p>
-          )}
-          {session.generation?.remediationSourceQuestionId && session.generation.source === 'CURATED' && (
-            <p style={{ color: '#d1d5db', fontSize: 12, marginBottom: 12 }}>
-              Reforço do mesmo tópico com questões do banco; elas podem abordar um aspecto diferente do erro revisado.
-            </p>
-          )}
+          <details className="quiz-question-info">
+            <summary>Sobre estas questões</summary>
+            <p>{session.generation?.source === 'AI_GENERATED' ? 'Questões criadas com apoio de IA. Confira dados importantes nas explicações.' : 'Questões selecionadas do acervo de estudos.'}</p>
+            {session.generation?.targetSatisfied === false && <p>Algumas questões podem estar fora da dificuldade prevista.</p>}
+            {(session.generation?.deliveredCount ?? session.questions.length) < (session.generation?.requestedCount ?? session.questions.length) && <p>Esta sessão tem menos questões porque não havia outras adequadas para este tópico.</p>}
+            {session.generation?.remediationSourceQuestionId && session.generation.source === 'CURATED' && <p>Esta prática retoma o tópico do erro, mas pode abordar outra parte do conteúdo.</p>}
+          </details>
           {(answerMutation.isError || finishMutation.isError) && (
             <p role="alert" style={{ color: '#fca5a5', marginBottom: 16 }}>Não foi possível salvar. Confira sua conexão e tente novamente.</p>
           )}
@@ -210,7 +180,7 @@ export default function QuizPage() {
             </button>
           </div>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 16 }}>{subjectName} · Nível {currentQ.difficulty}/5</p>
-          <p style={{ fontSize: 18, color: '#fff', lineHeight: 1.8 }}>{currentQ.body}</p>
+          <p className="quiz-question-body" style={{ fontSize: 18, color: '#fff', lineHeight: 1.8 }}>{currentQ.body}</p>
           <QuestionMedia key={currentQ.id} {...currentQ} />
 
           {/* Opções */}
@@ -240,6 +210,7 @@ export default function QuizPage() {
                   aria-pressed={isSelected || isRestoredSelected}
                   key={opt.id}
                   onClick={() => { if (!isDisabled) setSelectedOption(opt.id) }}
+                  className={`quiz-answer-option${isConfirmedCorrect ? ' is-correct' : ''}${isConfirmedWrong ? ' is-wrong' : ''}`}
                   style={{ textAlign: 'left', width: '100%', display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 18px', borderRadius: 14, backgroundColor: bg, border, cursor: isDisabled ? 'default' : 'pointer', transition: 'all 0.15s', opacity: textOpacity }}
                 >
                   <span style={{ fontSize: 14, fontWeight: 700, color: letterColor, width: 22, flexShrink: 0, marginTop: 1 }}>{opt.id}</span>
@@ -274,7 +245,7 @@ export default function QuizPage() {
                   )}
                 </div>
                 <p style={{ fontSize: 13, color: displayResult.isCorrect ? '#10b981' : '#fca5a5', marginBottom: 8 }}>
-                  {motivationalMsg || (displayResult.isCorrect ? 'Resposta correta.' : 'Revise este ponto antes de seguir.')}
+                  {displayResult.isCorrect ? 'Resposta correta.' : 'Resposta incorreta. Veja a explicação antes de seguir.'}
                 </p>
                 <p style={{ fontSize: 15, color: 'rgba(255,255,255,.8)', lineHeight: 1.6 }}>{displayResult.explanation}</p>
 

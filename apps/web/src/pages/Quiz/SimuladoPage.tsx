@@ -407,12 +407,12 @@ function SimuladoExam({
           {/* Tip */}
           <div style={{ background: 'var(--k-roxo-deep)', borderRadius: 16, padding: '20px 22px' }}>
             <div style={{ fontSize: 10, fontFamily: "'Unbounded', sans-serif", fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--k-amarelo)', marginBottom: 10 }}>
-              respira ✦
+              Seu ritmo
             </div>
             <p style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic', fontSize: 14, color: 'rgba(255,255,255,.8)', lineHeight: 1.65, margin: 0 }}>
               {answeredCount >= questions.length / 2
-                ? `Você já respondeu ${answeredCount} questões — isso é mais da metade. Confie no seu preparo e elimine as alternativas absurdas primeiro.`
-                : `Mantenha o ritmo — responda o que sabe primeiro e volte às difíceis depois.`}
+                ? `Você já respondeu ${answeredCount} questões. Siga com calma e revise as marcadas ao final.`
+                : `Responda primeiro as questões que conhece e volte às demais depois.`}
             </p>
           </div>
         </div>
@@ -475,7 +475,7 @@ export default function SimuladoPage() {
       await pendingSave.current?.catch(() => undefined)
       setResult(await finishAttempt(attempt.id))
     } catch {
-      setError('Nao foi possivel finalizar. Suas respostas salvas foram mantidas. Tente novamente.')
+      setError('Não foi possível finalizar. Suas respostas salvas foram mantidas. Tente novamente.')
     } finally {
       finishing.current = false
     }
@@ -506,7 +506,7 @@ export default function SimuladoPage() {
       // 409 = already attempted this week; refetch to show the existing attempt/results
       const status = (err as { response?: { status?: number } })?.response?.status
       if (status === 409) void refetch()
-      else setError('Nao foi possivel iniciar o simulado. Tente novamente.')
+      else setError('Não foi possível iniciar o simulado. Tente novamente.')
     }
   }
 
@@ -520,7 +520,7 @@ export default function SimuladoPage() {
       await request
       setLocalAnswers((prev) => ({ ...prev, [qId]: optionId }))
     } catch {
-      setError('A resposta nao foi salva. Selecione a alternativa novamente para tentar salvar.')
+      setError('A resposta não foi salva. Selecione a alternativa novamente para tentar salvar.')
     } finally {
       pendingSave.current = null
     }
@@ -534,7 +534,7 @@ export default function SimuladoPage() {
       await flagMutation.mutateAsync({ attemptId: attempt.id, questionId: qId })
       setLocalFlagged((prev) => prev.includes(qId) ? prev.filter((id) => id !== qId) : [...prev, qId])
     } catch {
-      setError('Nao foi possivel salvar a marcacao. Tente novamente.')
+      setError('Não foi possível salvar a marcação. Tente novamente.')
     }
   }
 
@@ -558,7 +558,7 @@ export default function SimuladoPage() {
 
   if (isError) {
     return <div role="alert" style={{ padding: 24 }}>
-      <p>Nao foi possivel carregar o simulado.</p>
+      <p>Não foi possível carregar o simulado.</p>
       <button onClick={() => void refetch()}>Tentar novamente</button>
       <Link to="/dashboard">Voltar ao dashboard</Link>
     </div>

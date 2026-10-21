@@ -4,8 +4,8 @@ import axios from 'axios'
 import { useAuthStore } from '../../stores/auth.store'
 import { api } from '../../services/api'
 import KuaaLogo from '../../components/ui/KuaaLogo'
-import AsaGlyph from '../../components/ui/AsaGlyph'
 import type { AuthResponse } from '../../types/user'
+import './Auth.css'
 
 interface FormState {
   email: string
@@ -72,39 +72,37 @@ export default function Login() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Questrial', Arial, sans-serif" }}>
+    <div className="auth-page" style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Questrial', Arial, sans-serif" }}>
 
       {/* Left brand panel */}
       <div
         style={{ flex: '0 0 420px', backgroundColor: '#1a0a1f', flexDirection: 'column', padding: '48px 44px', position: 'relative', overflow: 'hidden' }}
-        className="hidden lg:flex"
+        className="auth-brand hidden lg:flex"
       >
-        <div style={{ position: 'absolute', right: -60, bottom: -60, opacity: 0.07, color: '#fff', pointerEvents: 'none' }}>
-          <AsaGlyph size={360} tone="mono" />
-        </div>
+        <img className="auth-brand-mascot" src="/kuaa-logo.png" alt="" aria-hidden="true" />
 
         <KuaaLogo size={38} dark showTagline />
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingBottom: 48 }}>
           <div className="k-pill ghost-dark" style={{ marginBottom: 24 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#FFDC5C', flexShrink: 0 }} />
-            100% gratuito
+            Sua área de estudos
           </div>
-          <h2 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 30, color: '#fff', letterSpacing: '-.03em', lineHeight: 1.1, marginBottom: 16 }}>
-            Bem-vindo<br />de volta.
+          <h2 style={{ fontWeight: 700, fontSize: 30, color: '#fff', lineHeight: 1.2, marginBottom: 16 }}>
+            Bom ter você de volta.
           </h2>
           <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 15, lineHeight: 1.7 }}>
-            Continue sua jornada rumo à aprovação. Cada sessão conta.
+            Entre para continuar seus estudos de onde parou.
           </p>
         </div>
 
         <p style={{ color: 'rgba(255,255,255,.2)', fontSize: 12, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-          Para escolas públicas brasileiras
+          Kuaa · estudos no seu ritmo
         </p>
       </div>
 
       {/* Right form panel */}
-      <div style={{ flex: 1, backgroundColor: '#faf3e3', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px' }}>
+      <div className="auth-form-panel" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: '100%', maxWidth: 400 }}>
 
           {/* Mobile logo */}
@@ -112,13 +110,13 @@ export default function Login() {
             <KuaaLogo size={38} />
           </div>
 
-          <h1 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 24, color: '#1a0a1f', letterSpacing: '-.03em', marginBottom: 8 }}>
+          <h1 style={{ fontWeight: 700, fontSize: 28, color: '#531A61', marginBottom: 8 }}>
             Entrar
           </h1>
           <p style={{ color: '#6b566f', fontSize: 14, marginBottom: 36 }}>
             Não tem conta?{' '}
             <Link to="/cadastro" style={{ color: '#531A61', fontWeight: 600, textDecoration: 'none' }}>
-              Cadastre-se grátis
+              Criar conta
             </Link>
           </p>
 
@@ -134,9 +132,11 @@ export default function Login() {
                 autoComplete="email"
                 value={form.email}
                 onChange={handleChange}
-                style={{ width: '100%', border: `1.5px solid ${errors.email ? '#840033' : 'rgba(26,10,31,.14)'}`, borderRadius: 12, padding: '12px 16px', fontSize: 15, backgroundColor: '#fff', outline: 'none', fontFamily: "'Questrial', Arial, sans-serif", boxSizing: 'border-box', color: '#1a0a1f' }}
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? 'email-error' : undefined}
+                style={{ width: '100%', border: `1.5px solid ${errors.email ? '#840033' : 'rgba(26,10,31,.14)'}`, borderRadius: 8, padding: '12px 16px', fontSize: 15, backgroundColor: '#fff', fontFamily: "'Questrial', Arial, sans-serif", boxSizing: 'border-box', color: '#1a0a1f' }}
               />
-              {errors.email && <p style={{ color: '#840033', fontSize: 12, marginTop: 6 }}>{errors.email}</p>}
+              {errors.email && <p id="email-error" style={{ color: '#840033', fontSize: 12, marginTop: 6 }}>{errors.email}</p>}
             </div>
 
             <div style={{ marginBottom: 28 }}>
@@ -150,13 +150,15 @@ export default function Login() {
                 autoComplete="current-password"
                 value={form.password}
                 onChange={handleChange}
-                style={{ width: '100%', border: `1.5px solid ${errors.password ? '#840033' : 'rgba(26,10,31,.14)'}`, borderRadius: 12, padding: '12px 16px', fontSize: 15, backgroundColor: '#fff', outline: 'none', fontFamily: "'Questrial', Arial, sans-serif", boxSizing: 'border-box', color: '#1a0a1f' }}
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? 'password-error' : undefined}
+                style={{ width: '100%', border: `1.5px solid ${errors.password ? '#840033' : 'rgba(26,10,31,.14)'}`, borderRadius: 8, padding: '12px 16px', fontSize: 15, backgroundColor: '#fff', fontFamily: "'Questrial', Arial, sans-serif", boxSizing: 'border-box', color: '#1a0a1f' }}
               />
-              {errors.password && <p style={{ color: '#840033', fontSize: 12, marginTop: 6 }}>{errors.password}</p>}
+              {errors.password && <p id="password-error" style={{ color: '#840033', fontSize: 12, marginTop: 6 }}>{errors.password}</p>}
             </div>
 
             {errors.general && (
-              <div style={{ marginBottom: 20, backgroundColor: 'rgba(132,0,51,.08)', border: '1px solid rgba(132,0,51,.2)', borderRadius: 10, padding: '12px 16px', color: '#840033', fontSize: 14, textAlign: 'center' }}>
+              <div role="alert" style={{ marginBottom: 20, backgroundColor: 'rgba(132,0,51,.08)', border: '1px solid rgba(132,0,51,.2)', borderRadius: 8, padding: '12px 16px', color: '#840033', fontSize: 14 }}>
                 {errors.general}
               </div>
             )}
@@ -164,7 +166,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              style={{ width: '100%', padding: '15px', borderRadius: 999, fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 13, backgroundColor: loading ? 'rgba(83,26,97,.5)' : '#531A61', color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '-.02em', transition: 'opacity .15s' }}
+              className="auth-submit"
             >
               {loading ? 'Entrando…' : 'Entrar'}
             </button>

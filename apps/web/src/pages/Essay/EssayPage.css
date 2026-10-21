@@ -1,4 +1,4 @@
-.essay-page { min-width: 0; width: 100%; background: #faf7f0; color: #231b27; min-height: 100%; padding: 28px 24px 90px; font-family: Inter, Arial, sans-serif; }
+.essay-page { min-width: 0; width: 100%; background: #fff; color: #231b27; min-height: 100%; padding: 28px 24px 90px; font-family: Inter, Arial, sans-serif; }
 .essay-inner { width: min(100%, 1040px); margin: 0 auto; }
 .essay-back { border: 0; background: transparent; color: #531a61; padding: 8px 0; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
 .essay-back .bi { margin-right: 6px; }
@@ -19,6 +19,9 @@
 .essay-primary { background: #531a61; color: white; }
 .essay-secondary { color: #531a61; background: white; }
 .essay-primary:disabled, .essay-secondary:disabled { opacity: .5; cursor: not-allowed; }
+.essay-primary:hover:not(:disabled) { background: #840033; border-color: #840033; }
+.essay-secondary:hover:not(:disabled), .essay-history-item:hover { background: #f8f3f8; }
+.essay-page button:focus-visible, .essay-page summary:focus-visible, .essay-page input:focus-visible { outline: 2px solid #840033; outline-offset: 2px; }
 .essay-history-item { width: 100%; border: 0; border-top: 1px solid #e5dee3; padding: 18px 0; background: transparent; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #231b27; }
 .essay-history-item > span:first-child { min-width: 0; }
 .essay-history-item strong, .essay-history-item small { display: block; overflow-wrap: anywhere; }
@@ -75,5 +78,8 @@
   .essay-writing textarea { min-height: 380px; padding: 14px; }
   .essay-history-item { align-items: flex-start; }
   .essay-history-end { font-size: 12px; }
+  .essay-history-item { flex-wrap: wrap; }
+  .essay-history-end { flex-wrap: wrap; }
+  .essay-field-heading { flex-wrap: wrap; }
   .essay-feedback-criteria { grid-template-columns: minmax(0, 1fr); }
 }

@@ -16,7 +16,7 @@ const FAIXAS = [
 // Threshold para atingir a próxima faixa (undefined = já está na elite)
 const FAIXA_NEXT_THRESHOLD = [500, 700, 850, undefined] as const
 
-const SUBJECT_COLORS = ['#531A61', '#840033', '#2a0d33', '#1A4A61', '#614A1A']
+const SUBJECT_COLORS = ['#531A61', '#840033', '#531A61', '#840033', '#531A61']
 
 function getFaixaIndex(score: number): number {
   if (score < 500) return 0
@@ -91,7 +91,7 @@ function BigGauge({ score }: { score: number }) {
       {/* Track */}
       <path
         d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-        stroke="rgba(255,255,255,.12)"
+        stroke="#e8dfea"
         strokeWidth="14"
         fill="none"
         strokeLinecap="round"
@@ -169,13 +169,13 @@ export default function IndicePage() {
   const topPercent = percentile !== null ? 100 - percentile : null
 
   const faixaDescText = nextFaixa && ptsToNext !== null
-    ? `Você está na faixa ${currentFaixa?.name ?? ''}. Mantenha o ritmo e alcance a faixa ${nextFaixa.name} com mais ${ptsToNext} pontos.`
-    : `Você está na faixa Elite. Parabéns pelo desempenho máximo!`
+    ? `Faixa ${currentFaixa?.name ?? ''}. Faltam ${ptsToNext} pontos para a faixa ${nextFaixa.name}.`
+    : 'Você está na faixa mais alta do índice.'
 
   if (isLoading || isError) {
     return <AppLayout>
       <div style={{ padding: 28 }} role={isError ? 'alert' : 'status'}>
-        <p>{isError ? 'Nao foi possivel carregar seu indice.' : 'Carregando seu indice...'}</p>
+        <p>{isError ? 'Não foi possível carregar seu índice.' : 'Carregando seu índice...'}</p>
         {isError && <button onClick={() => void refetch()}>Tentar novamente</button>}
       </div>
     </AppLayout>
@@ -183,7 +183,7 @@ export default function IndicePage() {
 
   return (
     <AppLayout>
-      <div className="indice-page" style={{ fontFamily: "'Questrial', Arial, sans-serif", background: 'var(--k-creme)', minHeight: '100%', minWidth: 0, overflowWrap: 'anywhere' }}>
+      <div className="indice-page" style={{ fontFamily: "'Questrial', Arial, sans-serif", background: '#fff', minHeight: '100%', minWidth: 0, overflowWrap: 'anywhere' }}>
         {/* Header */}
         <div
           className="indice-header"
@@ -202,13 +202,13 @@ export default function IndicePage() {
                 fontSize: 10,
                 fontFamily: "'Unbounded', sans-serif",
                 fontWeight: 500,
-                letterSpacing: '.22em',
+                letterSpacing: 0,
                 textTransform: 'uppercase',
                 color: 'var(--k-tinta-3)',
                 marginBottom: 4,
               }}
             >
-              seu perfil de aprovação
+              Acompanhamento de estudos
             </div>
             <h1
               style={{
@@ -216,7 +216,7 @@ export default function IndicePage() {
                 fontWeight: 700,
                 fontSize: 26,
                 color: 'var(--k-tinta)',
-                letterSpacing: '-0.04em',
+                letterSpacing: 0,
                 margin: 0,
               }}
             >
@@ -224,7 +224,7 @@ export default function IndicePage() {
             </h1>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexWrap: 'wrap' }}>
             {vestibularName && <span className="k-pill ghost">{vestibularName}</span>}
             <Avatar size={38} name={user?.name ?? 'K'} hue={0} ring />
           </div>
@@ -235,9 +235,10 @@ export default function IndicePage() {
           <div
             className="indice-summary"
             style={{
-              background: 'var(--k-amarelo)',
-              borderRadius: 28,
-              padding: '40px 48px',
+              background: '#fff',
+              borderTop: '3px solid #FFDC5C',
+              borderBottom: '1px solid #e8dfea',
+              padding: '28px 0',
               display: 'grid',
               gridTemplateColumns: 'minmax(0, 1fr) auto',
               gap: 32,
@@ -248,7 +249,7 @@ export default function IndicePage() {
             {/* Left */}
             <div>
               <span className="k-pill wine" style={{ marginBottom: 20, display: 'inline-flex' }}>
-                {topPercent !== null ? `Top ${topPercent}% nacional` : 'Coletando dados'}
+                {topPercent !== null ? `Entre os ${topPercent}% com maior índice` : 'Dados em formação'}
               </span>
 
               <div
@@ -256,9 +257,9 @@ export default function IndicePage() {
                 style={{
                   fontFamily: "'Unbounded', sans-serif",
                   fontWeight: 700,
-                  fontSize: 96,
+                  fontSize: 72,
                   color: 'var(--k-roxo-deep)',
-                  letterSpacing: '-0.045em',
+                  letterSpacing: 0,
                   lineHeight: 0.88,
                   margin: '16px 0 8px',
                 }}
@@ -277,13 +278,12 @@ export default function IndicePage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6,
-                  background: 'rgba(26,10,31,.1)',
-                  borderRadius: 999,
-                  padding: '8px 16px',
+                  borderLeft: '3px solid #840033',
+                  padding: '4px 10px',
                   marginBottom: 16,
                 }}
               >
-                <KuaaIcon name="arrowUp" size={14} color="var(--k-vinho)" />
+                <KuaaIcon name="arrowUp" size={14} color="#840033" />
                 <span
                   style={{
                     fontFamily: "'Unbounded', sans-serif",
@@ -307,15 +307,16 @@ export default function IndicePage() {
                     key={f.name}
                     style={{
                       padding: '8px 16px',
-                      borderRadius: 10,
-                      background: i === faixaIdx ? 'var(--k-roxo-deep)' : 'rgba(26,10,31,.08)',
-                      color: i === faixaIdx ? '#fff' : 'var(--k-tinta-2)',
+                      borderRadius: 4,
+                      border: i === faixaIdx ? '1px solid #531A61' : '1px solid #e8dfea',
+                      background: i === faixaIdx ? '#531A61' : '#fff',
+                      color: i === faixaIdx ? '#fff' : '#531A61',
                       fontSize: 11,
                       fontFamily: "'Unbounded', sans-serif",
                       fontWeight: i === faixaIdx ? 700 : 400,
                     }}
                   >
-                    <div style={{ letterSpacing: '.1em', opacity: 0.7, fontSize: 9 }}>
+                    <div style={{ letterSpacing: 0, opacity: 0.8, fontSize: 9 }}>
                       {f.label}
                     </div>
                     <div style={{ textTransform: 'capitalize', marginTop: 2 }}>{f.name}</div>
@@ -328,9 +329,7 @@ export default function IndicePage() {
             <div style={{ minWidth: 0, maxWidth: 372 }}>
               <div
                 style={{
-                  background: 'rgba(26,10,31,.08)',
-                  borderRadius: 20,
-                  padding: '16px',
+                  padding: '8px',
                   display: 'inline-block',
                   maxWidth: '100%',
                 }}
@@ -344,9 +343,9 @@ export default function IndicePage() {
           <div
             className="indice-breakdown"
             style={{
-              background: 'var(--k-roxo-deep)',
-              borderRadius: 24,
-              padding: '32px 36px',
+              background: '#fff',
+              borderTop: '1px solid #e8dfea',
+              padding: '28px 0',
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
               gap: 24,
@@ -360,9 +359,9 @@ export default function IndicePage() {
                   fontSize: 10,
                   fontFamily: "'Unbounded', sans-serif",
                   fontWeight: 500,
-                  letterSpacing: '.2em',
+                  letterSpacing: 0,
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,.45)',
+                  color: '#531A61',
                   marginBottom: 16,
                 }}
               >
@@ -370,7 +369,7 @@ export default function IndicePage() {
               </div>
               {historyValues.length >= 2
                 ? <SparkLine values={historyValues} />
-                : <p style={{ fontSize: 12, color: 'rgba(255,255,255,.35)', lineHeight: 1.5 }}>O histórico mensal aparecerá conforme novos meses de estudo forem registrados.</p>
+                : <p style={{ fontSize: 12, color: '#5f5463', lineHeight: 1.5 }}>O histórico mensal aparecerá após novos meses de estudo.</p>
               }
               {historyMonths.length > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
@@ -379,7 +378,7 @@ export default function IndicePage() {
                       key={i}
                       style={{
                         fontSize: 9,
-                        color: i === historyMonths.length - 1 ? 'var(--k-amarelo)' : 'rgba(255,255,255,.3)',
+                        color: i === historyMonths.length - 1 ? '#840033' : '#5f5463',
                         fontFamily: "'Unbounded', sans-serif",
                       }}
                     >
@@ -399,9 +398,9 @@ export default function IndicePage() {
                         fontSize: 10,
                         fontFamily: "'Unbounded', sans-serif",
                         fontWeight: 500,
-                        letterSpacing: '.2em',
+                        letterSpacing: 0,
                         textTransform: 'uppercase',
-                        color: 'rgba(255,255,255,.45)',
+                        color: '#531A61',
                         marginBottom: 16,
                       }}
                     >
@@ -411,9 +410,9 @@ export default function IndicePage() {
                       style={{
                         fontFamily: "'Unbounded', sans-serif",
                         fontWeight: 700,
-                        fontSize: 52,
-                        color: '#fff',
-                        letterSpacing: '-0.04em',
+                        fontSize: 40,
+                        color: '#531A61',
+                        letterSpacing: 0,
                         lineHeight: 0.92,
                         marginBottom: 8,
                       }}
@@ -425,16 +424,14 @@ export default function IndicePage() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: 4,
-                        background: 'rgba(255,255,255,.08)',
-                        borderRadius: 999,
-                        padding: '4px 10px',
+                        padding: '4px 0',
                       }}
                     >
-                      <KuaaIcon name="arrowUp" size={11} color="#4ade80" />
+                      <KuaaIcon name="arrowUp" size={11} color="#840033" />
                       <span
                         style={{
                           fontSize: 12,
-                          color: '#4ade80',
+                          color: '#840033',
                           fontFamily: "'Unbounded', sans-serif",
                           fontWeight: 600,
                         }}
@@ -446,8 +443,8 @@ export default function IndicePage() {
                 ))
               : (
                 <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center' }}>
-                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,.35)', lineHeight: 1.5 }}>
-                    Responda questões para ver o breakdown por matéria.
+                  <p style={{ fontSize: 13, color: '#5f5463', lineHeight: 1.5 }}>
+                    Responda questões para acompanhar o índice por matéria.
                   </p>
                 </div>
               )

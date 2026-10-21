@@ -8,28 +8,28 @@ interface Props {
 
 export default function KuaaLogo({ size = 44, dark = false, showTagline = false }: Props) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
       <KuaaMascotLogo size={size} />
       <div>
         <div
           style={{
-            fontFamily: "'Unbounded', sans-serif",
-            fontWeight: 700,
-            fontSize: size * 0.55,
-            letterSpacing: '-0.04em',
-            color: dark ? '#fff' : '#2a0d33',
+            fontFamily: "'Kaushan Script', 'Segoe Script', cursive",
+            fontWeight: 400,
+            fontSize: size * 0.78,
+            letterSpacing: 0,
+            color: dark ? '#fff' : '#531A61',
             display: 'inline-flex',
             alignItems: 'baseline',
             gap: 2,
           }}
         >
-          kuaa<span style={{ color: '#840033' }}>.</span>
+          kuaa<span style={{ color: dark ? '#FFDC5C' : '#840033' }}>.</span>
         </div>
         {showTagline && (
           <div
             style={{
               fontSize: 9.5,
-              letterSpacing: '.28em',
+              letterSpacing: 0,
               textTransform: 'uppercase',
               color: dark ? '#FFDC5C' : '#840033',
               marginTop: 2,

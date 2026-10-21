@@ -4,8 +4,8 @@ import axios from 'axios'
 import { useAuthStore } from '../../stores/auth.store'
 import { api } from '../../services/api'
 import KuaaLogo from '../../components/ui/KuaaLogo'
-import AsaGlyph from '../../components/ui/AsaGlyph'
 import type { AuthResponse } from '../../types/user'
+import './Auth.css'
 
 const BR_STATES = [
   'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA',
@@ -126,29 +126,27 @@ export default function Register() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Questrial', Arial, sans-serif" }}>
+    <div className="auth-page" style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Questrial', Arial, sans-serif" }}>
 
       {/* Left brand panel */}
       <div
         style={{ flex: '0 0 400px', backgroundColor: '#2a0d33', flexDirection: 'column', padding: '48px 44px', position: 'relative', overflow: 'hidden' }}
-        className="hidden lg:flex"
+        className="auth-brand hidden lg:flex"
       >
-        <div style={{ position: 'absolute', right: -60, bottom: -60, opacity: 0.07, color: '#fff', pointerEvents: 'none' }}>
-          <AsaGlyph size={360} tone="mono" />
-        </div>
+        <img className="auth-brand-mascot" src="/kuaa-logo.png" alt="" aria-hidden="true" />
 
         <KuaaLogo size={38} dark showTagline />
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingBottom: 48 }}>
           <div className="k-pill ghost-dark" style={{ marginBottom: 24 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#FFDC5C', flexShrink: 0 }} />
-            100% gratuito
+            Comece por aqui
           </div>
           <h2 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 28, color: '#fff', letterSpacing: '-.03em', lineHeight: 1.1, marginBottom: 16 }}>
-            Sua aprovação<br />começa aqui.
+            Organize seus estudos.
           </h2>
           <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 15, lineHeight: 1.7, marginBottom: 32 }}>
-            Trilhas personalizadas, simulados e monitores. Tudo gratuito para estudantes de escolas públicas.
+            Crie sua conta para escolher o vestibular e montar sua trilha de estudos.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {['ENEM', 'FUVEST', 'UNICAMP'].map((v) => (
@@ -160,13 +158,13 @@ export default function Register() {
           </div>
         </div>
 
-        <p style={{ color: 'rgba(255,255,255,.2)', fontSize: 12, letterSpacing: '.04em', textTransform: 'uppercase' }}>
-          Para escolas públicas brasileiras
+        <p style={{ color: 'rgba(255,255,255,.7)', fontSize: 12 }}>
+          Kuaa · estudos no seu ritmo
         </p>
       </div>
 
       {/* Right form panel */}
-      <div style={{ flex: 1, backgroundColor: '#faf3e3', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px', overflowY: 'auto' }}>
+      <div className="auth-form-panel" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflowY: 'auto' }}>
         <div style={{ width: '100%', maxWidth: 420 }}>
 
           {/* Mobile logo */}
@@ -175,7 +173,7 @@ export default function Register() {
           </div>
 
           <h1 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 24, color: '#1a0a1f', letterSpacing: '-.03em', marginBottom: 8 }}>
-            Criar conta
+            Crie sua conta
           </h1>
           <p style={{ color: '#6b566f', fontSize: 14, marginBottom: 32 }}>
             Já tem conta?{' '}
@@ -188,7 +186,7 @@ export default function Register() {
             {/* Nome */}
             <div style={{ marginBottom: 18 }}>
               <label htmlFor="name" style={labelStyle}>Nome completo</label>
-              <input id="name" name="name" type="text" autoComplete="name"
+              <input id="name" name="name" type="text" autoComplete="name" aria-invalid={!!errors.name}
                 value={form.name} onChange={handleChange}
                 style={inputStyle(!!errors.name)}
               />
@@ -198,7 +196,7 @@ export default function Register() {
             {/* E-mail */}
             <div style={{ marginBottom: 18 }}>
               <label htmlFor="email" style={labelStyle}>E-mail</label>
-              <input id="email" name="email" type="email" autoComplete="email"
+              <input id="email" name="email" type="email" autoComplete="email" aria-invalid={!!errors.email}
                 value={form.email} onChange={handleChange}
                 style={inputStyle(!!errors.email)}
               />
@@ -208,7 +206,7 @@ export default function Register() {
             {/* Senha */}
             <div style={{ marginBottom: 18 }}>
               <label htmlFor="password" style={labelStyle}>Senha</label>
-              <input id="password" name="password" type="password" autoComplete="new-password"
+              <input id="password" name="password" type="password" autoComplete="new-password" aria-invalid={!!errors.password}
                 value={form.password} onChange={handleChange}
                 style={inputStyle(!!errors.password)}
               />
@@ -252,25 +250,21 @@ export default function Register() {
             </div>
 
             {errors.general && (
-              <div style={{ marginBottom: 18, backgroundColor: 'rgba(132,0,51,.08)', border: '1px solid rgba(132,0,51,.2)', borderRadius: 10, padding: '12px 16px', color: '#840033', fontSize: 14, textAlign: 'center' }}>
+              <div role="alert" style={{ marginBottom: 18, backgroundColor: 'rgba(132,0,51,.08)', border: '1px solid rgba(132,0,51,.2)', borderRadius: 8, padding: '12px 16px', color: '#840033', fontSize: 14 }}>
                 {errors.general}
               </div>
             )}
             {errors.validation && errors.validation.length > 0 && (
-              <ul style={{ marginBottom: 18, backgroundColor: 'rgba(132,0,51,.08)', border: '1px solid rgba(132,0,51,.2)', borderRadius: 10, padding: '12px 16px 12px 28px', color: '#840033', fontSize: 14 }}>
+              <ul role="alert" style={{ marginBottom: 18, backgroundColor: 'rgba(132,0,51,.08)', border: '1px solid rgba(132,0,51,.2)', borderRadius: 8, padding: '12px 16px 12px 28px', color: '#840033', fontSize: 14 }}>
                 {errors.validation.map((msg, i) => <li key={i}>{msg}</li>)}
               </ul>
             )}
 
-            <button type="submit" disabled={loading}
-              style={{ width: '100%', padding: '15px', borderRadius: 999, fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 13, backgroundColor: loading ? 'rgba(83,26,97,.5)' : '#531A61', color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '-.02em', transition: 'opacity .15s' }}
+            <button type="submit" disabled={loading} className="auth-submit"
             >
-              {loading ? 'Criando conta…' : 'Criar conta grátis'}
+              {loading ? 'Criando conta…' : 'Criar conta'}
             </button>
 
-            <p style={{ color: 'rgba(26,10,31,.3)', fontSize: 11, textAlign: 'center', marginTop: 16, lineHeight: 1.6 }}>
-              Ao criar conta, você concorda que isso é um projeto acadêmico sem fins lucrativos.
-            </p>
           </form>
         </div>
       </div>

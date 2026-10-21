@@ -1,0 +1,10 @@
+.auth-page { color: #301b35; background: #fff; }
+.auth-page .auth-brand { background: #531a61 !important; }
+.auth-brand-mascot { position: absolute; right: 20px; bottom: -45px; width: 180px; max-width: 46%; opacity: .55; pointer-events: none; }
+.auth-page .auth-form-panel { background: #fff; padding: 48px 32px; min-width: 0; }
+.auth-page input, .auth-page select { min-height: 48px; border-radius: 8px !important; }
+.auth-page :focus-visible { outline: 3px solid #840033; outline-offset: 3px; }
+.auth-page .auth-submit { width: 100%; min-height: 48px; padding: 12px 20px; border: 0; border-radius: 8px; background: #531a61; color: #fff; font: 700 15px Arial, sans-serif; cursor: pointer; }
+.auth-page .auth-submit:hover:not(:disabled) { background: #840033; }
+.auth-page .auth-submit:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 640px) { .auth-page .auth-form-panel { align-items: flex-start !important; padding: 32px 20px 48px; } .auth-page .auth-form-panel > div { max-width: 100% !important; } }

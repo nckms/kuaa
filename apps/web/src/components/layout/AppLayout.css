@@ -1,0 +1,32 @@
+.kuaa-app { display: flex; min-height: 100dvh; height: 100dvh; overflow: hidden; background: var(--bg); }
+.kuaa-sidebar { width: 224px; flex: 0 0 224px; min-height: 0; display: flex; flex-direction: column; background: #35143e; color: #fff; border-right: 1px solid #35143e; }
+.kuaa-sidebar-brand { display: flex; align-items: center; min-height: 76px; padding: 12px 22px; text-decoration: none; }
+.kuaa-sidebar-nav { display: flex; flex-direction: column; gap: 3px; padding: 12px; overflow-y: auto; flex: 1; }
+.kuaa-nav-link { display: flex; align-items: center; min-height: 44px; gap: 13px; padding: 9px 12px; color: #e2d6e5; text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 6px; }
+.kuaa-nav-link i { width: 20px; text-align: center; font-size: 18px; }
+.kuaa-nav-link:hover, .kuaa-nav-link:focus-visible { background: #4b2254; color: #fff; }
+.kuaa-nav-link.is-active { background: #fff; color: #531a61; font-weight: 700; }
+.kuaa-nav-link.has-separator { margin-top: 14px; position: relative; }
+.kuaa-nav-link.has-separator::before { content: ''; position: absolute; top: -8px; left: 12px; right: 12px; border-top: 1px solid #75517d; }
+.kuaa-sidebar-account { display: flex; align-items: center; gap: 9px; min-width: 0; padding: 14px 12px; border-top: 1px solid #75517d; }
+.kuaa-account-avatar { width: 34px; height: 34px; flex: none; display: grid; place-items: center; background: #ffdc5c; color: #35143e; font-weight: 700; border-radius: 50%; }
+.kuaa-account-text { display: flex; flex: 1; flex-direction: column; min-width: 0; font-size: 12px; }
+.kuaa-account-text strong, .kuaa-account-text small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kuaa-account-text small { color: #d5c4d9; }
+.kuaa-logout { color: #fff; background: transparent; border: 0; border-radius: 4px; min-width: 36px; min-height: 36px; cursor: pointer; }
+.kuaa-logout:hover, .kuaa-logout:focus-visible { background: #4b2254; }
+.app-main-content { flex: 1; min-width: 0; overflow-y: auto; display: flex; flex-direction: column; }
+.kuaa-context-sidebar { width: 280px; flex: 0 0 280px; overflow-y: auto; background: #fff; border-left: 1px solid var(--line-soft); }
+.mobile-bottom-nav { display: none; }
+@media (max-width: 1279px) { .kuaa-context-sidebar { display: none; } }
+@media (max-width: 767px) {
+  .kuaa-sidebar { display: none; }
+  .app-main-content { padding-bottom: calc(62px + env(safe-area-inset-bottom)); scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .mobile-bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; z-index: 30; bottom: 0; left: 0; right: 0; min-height: calc(62px + env(safe-area-inset-bottom)); padding: 4px 3px calc(4px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line-soft); box-shadow: 0 -4px 18px #35143e0b; }
+  .mobile-bottom-nav > a, .mobile-bottom-nav > button { min-width: 0; min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 0; background: transparent; color: #756d78; font-size: 11px; font-weight: 600; text-decoration: none; cursor: pointer; }
+  .mobile-bottom-nav > a i, .mobile-bottom-nav > button i { font-size: 20px; line-height: 1.1; }
+  .mobile-bottom-nav > .is-active { color: #531a61; }
+  .kuaa-more-menu { position: absolute; bottom: calc(100% + 5px); right: 8px; width: min(280px, calc(100vw - 16px)); display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line-soft); border-radius: 8px; box-shadow: 0 10px 28px #35143e26; padding: 7px; }
+  .kuaa-more-menu a, .kuaa-more-menu button { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 9px 12px; color: #35143e; text-decoration: none; font-size: 14px; background: transparent; border: 0; border-radius: 4px; text-align: left; }
+  .kuaa-more-menu a:hover, .kuaa-more-menu button:hover, .kuaa-more-menu [aria-current=page] { background: #f2eaf4; }
+}

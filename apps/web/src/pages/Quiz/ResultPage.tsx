@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import type { SessionSummary } from '../../types/quiz'
 import ProgressBar from '../../components/ui/ProgressBar'
 import { useSessionSummary } from '../../hooks/useQuiz'
+import './QuizPage.css'
 
 const WingGlyph = () => (
   <svg width="56" height="48" viewBox="0 0 28 24" fill="none">
@@ -69,7 +70,7 @@ export default function ResultPage() {
   const { topicName, vestibularSlug, correct, wrong, isPerfect, accuracy, newMasteryLevel, newAchievements, levelUp, newLevel, questions } = summary
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div className="quiz-result" style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         style={{ maxWidth: 520, width: '90%', textAlign: 'center', padding: '60px 24px' }}

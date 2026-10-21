@@ -2,62 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─────────────────────────────────────────
-   KUAA DESIGN SYSTEM v2
-   ───────────────────────────────────────── */
 :root {
-  /* Brand core */
   --roxo:        #531A61;
   --vinho:       #840033;
   --amarelo:     #FFDC5C;
-  --dark:        #2a0d33;
-  --dark-deeper: #1a0826;
-
-  /* Neon accents */
-  --neon:        #b347d9;
-  --neon-pink:   #ff3b8c;
-  --neon-gold:   #ffe44d;
-  --neon-mint:   #10d672;
-  --accent:      var(--neon);
-  --accent-glow: rgba(179,71,217,.35);
-
-  /* Surfaces (light) */
-  --bg:          #fbf6e8;
-  --bg-soft:     #f4ead1;
+  --dark:        #35143e;
+  --dark-deeper: #35143e;
+  --neon:        #531A61;
+  --neon-pink:   #840033;
+  --neon-gold:   #FFDC5C;
+  --neon-mint:   #28765b;
+  --accent:      var(--roxo);
+  --accent-glow: rgba(83,26,97,.16);
+  --bg:          #f7f7f8;
+  --bg-soft:     #eeeef0;
   --surface:     #ffffff;
-  --surface-2:   #fefcf5;
-  --line-soft:   #ece1c5;
-  --creme:       #faf3e3;
-
-  /* Text */
-  --text:        #1a1a1a;
-  --muted:       #6b7280;
-  --border:      #e5e7eb;
-
-  /* Semantic light variants */
-  --roxo-light:  #f3eaf7;
-  --vinho-light: #fce8ef;
+  --surface-2:   #ffffff;
+  --line-soft:   #dedee2;
+  --creme:       #f7f7f8;
+  --text:        #242027;
+  --muted:       #655f69;
+  --border:      #dedee2;
+  --roxo-light:  #f2eaf4;
+  --vinho-light: #f9e9ee;
 
   /* IndicePage aliases — mapeiam para as variáveis do design system acima */
-  --k-roxo-deep:   #2a0d33;
+  --k-roxo-deep:   #35143e;
   --k-roxo:        #531A61;
   --k-amarelo:     #FFDC5C;
   --k-amarelo-soft: rgba(255, 220, 92, .15);
-  --k-creme:       #faf3e3;
-  --k-tinta:       #1a1a1a;
-  --k-tinta-2:     #6b7280;
-  --k-tinta-3:     #9ca3af;
+  --k-creme:       #f7f7f8;
+  --k-tinta:       #242027;
+  --k-tinta-2:     #655f69;
+  --k-tinta-3:     #8e8791;
   --k-vinho:       #840033;
-  --k-line:        #ece1c5;
-  --k-line-2:      #e5e7eb;
+  --k-line:        #dedee2;
+  --k-line-2:      #dedee2;
   --k-shadow-sm:   var(--shadow-sm);
 
-  /* Shadows — purple-tinted */
-  --shadow-xs: 0 1px 1px rgba(83,26,97,.04);
-  --shadow-sm: 0 1px 2px rgba(83,26,97,.05), 0 4px 8px -2px rgba(83,26,97,.06);
-  --shadow-md: 0 4px 6px -1px rgba(83,26,97,.06), 0 14px 28px -8px rgba(83,26,97,.12);
-  --shadow-lg: 0 10px 15px -3px rgba(83,26,97,.06), 0 30px 50px -12px rgba(83,26,97,.18);
-  --shadow-neon: 0 0 0 1px rgba(179,71,217,.4), 0 0 32px -8px rgba(179,71,217,.6);
+  --shadow-xs: 0 1px 2px rgba(36,32,39,.04);
+  --shadow-sm: 0 2px 8px rgba(36,32,39,.06);
+  --shadow-md: 0 8px 24px rgba(36,32,39,.08);
+  --shadow-lg: 0 16px 40px rgba(36,32,39,.1);
+  --shadow-neon: 0 0 0 3px rgba(83,26,97,.14);
 }
 
 /* ─── Base ─── */
@@ -68,9 +55,14 @@ html, body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', 'Questrial', Arial, sans-serif;
+  font-family: 'Questrial', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+body { min-width: 320px; }
+button, input, textarea, select { font-family: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid #840033; outline-offset: 2px; }
 
 img { max-width: 100%; display: block; }
 button { font-family: inherit; }
@@ -78,15 +70,15 @@ a { color: inherit; }
 
 /* ─── Typography ─── */
 .k-display {
-  font-family: 'Unbounded', cursive;
+  font-family: 'Questrial', Arial, sans-serif;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
 }
 .k-num {
-  font-family: 'Unbounded', cursive;
+  font-family: Arial, sans-serif;
   font-weight: 700;
-  letter-spacing: -0.045em;
-  line-height: 0.92;
+  letter-spacing: 0;
+  line-height: 1;
 }
 .k-title { font-family: 'Questrial', sans-serif; }
 .k-body  { font-family: 'Inter', Arial, sans-serif; }
@@ -96,11 +88,11 @@ a { color: inherit; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border-radius: 999px;
+  border-radius: 4px;
   padding: 5px 13px;
   font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: .01em;
+  letter-spacing: 0;
   line-height: 1;
   white-space: nowrap;
   font-family: 'Inter', Arial, sans-serif;
@@ -111,7 +103,7 @@ a { color: inherit; }
 .k-pill.ghost   { background: var(--roxo-light); color: var(--roxo); }
 .k-pill.ghost-dark { background: rgba(255,255,255,.1); color: rgba(255,255,255,.85); }
 .k-pill.success { background: rgba(16,214,114,.16); color: #047857; }
-.k-pill.neon    { background: rgba(179,71,217,.14); color: var(--neon); border: 1px solid rgba(179,71,217,.32); }
+.k-pill.neon    { background: var(--roxo-light); color: var(--roxo); border: 1px solid #e7d9eb; }
 .k-pill.muted   { background: var(--bg-soft); color: var(--muted); }
 
 /* ─── Progress bar ─── */
@@ -145,8 +137,8 @@ a { color: inherit; }
 }
 
 /* ─── Glow utilities ─── */
-.glow-neon    { box-shadow: 0 0 0 2px rgba(179,71,217,.16), 0 0 24px -4px var(--accent-glow); }
-.glow-amarelo { box-shadow: 0 0 0 2px rgba(255,228,77,.22), 0 0 24px -4px rgba(255,228,77,.6); }
+.glow-neon    { box-shadow: 0 0 0 3px var(--accent-glow); }
+.glow-amarelo { box-shadow: 0 0 0 3px rgba(255,220,92,.35); }
 
 /* ─── Inputs ─── */
 input[type=text],
@@ -156,10 +148,10 @@ textarea,
 select {
   width: 100%;
   padding: 13px 16px;
-  border-radius: 14px;
-  border: 1.5px solid var(--line-soft);
+  border-radius: 6px;
+  border: 1px solid var(--line-soft);
   background: var(--surface);
-  font-family: 'Inter', Arial, sans-serif;
+  font-family: 'Questrial', Arial, sans-serif;
   font-size: 14px;
   color: var(--text);
   transition: border-color .15s, box-shadow .15s;

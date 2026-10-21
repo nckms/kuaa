@@ -6,387 +6,42 @@ import { useAuthStore } from '../../stores/auth.store'
 import { useTrail } from '../../hooks/useTrail'
 import { useIndex } from '../../hooks/useIndex'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
-import type { TrailTopic } from '../../types/trail'
 
-const EMPTY_WEEK = [0, 0, 0, 0, 0, 0, 0]
-const DAY_LABELS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM']
-
-function topicScore(topic: TrailTopic): number {
-  if (topic.progress.completed) return 1
-  if (topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0) return 0.5
-  return 0
-}
-
-function BarChart({ days }: { days: number[] }) {
-  const max = Math.max(...days, 1)
-  const todayIdx = (new Date().getDay() + 6) % 7
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 90 }}>
-      {days.map((val, i) => {
-        const heightPct = val > 0 ? (val / max) * 100 : 6
-        const isToday = i === todayIdx
-        const isHighest = val === max && val > 0
-
-        return (
-          <div key={DAY_LABELS[i]} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%', justifyContent: 'flex-end' }}>
-            {isHighest && <span style={{ fontSize: 10, fontWeight: 700, color: '#b347d9' }}>{val}q</span>}
-            <div
-              style={{
-                width: '100%',
-                maxWidth: 28,
-                height: `${Math.max(heightPct, 6)}%`,
-                borderRadius: 8,
-                background: isHighest ? 'linear-gradient(180deg, #b347d9, #531A61)' : 'var(--roxo-light, #f3eaf7)',
-                boxShadow: isHighest ? '0 4px 16px -4px rgba(179,71,217,.5)' : 'none',
-                outline: isToday ? '2px solid #FFDC5C' : 'none',
-                outlineOffset: 1,
-              }}
-            />
-            <span style={{ fontSize: 10, color: 'var(--muted, #6b7280)', letterSpacing: '.04em' }}>{DAY_LABELS[i]}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function AgendaCard({ borderColor, label, sublabel, time, badge }: { borderColor: string; label: string; sublabel: string; time: string; badge?: string }) {
-  return (
-    <div className="agenda-card" style={{ borderLeft: `3px solid ${borderColor}`, backgroundColor: 'var(--surface, #fff)', borderRadius: '0 16px 16px 0', padding: '14px 18px', minWidth: 210, boxShadow: 'var(--shadow-xs)' }}>
-      <p style={{ fontSize: 11, color: 'var(--muted, #6b7280)', marginBottom: 4, fontWeight: 500 }}>{time}</p>
-      <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text, #1a1a1a)', fontFamily: "'Questrial', sans-serif", marginBottom: 6 }}>{label}</p>
-      {badge ? (
-        <span style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: '#840033', color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 999, letterSpacing: '.06em', textTransform: 'uppercase' }}>{badge}</span>
-      ) : (
-        <span style={{ fontSize: 12, color: 'var(--muted, #6b7280)' }}>{sublabel}</span>
-      )}
-    </div>
-  )
-}
+const DAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
 export default function DashboardPage() {
   const { user, firstVestibularSlug, enrollments } = useAuthStore()
   const { data: trail, isLoading, isError, refetch } = useTrail(firstVestibularSlug ?? '')
   const { data: indexData } = useIndex(firstVestibularSlug ?? '')
-  const navigate = useNavigate()
   const generateQuiz = useGenerateQuiz()
-
-  const allTopics = useMemo(
-    () => trail?.subjects.flatMap((subject) => subject.topics.map((topic) => ({ ...topic, subjectName: subject.name }))) ?? [],
-    [trail],
-  )
-
-  const progressPercent = useMemo(() => {
-    if (!trail || trail.summary.totalTopics === 0) return 0
-    const score = allTopics.reduce((sum, topic) => sum + topicScore(topic), 0)
-    return Math.round((score / trail.summary.totalTopics) * 100)
-  }, [allTopics, trail])
-
-  const weekData = trail?.summary.weeklyAnsweredQuestions ?? EMPTY_WEEK
-  const weekAnsweredQuestions = weekData.reduce((sum, val) => sum + val, 0)
-  const totalAnsweredQuestions = trail?.summary.answeredQuestions ?? 0
-  const correctAnswers = trail?.summary.correctAnswers ?? 0
-  const wrongAnswers = trail?.summary.wrongAnswers ?? 0
-  const accuracy = trail?.summary.accuracy
-  const knowledgeGaps = trail?.summary.knowledgeGaps ?? []
-  const finishedSessions = trail?.summary.finishedSessions ?? 0
-  const answeredTopics = trail?.summary.answeredTopics ?? 0
-  const completedTopics = trail?.summary.completedTopics ?? 0
-
-  const subjectMetrics = useMemo(() => (
-    trail?.subjects.map((subject) => ({
-      name: subject.name,
-      percent: indexData?.subjectBreakdown.find((item) => item.subjectId === subject.id)?.score ?? null,
-    })) ?? []
-  ), [trail, indexData])
-
-  const vestibularName = trail?.vestibular.name ?? (enrollments[0]?.vestibular.name ?? 'ENEM')
-  const subtitleMessage = !trail || answeredTopics === 0
-    ? 'Voce ainda nao comecou sua trilha. Que tal agora?'
-    : knowledgeGaps.length > 0
-    ? `Encontrei ${knowledgeGaps.length} lacuna(s) para reforcar hoje.`
-    : completedTopics === 0
-    ? 'Voce ja respondeu uma sessao. Continue para consolidar o topico.'
-    : completedTopics < 5
-    ? 'Voce esta nos primeiros passos. Continue!'
-    : 'Voce esta no ritmo certo. Nao pare agora.'
-
-  const now = new Date()
-  const dayName = now.toLocaleDateString('pt-BR', { weekday: 'long' }).toUpperCase()
-  const dateStr = now.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' }).toUpperCase()
+  const navigate = useNavigate()
   const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'
+  const topics = useMemo(() => trail?.subjects.flatMap((subject) => subject.topics) ?? [], [trail])
+  const recommendation = topics.find((topic) => topic.id === trail?.recommendation?.topicId)
+  const summary = trail?.summary
+  const progress = summary?.totalTopics ? Math.round((topics.reduce((sum, topic) => sum + (topic.progress.completed ? 1 : topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0 ? 0.5 : 0), 0) / summary.totalTopics) * 100) : 0
+  const week = summary?.weeklyAnsweredQuestions ?? [0, 0, 0, 0, 0, 0, 0]
+  const weekTotal = week.reduce((sum, value) => sum + value, 0)
+  const gaps = summary?.knowledgeGaps ?? []
 
-  const currentTopic = allTopics.find((topic) => topic.id === trail?.recommendation?.topicId)
-  const inProgressTopic = currentTopic && currentTopic.progress.answeredQuestionsCount > 0 ? currentTopic : undefined
-  const recommendedTopic = currentTopic
-
-  function handleContinueStudy() {
-    if (currentTopic) {
-      generateQuiz.mutate({ topicId: currentTopic.id, count: 5 })
-      return
-    }
-
-    navigate(trailHref)
+  function start(topicId?: string) {
+    if (topicId) generateQuiz.mutate({ topicId, count: 5 })
+    else navigate(trailHref)
   }
 
-  if (isLoading || isError) {
-    return <AppLayout>
-      <div style={{ padding: 28 }} role={isError ? 'alert' : 'status'}>
-        <p>{isError ? 'Nao foi possivel carregar seu progresso.' : 'Carregando seu progresso...'}</p>
-        {isError && <button onClick={() => void refetch()}>Tentar novamente</button>}
-      </div>
-    </AppLayout>
-  }
-
-  return (
-    <AppLayout>
-      <div className="dashboard-page" style={{ padding: '32px 28px 80px', minHeight: '100%', fontFamily: 'Inter, Arial, sans-serif', background: 'var(--bg)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, marginBottom: 20 }} className="dashboard-grid">
-          <div className="dashboard-card" style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
-            <p style={{ fontSize: 11, color: '#9ca3af', letterSpacing: '.1em', marginBottom: 8 }}>{dayName}, {dateStr}</p>
-            <h1 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 26, color: '#1a1a1a', marginBottom: 6, lineHeight: 1.2 }}>
-              {user ? `Bom dia, ${user.name.split(' ')[0]}.` : 'Bom dia!'}
-            </h1>
-            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>{subtitleMessage}</p>
-
-            <div className="dashboard-hero-progress-row" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-              <div>
-                <div className="dashboard-progress-number" style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 72, fontWeight: 700, color: '#531A61', lineHeight: 0.9, letterSpacing: '-0.045em' }}>
-                  {progressPercent}%
-                </div>
-                <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 8, letterSpacing: '.08em' }}>
-                  DA TRILHA · {vestibularName.toUpperCase()}
-                </p>
-              </div>
-              <div className="dashboard-hero-icon" style={{ color: '#531A61', opacity: 0.12 }}>
-                <svg width="80" height="68" viewBox="0 0 28 24" fill="none">
-                  <path d="M2 20 C6 12 14 8 26 4 C20 10 18 16 20 22 C14 18 8 18 2 20Z" fill="currentColor" opacity="0.9"/>
-                  <path d="M2 20 C8 16 14 14 20 22 C14 22 8 22 2 20Z" fill="currentColor" opacity="0.5"/>
-                </svg>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 20 }}>
-              <ProgressBar value={progressPercent} color="vinho" size="md" />
-            </div>
-
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-              <span style={{ backgroundColor: 'rgba(83,26,97,.08)', color: '#531A61', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>{answeredTopics} topico(s) respondido(s)</span>
-              <span style={{ backgroundColor: 'rgba(83,26,97,.08)', color: '#531A61', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>{completedTopics} concluido(s)</span>
-              <span style={{ backgroundColor: 'rgba(16,185,129,.1)', color: '#047857', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>{correctAnswers} acerto(s)</span>
-              <span style={{ backgroundColor: 'rgba(132,0,51,.08)', color: '#840033', fontSize: 12, padding: '5px 12px', borderRadius: 999, fontWeight: 600 }}>{wrongAnswers} erro(s)</span>
-            </div>
-
-            <button
-              onClick={handleContinueStudy}
-              disabled={generateQuiz.isPending}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20, backgroundColor: generateQuiz.isPending ? 'rgba(132,0,51,.55)' : '#840033', color: '#fff', padding: '12px 24px', borderRadius: 999, fontSize: 14, fontWeight: 600, textDecoration: 'none', boxShadow: '0 4px 12px -3px rgba(132,0,51,.4)', border: 'none', cursor: generateQuiz.isPending ? 'not-allowed' : 'pointer' }}
-            >
-              <i className="bi bi-arrow-right" />
-              {generateQuiz.isPending ? 'Preparando...' : 'Continuar estudo'}
-            </button>
-            {trail?.recommendation && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--muted)' }}>{trail.recommendation.reason}</p>}
-            {generateQuiz.isError && <p role="alert" style={{ color: '#840033', marginTop: 12 }}>Não foi possível preparar a sessão. Tente novamente.</p>}
-          </div>
-
-          <div className="dashboard-card dashboard-index-card" style={{ backgroundColor: '#FFDC5C', borderRadius: 24, padding: 28 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-              <p style={{ fontSize: 11, color: 'rgba(83,26,97,.6)', letterSpacing: '.1em', textTransform: 'uppercase' }}>INDICE KUAA</p>
-              <span style={{ backgroundColor: '#840033', color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 999, letterSpacing: '.04em' }}>ATUAL</span>
-            </div>
-            <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 64, fontWeight: 700, color: '#531A61', lineHeight: 0.9, letterSpacing: '-0.045em', marginBottom: 8 }}>
-              {indexData?.score ?? '—'}
-            </div>
-            <p style={{ fontSize: 13, color: 'rgba(83,26,97,.7)', marginBottom: 20 }}>{finishedSessions} sessoes finalizadas · {accuracy ?? 0}% de acerto geral</p>
-
-            <div className="dashboard-metric-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-              {subjectMetrics.map((metric) => (
-                <div key={metric.name} style={{ backgroundColor: 'rgba(83,26,97,.08)', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: '#531A61', fontFamily: "'Unbounded', sans-serif", letterSpacing: '-0.02em' }}>{metric.percent === null ? '—' : `${metric.percent}%`}</p>
-                  <p style={{ fontSize: 10, color: 'rgba(83,26,97,.6)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '.06em' }}>{metric.name}</p>
-                </div>
-              ))}
-            </div>
-            <Link to="/indice" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 16, fontSize: 12, fontWeight: 700, color: '#531A61', textDecoration: 'none', letterSpacing: '.04em' }}>
-              Ver Índice Kuaa completo →
-            </Link>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, marginBottom: 20 }} className="dashboard-grid">
-          <div className="dashboard-card" style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
-            <div className="dashboard-chart-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <div>
-                <p style={{ fontSize: 11, color: '#9ca3af', letterSpacing: '.1em', textTransform: 'uppercase' }}>FOCO · SEMANA</p>
-                <p style={{ fontSize: 20, fontWeight: 700, color: '#1a1a1a', fontFamily: "'Questrial', sans-serif", marginTop: 2 }}>{weekAnsweredQuestions} questao(oes) respondida(s)</p>
-              </div>
-              <span style={{ padding: '6px 14px', borderRadius: 999, fontSize: 11, fontWeight: 700, letterSpacing: '.06em', backgroundColor: '#1a0826', color: '#fff' }}>7 DIAS</span>
-            </div>
-
-            <div style={{ marginTop: 24 }}>
-              <BarChart days={weekData} />
-            </div>
-
-            {weekAnsweredQuestions === 0 && (
-              <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 13, marginTop: 12 }}>Nenhuma questao respondida esta semana.</p>
-            )}
-          </div>
-
-          <div className="dashboard-card dashboard-recommendations" style={{ backgroundColor: '#2a0d33', borderRadius: 24, padding: 28 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 18, color: '#fff' }}>Trilhas recomendadas</p>
-              <Link to={trailHref} style={{ fontSize: 12, color: '#FFDC5C', textDecoration: 'none', fontWeight: 600 }}>VER TODAS</Link>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {recommendedTopic ? (
-                <div style={{ backgroundColor: 'rgba(255,255,255,.05)', borderRadius: 12, padding: '12px 14px' }}>
-                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 4 }}>{inProgressTopic ? 'CONTINUAR' : 'PROXIMO TOPICO'}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                    <p style={{ fontSize: 14, color: '#fff', fontFamily: "'Questrial', sans-serif", fontWeight: 500 }}>{recommendedTopic.name}</p>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#FFDC5C', flexShrink: 0 }}>
-                      {Math.round(topicScore(recommendedTopic) * 100)}%
-                    </span>
-                  </div>
-                  <div style={{ marginTop: 8, height: 3, backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 999 }}>
-                    <div style={{ width: `${Math.round(topicScore(recommendedTopic) * 100)}%`, height: '100%', backgroundColor: '#FFDC5C', borderRadius: 999 }} />
-                  </div>
-                  <p style={{ marginTop: 10, fontSize: 12, color: '#fff' }}>{trail?.recommendation?.reason}</p>
-                  <button className="btn btn-sm btn-light" onClick={handleContinueStudy} disabled={generateQuiz.isPending}>Estudar agora</button>
-                </div>
-              ) : (
-                <p style={{ color: 'rgba(255,255,255,.4)', fontSize: 14, textAlign: 'center', padding: '20px 0' }}>Trilha concluida.</p>
-              )}
-
-              <div style={{ borderTop: '1px solid rgba(255,255,255,.08)', marginTop: 8, paddingTop: 16 }}>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 10 }}>
-                  Principais lacunas
-                </p>
-                {knowledgeGaps.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {knowledgeGaps.slice(0, 3).map((gap) => (
-                      <div key={gap.topicId} style={{ backgroundColor: 'rgba(255,255,255,.05)', borderRadius: 12, padding: '12px 14px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
-                          <div style={{ minWidth: 0 }}>
-                            <p style={{ color: '#fff', fontSize: 14, fontWeight: 600, fontFamily: "'Questrial', sans-serif", overflowWrap: 'anywhere' }}>{gap.topicName}</p>
-                            <p style={{ color: 'rgba(255,255,255,.42)', fontSize: 11, marginTop: 3 }}>{gap.subjectName} - {gap.wrongAnswers}/{gap.totalAnswers} erro(s)</p>
-                          </div>
-                          <span style={{ color: gap.accuracy >= 70 ? '#FFDC5C' : '#fca5a5', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>{gap.accuracy}%</span>
-                        </div>
-                        <div style={{ marginTop: 8, height: 3, backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 999 }}>
-                          <div style={{ width: `${gap.accuracy}%`, height: '100%', backgroundColor: gap.accuracy >= 70 ? '#FFDC5C' : '#840033', borderRadius: 999 }} />
-                        </div>
-                        <button
-                          onClick={() => generateQuiz.mutate({ topicId: gap.topicId, count: 5 })}
-                          disabled={generateQuiz.isPending}
-                          style={{ marginTop: 10, background: 'transparent', border: '1px solid rgba(255,220,92,.35)', color: '#FFDC5C', borderRadius: 999, padding: '6px 10px', fontSize: 11, fontWeight: 700, cursor: generateQuiz.isPending ? 'not-allowed' : 'pointer' }}
-                        >
-                          Reforcar agora
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p style={{ color: 'rgba(255,255,255,.48)', fontSize: 13, lineHeight: 1.5 }}>
-                    Nenhuma lacuna forte detectada ainda. Responda mais questoes para o diagnostico ficar melhor.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="dashboard-card" style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
-          <div className="dashboard-agenda-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 18, color: '#1a1a1a' }}>Sua agenda · hoje</p>
-            <p style={{ fontSize: 13, color: '#9ca3af' }}>{now.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</p>
-          </div>
-          <div className="dashboard-agenda-list" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
-            <AgendaCard borderColor="#840033" label={currentTopic?.name ?? 'Trilha concluida'} sublabel={inProgressTopic ? 'CONTINUAR TOPICO' : 'AULA DISPONIVEL'} time="Agora" badge={inProgressTopic ? 'CONTINUAR' : 'INICIAR'} />
-            <AgendaCard borderColor="#10b981" label={`${correctAnswers}/${totalAnsweredQuestions} acerto(s)`} sublabel={`${accuracy ?? 0}% de acerto geral`} time="Desempenho" />
-            <AgendaCard borderColor="#FFDC5C" label={knowledgeGaps[0]?.topicName ?? 'Sem lacuna principal'} sublabel={knowledgeGaps[0] ? `${knowledgeGaps[0].subjectName} - prioridade de reforco` : 'DIAGNOSTICO'} time="Lacuna" />
-          </div>
-        </div>
-      </div>
-
-      <style>{`
-        .dashboard-page,
-        .dashboard-page * {
-          box-sizing: border-box;
-        }
-
-        @media (max-width: 1024px) {
-          .dashboard-grid { grid-template-columns: 1fr !important; }
-        }
-
-        @media (max-width: 768px) {
-          .dashboard-page {
-            padding: 20px 16px 140px !important;
-          }
-
-          .dashboard-card {
-            border-radius: 6px !important;
-            padding: 18px !important;
-            box-shadow: none !important;
-            border: 1px solid var(--line-soft);
-          }
-
-          .dashboard-grid { gap: 12px !important; margin-bottom: 12px !important; }
-
-          .dashboard-index-card {
-            background: #fff !important;
-          }
-
-          .dashboard-card button { border-radius: 6px !important; box-shadow: none !important; }
-
-          .dashboard-card span[style*="border-radius: 999px"] { border-radius: 4px !important; }
-
-          .dashboard-hero-progress-row,
-          .dashboard-chart-head,
-          .dashboard-agenda-head {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 12px !important;
-          }
-
-          .dashboard-progress-number {
-            font-size: 42px !important;
-            letter-spacing: 0 !important;
-          }
-
-          .dashboard-hero-icon {
-            display: none !important;
-          }
-
-          .dashboard-metric-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-          }
-
-          .dashboard-metric-grid > div { min-width: 0; }
-          .dashboard-metric-grid p { overflow-wrap: anywhere; }
-
-          .dashboard-agenda-list {
-            flex-direction: column !important;
-            overflow-x: visible !important;
-            gap: 10px !important;
-            padding-bottom: 0 !important;
-          }
-
-          .agenda-card {
-            min-width: 0 !important;
-            width: 100% !important;
-            border-radius: 0 6px 6px 0 !important;
-          }
-        }
-
-        @media (max-width: 380px) {
-          .dashboard-page {
-            padding-left: 12px !important;
-            padding-right: 12px !important;
-          }
-        }
-      `}</style>
-    </AppLayout>
-  )
+  return <AppLayout><div className="dashboard-page">
+    {isLoading || isError ? <div className="dashboard-state" role={isError ? 'alert' : 'status'}><p>{isError ? 'Não foi possível carregar seu progresso.' : 'Carregando seu progresso...'}</p>{isError && <button onClick={() => void refetch()}>Tentar novamente</button>}</div> : <>
+      <header className="dashboard-heading"><div><p className="dashboard-eyebrow">{trail?.vestibular.name ?? enrollments[0]?.vestibular.name ?? 'Sua trilha'}</p><h1>Olá, {user?.name.split(' ')[0] ?? 'estudante'}</h1></div><Link to={trailHref}>Ver trilha <i className="bi bi-arrow-right" aria-hidden="true" /></Link></header>
+      <div className="dashboard-main-grid"><section className="dashboard-primary" aria-labelledby="next-study"><p className="dashboard-eyebrow">Próximo estudo</p><h2 id="next-study">{recommendation?.name ?? (summary?.totalTopics ? 'Trilha concluída' : 'Comece sua trilha')}</h2>{trail?.recommendation?.reason && <p className="dashboard-reason">{trail.recommendation.reason}</p>}<button className="dashboard-action" onClick={() => start(recommendation?.id)} disabled={generateQuiz.isPending}>{generateQuiz.isPending ? 'Preparando...' : recommendation ? 'Estudar agora' : 'Abrir trilha'} <i className="bi bi-arrow-right" aria-hidden="true" /></button>{generateQuiz.isError && <p role="alert" className="dashboard-error">Não foi possível preparar a sessão. Tente novamente.</p>}</section>
+      <section className="dashboard-progress" aria-labelledby="trail-progress"><div className="dashboard-section-head"><h2 id="trail-progress">Progresso da trilha</h2><strong>{progress}%</strong></div><ProgressBar value={progress} color="vinho" size="md" /><div className="dashboard-facts"><span><strong>{summary?.completedTopics ?? 0}</strong> concluídos</span><span><strong>{summary?.answeredTopics ?? 0}</strong> respondidos</span><span><strong>{summary?.totalTopics ?? 0}</strong> tópicos</span></div></section></div>
+      <div className="dashboard-detail-grid"><section className="dashboard-panel" aria-labelledby="index-title"><div className="dashboard-section-head"><h2 id="index-title">Índice Kuaa</h2><Link to="/indice">Ver detalhes <i className="bi bi-arrow-right" aria-hidden="true" /></Link></div><div className="dashboard-index"><strong>{indexData?.score ?? '—'}</strong><span>{summary?.finishedSessions ?? 0} sessões · {summary?.accuracy ?? 0}% de acerto</span></div><div className="dashboard-subjects">{trail?.subjects.map((subject) => { const score = indexData?.subjectBreakdown.find((item) => item.subjectId === subject.id)?.score; return <div key={subject.id}><span>{subject.name}</span><strong>{score == null ? '—' : `${score}%`}</strong></div> })}</div></section>
+      <section className="dashboard-panel" aria-labelledby="attention-title"><div className="dashboard-section-head"><h2 id="attention-title">Pontos de atenção</h2><span>{gaps.length}</span></div>{gaps.length ? <ul className="dashboard-gaps">{gaps.slice(0, 3).map((gap) => <li key={gap.topicId}><div><strong>{gap.topicName}</strong><small>{gap.subjectName} · {gap.wrongAnswers}/{gap.totalAnswers} erros · {gap.accuracy}% de acerto</small></div><button title={`Reforçar ${gap.topicName}`} aria-label={`Reforçar ${gap.topicName}`} disabled={generateQuiz.isPending} onClick={() => start(gap.topicId)}><i className="bi bi-arrow-right" aria-hidden="true" /></button></li>)}</ul> : <p className="dashboard-empty">Nenhum ponto de atenção identificado.</p>}</section></div>
+      <section className="dashboard-week" aria-labelledby="week-title"><div className="dashboard-section-head"><h2 id="week-title">Esta semana</h2><strong>{weekTotal} questões</strong></div><div className="dashboard-bars">{week.map((value, index) => <div key={DAYS[index]}><span className="dashboard-bar-track"><span style={{ height: `${value ? Math.max(8, (value / Math.max(...week, 1)) * 100) : 3}%` }} /></span><small>{DAYS[index]}</small></div>)}</div><p>{summary?.answeredQuestions ?? 0} questões no total · {summary?.correctAnswers ?? 0} acertos · {summary?.wrongAnswers ?? 0} erros</p></section>
+    </>}
+  </div><style>{`
+    .dashboard-page{padding:32px clamp(16px,4vw,48px) 64px;background:#f7f6f8;color:#251c28;min-height:100%}.dashboard-heading,.dashboard-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.dashboard-heading{margin-bottom:28px}.dashboard-heading h1{font:600 28px 'Questrial',sans-serif;margin:0;color:#531A61}.dashboard-eyebrow{font-size:12px;font-weight:700;color:#840033;margin:0 0 8px}.dashboard-heading a,.dashboard-section-head a{color:#531A61;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+    .dashboard-main-grid,.dashboard-detail-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:20px;margin-bottom:20px}.dashboard-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-primary{background:#531A61;color:white;padding:32px;min-height:240px;display:flex;flex-direction:column;align-items:flex-start;border-radius:8px}.dashboard-primary .dashboard-eyebrow{color:#FFDC5C}.dashboard-primary h2{font:600 26px 'Questrial',sans-serif;margin:0;line-height:1.25}.dashboard-reason{font-size:14px;color:#fff;margin:12px 0 0;max-width:54ch}.dashboard-action{margin-top:auto;background:#FFDC5C;color:#531A61;border:0;border-radius:6px;padding:12px 18px;font-weight:700;display:flex;gap:18px;align-items:center;cursor:pointer}.dashboard-action:disabled,.dashboard-gaps button:disabled{opacity:.6;cursor:wait}.dashboard-error{color:#FFDC5C;margin:10px 0 0}
+    .dashboard-progress,.dashboard-panel,.dashboard-week{background:#fff;padding:24px;border:1px solid #e8e2ea;border-radius:8px}.dashboard-section-head{margin-bottom:18px}.dashboard-section-head h2{font:600 18px 'Questrial',sans-serif;margin:0;color:#251c28}.dashboard-section-head>strong{color:#531A61}.dashboard-facts{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:20px;font-size:12px}.dashboard-facts strong{color:#531A61}.dashboard-index{display:flex;align-items:baseline;gap:16px;margin-bottom:18px}.dashboard-index>strong{font-size:42px;color:#531A61;line-height:1}.dashboard-index>span{font-size:12px;color:#625b64}.dashboard-subjects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.dashboard-subjects>div{display:flex;justify-content:space-between;gap:8px;border-top:1px solid #eee9ef;padding:10px 0;font-size:12px}.dashboard-subjects span{overflow-wrap:anywhere}.dashboard-subjects strong{color:#840033}.dashboard-gaps{list-style:none;margin:0;padding:0}.dashboard-gaps li{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px 0;border-top:1px solid #eee9ef}.dashboard-gaps li>div{min-width:0}.dashboard-gaps strong,.dashboard-gaps small{display:block;overflow-wrap:anywhere}.dashboard-gaps strong{font-size:14px}.dashboard-gaps small,.dashboard-empty{font-size:12px;color:#625b64;margin-top:4px}.dashboard-gaps button{flex:0 0 36px;height:36px;border:1px solid #d6c8d9;border-radius:6px;background:#fff;color:#531A61}.dashboard-week>p{font-size:12px;color:#625b64;margin:12px 0 0}.dashboard-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;height:110px}.dashboard-bars>div{display:flex;flex-direction:column;align-items:center;gap:6px}.dashboard-bar-track{width:100%;height:86px;display:flex;align-items:end;justify-content:center;background:#f7f4f8;border-radius:4px}.dashboard-bar-track>span{display:block;width:100%;max-width:36px;background:#840033;border-radius:4px 4px 0 0}.dashboard-bars small{font-size:11px;color:#625b64}.dashboard-state{padding:24px;background:white}.dashboard-state button{border:0;background:#531A61;color:#fff;padding:9px 14px;border-radius:6px}
+    @media(max-width:900px){.dashboard-main-grid,.dashboard-detail-grid{grid-template-columns:1fr}.dashboard-primary{min-height:210px}}@media(max-width:600px){.dashboard-page{padding:20px 16px 100px}.dashboard-heading{align-items:flex-start}.dashboard-heading h1{font-size:24px}.dashboard-primary{padding:24px}.dashboard-primary h2{font-size:22px}.dashboard-progress,.dashboard-panel,.dashboard-week{padding:18px}.dashboard-subjects{grid-template-columns:1fr}}
+  `}</style></AppLayout>
 }

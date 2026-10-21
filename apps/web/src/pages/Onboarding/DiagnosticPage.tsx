@@ -68,7 +68,7 @@ function ProfileForm({ profile, subjects, busy, onSave }: {
     </fieldset>
     <fieldset disabled={busy}>
       <legend>4. Quais matérias parecem mais difíceis?</legend>
-      <p className="diagnostic-muted">Opcional. Nenhuma selecionada também é uma resposta válida.</p>
+      <p className="diagnostic-muted">Opcional. Pode deixar em branco.</p>
       <div className="diagnostic-subjects">{subjects.map((subject) => <label key={subject.id} className="diagnostic-choice">
         <input type="checkbox" checked={difficult.includes(subject.id)} onChange={(event) => setDifficult((current) => event.target.checked ? [...current, subject.id] : current.filter((id) => id !== subject.id))} />
         <span>{subject.name}</span>
@@ -162,8 +162,8 @@ function Diagnostic({ slug }: { slug: string }) {
       {data?.status === 'profile' && <ProfileForm profile={data.profile} subjects={data.subjects} busy={busy} onSave={(profile) => void save('profile', profile)} />}
       {data?.status === 'questions' && data.question && <QuestionForm key={data.question.id} question={data.question} busy={busy} onAnswer={(optionId) => void save('answer', { questionId: data.question!.id, optionId })} />}
       {data?.status === 'completed' && data.result && <section aria-label="Resultado inicial">
-        <h2>Diagnóstico provisório</h2>
-        <p>Este é um retrato inicial, não uma medida de domínio. Sua trilha será ajustada conforme novas respostas. A redação não foi avaliada.</p>
+        <h2>Seu resultado inicial</h2>
+        <p>Estas respostas ajudam a começar sua trilha. Ela será ajustada conforme você estudar. A redação não foi avaliada aqui.</p>
         <p><strong>{data.result.recommendedMinutes} minutos por dia</strong>, em 5 dias da semana ({data.profile?.weeklyMinutes} minutos semanais).</p>
         <div className="diagnostic-areas">{data.result.areas.map((area) => <section key={area.key} className="diagnostic-area">
           <h3>{area.name}</h3>

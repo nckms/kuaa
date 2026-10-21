@@ -27,7 +27,7 @@ function SemiGauge({ value, max = 1000 }: { value: number; max?: number }) {
         <span>{max} XP</span>
       </div>
       <ProgressBar value={percent} color="vinho" size="md" />
-      <p style={{ textAlign: 'right', color: '#531A61', fontSize: 12, fontWeight: 700, marginTop: 8 }}>{percent}% da faixa</p>
+      <p style={{ textAlign: 'right', color: '#531A61', fontSize: 12, fontWeight: 700, marginTop: 8 }}>{percent}% da faixa atual</p>
     </div>
   )
 }
@@ -125,29 +125,29 @@ export default function ProfilePage() {
   return (
     <AppLayout>
       <div className="profile-page" style={{ padding: '32px 24px 90px', fontFamily: 'Inter, Arial, sans-serif', background: 'var(--bg)', minHeight: '100%' }}>
-        <section className="profile-hero-card" style={{ backgroundColor: '#FFDC5C', borderRadius: 24, padding: '28px 32px', marginBottom: 20 }}>
+        <section className="profile-hero-card" style={{ backgroundColor: '#fff', borderTop: '4px solid #FFDC5C', padding: '28px 32px', marginBottom: 20 }}>
           <div className="profile-hero-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 22 }}>
             <div>
-              <p style={{ fontSize: 11, color: 'rgba(83,26,97,.62)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 6 }}>PERFIL DO ESTUDANTE</p>
+              <p style={{ fontSize: 11, color: '#840033', textTransform: 'uppercase', marginBottom: 6 }}>Seu perfil</p>
               <h1 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 32, color: '#531A61', marginBottom: 6 }}>{user.name}</h1>
-              <p style={{ color: 'rgba(83,26,97,.72)', fontSize: 14 }}>{activeVestibular} · membro desde {memberSince}</p>
+              <p style={{ color: '#531A61', fontSize: 14 }}>{activeVestibular} · estudando conosco desde {memberSince}</p>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              <span style={{ backgroundColor: '#531A61', color: '#fff', fontSize: 12, padding: '6px 12px', borderRadius: 999, fontWeight: 700 }}>Nivel {user.level}</span>
-              <span style={{ backgroundColor: 'rgba(83,26,97,.12)', color: '#531A61', fontSize: 12, padding: '6px 12px', borderRadius: 999, fontWeight: 700 }}>{user.streakDays} dias de sequencia</span>
+              <span style={{ color: '#531A61', fontSize: 12, fontWeight: 700 }}>Nível {user.level}</span>
+              <span style={{ color: '#840033', fontSize: 12, fontWeight: 700 }}>{user.streakDays} dias de sequência</span>
             </div>
           </div>
 
           <div className="profile-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'end' }}>
             <div>
-              <div className="profile-score" style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 76, fontWeight: 700, color: '#531A61', lineHeight: 0.9, letterSpacing: '-0.04em' }}>
-                {user.xp}
+              <div className="profile-score" style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 48, fontWeight: 700, color: '#531A61', lineHeight: 1 }}>
+                {progressPercent}%
               </div>
-              <p style={{ fontSize: 13, color: 'rgba(83,26,97,.65)', marginTop: 10, marginBottom: 18 }}>XP total acumulado</p>
+              <p style={{ fontSize: 13, color: '#531A61', marginTop: 10, marginBottom: 18 }}>da trilha percorrida</p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ backgroundColor: 'rgba(83,26,97,.1)', color: '#531A61', fontSize: 12, padding: '6px 12px', borderRadius: 999 }}>{totalQuestions} questoes</span>
-                <span style={{ backgroundColor: 'rgba(83,26,97,.1)', color: '#531A61', fontSize: 12, padding: '6px 12px', borderRadius: 999 }}>{finishedSessions} sessoes</span>
-                <span style={{ backgroundColor: 'rgba(83,26,97,.1)', color: '#531A61', fontSize: 12, padding: '6px 12px', borderRadius: 999 }}>{progressPercent}% da trilha</span>
+                <span style={{ color: '#531A61', fontSize: 12 }}>{totalQuestions} questões respondidas</span>
+                <span style={{ color: '#531A61', fontSize: 12 }}>{finishedSessions} sessões concluídas</span>
+                <span style={{ color: '#531A61', fontSize: 12 }}>{user.xp} XP acumulados</span>
               </div>
             </div>
             <div className="profile-gauge">
@@ -156,13 +156,13 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        <section className="profile-history-card" style={{ backgroundColor: '#2a0d33', borderRadius: 24, padding: 28, marginBottom: 20 }}>
+        <section className="profile-history-card" style={{ backgroundColor: '#531A61', padding: 28, marginBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, gap: 12 }}>
             <div>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,.4)', letterSpacing: '.1em', textTransform: 'uppercase' }}>PROGRESSO POR MATERIA</p>
-              <p style={{ color: 'rgba(255,255,255,.65)', fontSize: 13, marginTop: 4 }}>Baseado nas suas respostas e sessoes finalizadas.</p>
+              <p style={{ fontSize: 12, color: '#FFDC5C', textTransform: 'uppercase' }}>Progresso por matéria</p>
+              <p style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>Acompanhe o que você já estudou em cada matéria.</p>
             </div>
-            <span style={{ color: '#FFDC5C', fontSize: 13, fontWeight: 700 }}>{completedTopics}/{totalTopics} topicos concluidos</span>
+            <span style={{ color: '#FFDC5C', fontSize: 13, fontWeight: 700 }}>{completedTopics}/{totalTopics} tópicos concluídos</span>
           </div>
 
           <div className="profile-subject-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
@@ -170,10 +170,10 @@ export default function ProfilePage() {
               <div className="profile-subject-card" key={subject.id} style={{ backgroundColor: 'rgba(255,255,255,.05)', borderRadius: 14, padding: 16, minWidth: 0 }}>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>{subject.name}</p>
                 <p style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 28, fontWeight: 700, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>{subject.percent}%</p>
-                <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 12, marginTop: 6 }}>{subject.answered}/{subject.total} topicos com atividade</p>
+                <p style={{ color: 'rgba(255,255,255,.75)', fontSize: 12, marginTop: 6 }}>{subject.answered}/{subject.total} tópicos com atividade</p>
               </div>
             )) : (
-              <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 14 }}>Matricule-se em um vestibular para acompanhar as materias.</p>
+              <p style={{ color: '#fff', fontSize: 14 }}>Escolha um vestibular para acompanhar suas matérias.</p>
             )}
           </div>
         </section>
@@ -181,9 +181,9 @@ export default function ProfilePage() {
         <section className="profile-info-card" style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
           <div className="profile-info-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, gap: 12 }}>
             <div>
-              <h2 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: '#1a1a1a' }}>Informacoes</h2>
+              <h2 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: '#531A61' }}>Suas informações</h2>
               {savedMessage && <p style={{ color: '#047857', fontSize: 13, marginTop: 4 }}>{savedMessage}</p>}
-              {updateProfile.isError && <p style={{ color: '#840033', fontSize: 13, marginTop: 4 }}>Nao foi possivel salvar. Confira os campos.</p>}
+              {updateProfile.isError && <p style={{ color: '#840033', fontSize: 13, marginTop: 4 }}>Não foi possível salvar. Confira os campos.</p>}
             </div>
             {!isEditing && (
               <button onClick={startEditing} style={{ backgroundColor: 'transparent', border: '1.5px solid #531A61', color: '#531A61', padding: '9px 18px', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: 'Inter, Arial, sans-serif' }}>
@@ -210,7 +210,7 @@ export default function ProfilePage() {
                 <label style={{ display: 'block' }}>
                   <span style={{ display: 'block', fontSize: 12, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.04em' }}>Estado</span>
                   <select name="state" value={form.state} onChange={handleChange} style={inputStyle}>
-                    <option value="">Nao informado</option>
+                    <option value="">Não informado</option>
                     {BR_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
                   </select>
                 </label>
@@ -221,7 +221,7 @@ export default function ProfilePage() {
                   Cancelar
                 </button>
                 <button type="submit" disabled={updateProfile.isPending} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: 10, cursor: updateProfile.isPending ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
-                  {updateProfile.isPending ? 'Salvando...' : 'Salvar alteracoes'}
+                  {updateProfile.isPending ? 'Salvando...' : 'Salvar alterações'}
                 </button>
               </div>
             </form>

@@ -37,7 +37,7 @@ export default function ReviewPage() {
     return (
       <AppLayout>
         <div style={{ padding: 32, textAlign: 'center' }}>
-          <p style={{ color: '#9ca3af' }}>Carregando revisao...</p>
+          <p style={{ color: '#65596b' }}>Carregando revisão...</p>
         </div>
       </AppLayout>
     )

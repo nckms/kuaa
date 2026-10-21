@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useJobStatus } from '../../hooks/useQuiz'
+import './QuizPage.css'
 
 const WingGlyph = () => (
   <svg width="48" height="41" viewBox="0 0 28 24" fill="none" style={{ color: '#FFDC5C' }}>
@@ -26,7 +27,7 @@ export default function QuizLoadingPage() {
   const hasError = !jobId || !sessionId || isError || data?.status === 'error'
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif', padding: 24, textAlign: 'center' }}>
+    <div className="quiz-loading" style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif', padding: 24, textAlign: 'center' }}>
       {hasError ? (
         <>
           <p style={{ color: '#fca5a5', fontSize: 16, marginBottom: 24 }}>

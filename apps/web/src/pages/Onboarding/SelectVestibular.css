@@ -1,0 +1,15 @@
+.vestibular-page { background: #fff; color: #301b35; }
+.vestibular-page nav { border-color: #e9dfe9 !important; }
+.vestibular-page nav button { color: #531a61 !important; font-weight: 700; }
+.vestibular-page > div:nth-child(2) { box-sizing: border-box; }
+.vestibular-page .k-pill { color: #840033 !important; background: #f9edf1 !important; }
+.vestibular-page .vestibular-card { border-radius: 8px !important; background: #fff !important; border-color: #d9cbdc !important; min-height: 180px; }
+.vestibular-page .vestibular-card:hover:not(:disabled), .vestibular-page .vestibular-card[aria-pressed="true"] { border-color: #531a61 !important; background: #faf6fb !important; }
+.vestibular-page .vestibular-card:disabled { opacity: .6; }
+.vestibular-page > div:last-child { background: #fff !important; border-color: #e9dfe9 !important; }
+.vestibular-page > div:last-child button { border-radius: 8px !important; }
+.vestibular-page > div:last-child button:not(:disabled) { background: #531a61 !important; color: #fff !important; }
+.vestibular-page > div:last-child button:disabled { background: #e9dfe9 !important; color: #6b566f !important; }
+.vestibular-page .vestibular-card .k-pill { color: #531a61 !important; background: #f4eaf5 !important; }
+.vestibular-page :focus-visible { outline: 3px solid #840033 !important; outline-offset: 3px; }
+@media (max-width: 640px) { .vestibular-page nav { padding: 0 20px !important; } .vestibular-page > div:nth-child(2) { padding: 36px 20px 32px !important; } .vestibular-page > div:last-child { padding: 12px 20px !important; } .vestibular-page .vestibular-card { min-height: 0; } }

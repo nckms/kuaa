@@ -3,22 +3,10 @@ import AppLayout from '../../components/layout/AppLayout'
 import { useSabia } from '../../hooks/useSabia'
 import { isAxiosError } from 'axios'
 import { useAuthStore } from '../../stores/auth.store'
+import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 
 const SABIA_AVATAR = (
-  <div
-    style={{
-      width: 32,
-      height: 32,
-      borderRadius: '50%',
-      background: 'linear-gradient(135deg, #531A61, #840033)',
-      display: 'grid',
-      placeItems: 'center',
-      flexShrink: 0,
-      fontSize: 15,
-    }}
-  >
-    🦜
-  </div>
+  <KuaaMascotLogo size={32} />
 )
 
 function UserBubble({ content }: { content: string }) {
@@ -26,7 +14,7 @@ function UserBubble({ content }: { content: string }) {
     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
       <div
         style={{
-          maxWidth: '75%',
+          maxWidth: 'min(85%, 62ch)',
           background: '#531A61',
           color: '#fff',
           borderRadius: '18px 18px 4px 18px',
@@ -50,7 +38,7 @@ function SabiaBubble({ content }: { content: string }) {
       {SABIA_AVATAR}
       <div
         style={{
-          maxWidth: '75%',
+          maxWidth: 'min(85%, 62ch)',
           background: 'var(--surface, #fff)',
           color: 'var(--text, #1a0a1f)',
           border: '1px solid var(--line-soft, rgba(83,26,97,.12))',
@@ -203,19 +191,7 @@ function SabiaConversation() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #531A61, #840033)',
-                display: 'grid',
-                placeItems: 'center',
-                fontSize: 22,
-              }}
-            >
-              🦜
-            </div>
+            <KuaaMascotLogo size={44} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1
                 style={{
@@ -230,7 +206,7 @@ function SabiaConversation() {
                 Sabiá
               </h1>
               <p style={{ margin: 0, fontSize: 12, color: '#9ca3af', fontFamily: 'Inter, Arial, sans-serif' }}>
-                Tutor de IA · método socrático
+                Apoio aos estudos com IA
               </p>
             </div>
             <button type="button" aria-label="Histórico de conversas" title="Histórico de conversas" aria-expanded={historyOpen} aria-controls="sabia-history" onClick={() => setHistoryOpen(!historyOpen)} style={{ width: 44, height: 44, flexShrink: 0, border: '1px solid var(--line-soft)', background: '#fff', color: '#531A61', borderRadius: 6 }}><i className="bi bi-clock-history" aria-hidden="true" /></button>
@@ -255,7 +231,7 @@ function SabiaConversation() {
               marginTop: 12,
               background: 'rgba(255,220,92,.12)',
               border: '1px solid rgba(255,220,92,.3)',
-              borderRadius: 10,
+              borderRadius: 6,
               padding: '8px 14px',
               fontSize: 12,
               color: '#7a5c00',
@@ -265,7 +241,7 @@ function SabiaConversation() {
               gap: 8,
             }}
           >
-            <span>💡</span>
+            <i className="bi bi-info-circle" aria-hidden="true" />
             <span>As respostas são geradas por IA e podem conter erros. Confira informações importantes com seu professor.</span>
           </div>
         </div>
@@ -286,7 +262,7 @@ function SabiaConversation() {
             <p>Não foi possível carregar seu histórico.</p>
             <button onClick={() => void history.refetch()} disabled={history.isFetching}>Tentar novamente</button>
           </div>}
-          {history.isSuccess && messages.length === 0 && <p>O que você está estudando hoje?</p>}
+          {history.isSuccess && messages.length === 0 && <p style={{ color: '#531A61', fontSize: 16 }}>O que você está estudando hoje?</p>}
           {messages.map((msg) => <div key={msg.id}>
             <p style={{ fontSize: 10, color: '#6b6571', textAlign: msg.role === 'user' ? 'right' : 'left', marginBottom: 4 }}><time dateTime={msg.createdAt}>{new Date(msg.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</time></p>
             {msg.role === 'user' ? <UserBubble content={msg.content} /> : <SabiaBubble content={msg.content} />}
@@ -317,7 +293,7 @@ function SabiaConversation() {
               alignItems: 'flex-end',
               background: 'var(--surface, #fff)',
               border: '1.5px solid rgba(83,26,97,.2)',
-              borderRadius: 16,
+              borderRadius: 6,
               padding: '10px 12px',
             }}
           >
@@ -354,7 +330,7 @@ function SabiaConversation() {
               style={{
                 width: 38,
                 height: 38,
-                borderRadius: 12,
+                borderRadius: 6,
                 border: 'none',
                 background: input.trim() && !isPending ? '#531A61' : 'rgba(83,26,97,.2)',
                 color: '#fff',
