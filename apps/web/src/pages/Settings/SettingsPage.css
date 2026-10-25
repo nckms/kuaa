@@ -1,0 +1,12 @@
+.st-section { display: flex; flex-direction: column; gap: 12px; }
+.st-h2 { font-family: var(--k-display); font-weight: 600; font-size: 15px; letter-spacing: -.02em; margin: 0; }
+.st-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.st-section-row { padding: 24px; }
+.st-add { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-top: 4px; }
+.st-goal { font-size: 22px; color: var(--k-roxo); }
+.st-range { width: 100%; accent-color: var(--k-roxo); height: 28px; }
+.st-toggle { display: flex; align-items: center; gap: 16px; width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--k-line-soft); padding: 16px 0; color: var(--k-ink); }
+.st-toggle-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.st-toggle-text strong { font-size: 15px; font-weight: 500; }
+.st-toggle-text small { font-size: 13px; color: var(--k-muted-2); }
+.st-status { margin: 0; min-height: 20px; font-size: 14px; color: var(--k-verde); }

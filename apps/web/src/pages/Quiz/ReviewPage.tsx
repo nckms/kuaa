@@ -34,22 +34,16 @@ export default function ReviewPage() {
   const topicId = state?.topicId ?? summary?.topicId
 
   if (isLoading && !state) {
-    return (
-      <AppLayout>
-        <div style={{ padding: 32, textAlign: 'center' }}>
-          <p style={{ color: '#65596b' }}>Carregando revisão...</p>
-        </div>
-      </AppLayout>
-    )
+    return <AppLayout><div className="k-page"><div className="k-state">Carregando revisão...</div></div></AppLayout>
   }
 
   if (!state || !state.questions || (isError && !state.topicId)) {
     return (
       <AppLayout>
-        <div style={{ padding: 32, textAlign: 'center' }}>
-          <p style={{ color: '#9ca3af' }}>Dados da revisão não encontrados.</p>
-          <button onClick={() => navigate(-1)} style={{ marginTop: 16, backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 10, cursor: 'pointer', fontFamily: 'Inter, Arial, sans-serif' }}>Voltar</button>
-        </div>
+        <div className="k-page"><div className="k-state">
+          <p style={{ margin: 0 }}>Dados da revisão não encontrados.</p>
+          <button type="button" className="k-btn k-btn-primary is-sm" onClick={() => navigate(-1)}>Voltar</button>
+        </div></div>
       </AppLayout>
     )
   }
@@ -58,99 +52,64 @@ export default function ReviewPage() {
 
   return (
     <AppLayout>
-      <div style={{ fontFamily: 'Inter, Arial, sans-serif', paddingBottom: 80 }}>
+      <div className="k-page is-slim">
+        <nav aria-label="Breadcrumb" className="review-crumbs">
+          <button type="button" className="k-link-btn" onClick={() => navigate(`/trilha/${vestibularSlug}`)}><i className="bi bi-arrow-left" aria-hidden="true" />Trilha</button>
+          <i className="bi bi-chevron-right" aria-hidden="true" /><span>Revisão</span>
+        </nav>
+        <header className="k-page-head">
+          <div><p className="k-eyebrow">Revisão da sessão</p><h1 className="k-h1">{topicName}</h1></div>
+          <div className="review-chips">
+            <span className="k-chip">{correct} de {total} corretas</span>
+            <span className="k-tag" style={{ background: 'var(--k-amarelo-soft)', color: '#7A5A00' }}>{Math.round(accuracy * 100)}% de acerto</span>
+          </div>
+        </header>
 
-        {/* Header */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#fff', borderBottom: '1px solid #f3f4f6', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <button aria-label="Voltar à trilha" onClick={() => navigate(`/trilha/${vestibularSlug}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#531A61', fontSize: 18 }}>←</button>
-          <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: '#1a1a1a', flex: 1 }}>Revisão · {topicName}</p>
-          <span style={{ backgroundColor: '#f3f4f6', color: '#6b7280', fontSize: 12, padding: '4px 12px', borderRadius: 999 }}>{correct} de {total} corretas</span>
-          <span style={{ backgroundColor: 'rgba(255,220,92,.2)', color: '#531A61', fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 999 }}>{Math.round(accuracy * 100)}% de acerto</span>
-        </div>
-
-        {/* Lista */}
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 860, margin: '0 auto' }}>
-          {questions.map((q, idx) => (
-            <div key={q.id} style={{ backgroundColor: '#fff', borderRadius: 20, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <span style={{ backgroundColor: '#f3f4f6', color: '#9ca3af', fontSize: 12, padding: '3px 10px', borderRadius: 999 }}>Questão {idx + 1}</span>
-                <span style={{ backgroundColor: q.isCorrect ? 'rgba(16,185,129,.12)' : 'rgba(132,0,51,.1)', color: q.isCorrect ? '#10b981' : '#840033', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999 }}>
-                  {q.userAnswerId === null ? 'Em branco' : q.isCorrect ? 'Correta' : 'Errada'}
-                </span>
+        {questions.map((q, idx) => {
+          const selected = q.options.find((opt) => opt.id === q.userAnswerId)
+          const correctOption = q.options.find((opt) => opt.isCorrect)
+          const status = q.userAnswerId === null ? 'Em branco' : q.isCorrect ? 'Correta' : 'Errada'
+          return (
+            <article key={q.id} className="k-card is-md review-item">
+              <div className="review-item-head">
+                <span className="k-mono review-num">Questão {String(idx + 1).padStart(2, '0')}</span>
+                <span className="k-tag" style={q.isCorrect ? { background: 'var(--k-verde-soft)', color: 'var(--k-verde)' } : { background: 'var(--k-vinho-soft)', color: 'var(--k-vinho)' }}>{status}</span>
               </div>
-              <p style={{ fontSize: 16, color: '#1a1a1a', lineHeight: 1.7, marginBottom: 16 }}>{q.body}</p>
+              <p className="review-body">{q.body}</p>
               <QuestionMedia {...q} />
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+              <div className="review-options">
                 {q.options.map((opt) => {
-                  const isCorrect = opt.isCorrect
                   const isUserWrong = opt.id === q.userAnswerId && !q.isCorrect
-                  const isOther = !isCorrect && opt.id !== q.userAnswerId
-
-                  let bg = '#f9fafb'
-                  let border = 'transparent'
-                  let letterColor = '#9ca3af'
-                  let textColor = '#6b7280'
-
-                  if (isCorrect) { bg = 'rgba(16,185,129,.08)'; border = '#10b981'; letterColor = '#10b981'; textColor = '#1a1a1a' }
-                  if (isUserWrong) { bg = 'rgba(132,0,51,.06)'; border = '#840033'; letterColor = '#840033'; textColor = '#1a1a1a' }
-
                   return (
-                    <div key={opt.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', borderRadius: 12, backgroundColor: bg, border: `1.5px solid ${border === 'transparent' ? 'transparent' : border}` }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: letterColor, width: 20, flexShrink: 0, marginTop: 1 }}>{opt.id}</span>
-                      <span style={{ fontSize: 14, color: textColor, lineHeight: 1.5, flex: 1, opacity: isOther ? 0.7 : 1 }}>{opt.text}</span>
-                      {isCorrect && <span style={{ color: '#10b981', fontSize: 16, flexShrink: 0 }}>✓</span>}
-                      {isUserWrong && <span style={{ color: '#840033', fontSize: 16, flexShrink: 0 }}>✗</span>}
+                    <div key={opt.id} className={`k-option${opt.isCorrect ? ' is-correct' : isUserWrong ? ' is-wrong' : ''}`} style={{ cursor: 'default', opacity: !opt.isCorrect && !isUserWrong ? 0.65 : 1 }}>
+                      <span className="k-letter">{opt.id}</span><span style={{ flex: 1, fontSize: 15 }}>{opt.text}</span>
+                      {opt.isCorrect && <i className="bi bi-check-lg" style={{ color: 'var(--k-verde)' }} aria-label="Correta" />}
+                      {isUserWrong && <i className="bi bi-x-lg" style={{ color: 'var(--k-vinho)' }} aria-label="Sua resposta" />}
                     </div>
                   )
                 })}
               </div>
-
-              {!q.isCorrect && q.userAnswerId !== null && (() => {
-                const selected = q.options.find((opt) => opt.id === q.userAnswerId)
-                const correctOption = q.options.find((opt) => opt.isCorrect)
-                if (!selected || !correctOption) return null
-                return (
-                  <div className="review-comparison" aria-label="Comparação das respostas">
-                    <div><strong>Sua resposta</strong><p>{selected.id}. {selected.text}</p></div>
-                    <div><strong>Resposta correta</strong><p>{correctOption.id}. {correctOption.text}</p></div>
-                  </div>
-                )
-              })()}
-
-              <div style={{ backgroundColor: '#f3eaf7', borderLeft: '4px solid #531A61', borderRadius: '0 12px 12px 0', padding: '14px 16px' }}>
-                <p style={{ fontSize: 13, color: '#531A61', fontWeight: 700, marginBottom: 6 }}>Explicação</p>
-                <p style={{ fontSize: 14, color: 'rgba(83,26,97,.8)', lineHeight: 1.6 }}>{q.explanation}</p>
-              </div>
-              {!q.isCorrect && q.userAnswerId !== null && (
-                <div className="review-practice">
-                  <button
-                    type="button"
-                    disabled={!topicId || generateQuiz.isPending}
-                    onClick={() => {
-                      if (topicId) generateQuiz.mutate({ topicId, sourceQuestionId: q.id, count: 3 })
-                    }}
-                  >
-                    {generateQuiz.isPending && generateQuiz.variables?.sourceQuestionId === q.id ? 'Preparando questões...' : 'Praticar este erro'}
-                  </button>
-                  {generateQuiz.isError && generateQuiz.variables?.sourceQuestionId === q.id && (
-                    <p role="alert">Não foi possível preparar a prática. Tente novamente.</p>
-                  )}
+              {!q.isCorrect && selected && correctOption && (
+                <div className="review-comparison" aria-label="Comparação das respostas">
+                  <div><strong>Sua resposta</strong><p>{selected.id}. {selected.text}</p></div>
+                  <div><strong>Resposta correta</strong><p>{correctOption.id}. {correctOption.text}</p></div>
                 </div>
               )}
-            </div>
-          ))}
-        </div>
+              <div className="k-tip"><i className="bi bi-lightbulb" aria-hidden="true" /><div><strong>Explicação:</strong> {q.explanation}</div></div>
+              {!q.isCorrect && q.userAnswerId !== null && (
+                <div className="review-practice">
+                  <button type="button" className="k-btn k-btn-primary is-sm" disabled={!topicId || generateQuiz.isPending}
+                    onClick={() => { if (topicId) generateQuiz.mutate({ topicId, sourceQuestionId: q.id, count: 3 }) }}>
+                    <i className="bi bi-play-fill" aria-hidden="true" />{generateQuiz.isPending && generateQuiz.variables?.sourceQuestionId === q.id ? 'Preparando questões...' : 'Praticar este erro'}
+                  </button>
+                  {generateQuiz.isError && generateQuiz.variables?.sourceQuestionId === q.id && <p role="alert">Não foi possível preparar a prática. Tente novamente.</p>}
+                </div>
+              )}
+            </article>
+          )
+        })}
 
-        {/* Rodapé fixo */}
-        <div style={{ backgroundColor: '#fff', borderTop: '1px solid #f3f4f6', padding: '14px 24px', display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            onClick={() => navigate(`/trilha/${vestibularSlug}`)}
-            style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}
-          >
-            Voltar à trilha
-          </button>
-        </div>
+        <button type="button" className="k-btn k-btn-primary is-lg" style={{ alignSelf: 'flex-end' }} onClick={() => navigate(`/trilha/${vestibularSlug}`)}>Voltar à trilha <i className="bi bi-arrow-right" aria-hidden="true" /></button>
       </div>
     </AppLayout>
   )

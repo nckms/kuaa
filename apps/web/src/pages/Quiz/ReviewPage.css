@@ -1,39 +1,17 @@
-.review-comparison {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.review-comparison > div {
-  min-width: 0;
-  padding: 12px 14px;
-  border: 1px solid #d8dce2;
-  border-radius: 8px;
-  overflow-wrap: anywhere;
-}
-
-.review-comparison > div:first-child { border-color: #840033; }
-.review-comparison > div:last-child { border-color: #16835e; }
-.review-comparison strong { display: block; font-size: 12px; color: #333; margin-bottom: 6px; }
-.review-comparison p { font-size: 14px; line-height: 1.5; color: #222; }
-
-.review-practice { margin-top: 16px; }
-.review-practice button {
-  min-height: 44px;
-  padding: 10px 16px;
-  border: 0;
-  border-radius: 8px;
-  background: #531a61;
-  color: white;
-  font: 600 14px Inter, Arial, sans-serif;
-  cursor: pointer;
-}
-.review-practice button:disabled { opacity: .6; cursor: wait; }
-.review-practice button:focus-visible { outline: 3px solid #840033; outline-offset: 3px; }
-.review-practice p { margin-top: 8px; color: #840033; font-size: 14px; }
-
-@media (max-width: 560px) {
-  .review-comparison { grid-template-columns: 1fr; }
-  .review-practice button { width: 100%; }
-}
+.review-crumbs { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--k-muted-2); }
+.review-crumbs > i { font-size: 12px; }
+.review-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.review-item { display: flex; flex-direction: column; gap: 16px; overflow-wrap: anywhere; }
+.review-item-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.review-num { font-size: 12px; color: var(--k-vinho); letter-spacing: .04em; }
+.review-body { margin: 0; font-family: var(--k-read); font-size: 17px; line-height: 1.6; white-space: pre-wrap; }
+.review-item .question-media { margin: 0; }
+.review-options { display: flex; flex-direction: column; gap: 8px; }
+.review-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.review-comparison > div { min-width: 0; padding: 12px 14px; border-radius: 14px; background: var(--k-bg); }
+.review-comparison > div:first-child { box-shadow: inset 3px 0 0 var(--k-vinho); }
+.review-comparison > div:last-child { box-shadow: inset 3px 0 0 var(--k-verde); }
+.review-comparison strong { display: block; font-size: 12px; color: var(--k-muted-2); margin-bottom: 6px; font-weight: 600; }
+.review-comparison p { margin: 0; font-size: 14px; line-height: 1.5; }
+.review-practice p { margin: 8px 0 0; color: var(--k-vinho); font-size: 14px; }
+@media (max-width: 560px) { .review-comparison { grid-template-columns: 1fr; } }

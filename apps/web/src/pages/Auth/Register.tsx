@@ -3,9 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuthStore } from '../../stores/auth.store'
 import { api } from '../../services/api'
-import KuaaLogo from '../../components/ui/KuaaLogo'
 import type { AuthResponse } from '../../types/user'
-import './Auth.css'
+import AuthShell from './AuthShell'
 
 const BR_STATES = [
   'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA',
@@ -30,34 +29,14 @@ interface FormErrors {
   validation?: string[]
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
 function validate(form: FormState): FormErrors {
   const errors: FormErrors = {}
   if (form.name.trim().length < 2) errors.name = 'Nome deve ter pelo menos 2 caracteres'
   if (!form.email.includes('@')) errors.email = 'Informe um e-mail válido'
   if (form.password.length < 8) errors.password = 'A senha deve ter pelo menos 8 caracteres'
   return errors
-}
-
-const inputStyle = (hasError: boolean): React.CSSProperties => ({
-  width: '100%',
-  border: `1.5px solid ${hasError ? '#840033' : 'rgba(26,10,31,.14)'}`,
-  borderRadius: 12,
-  padding: '12px 16px',
-  fontSize: 15,
-  backgroundColor: '#fff',
-  outline: 'none',
-  fontFamily: "'Questrial', Arial, sans-serif",
-  boxSizing: 'border-box',
-  color: '#1a0a1f',
-})
-
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontSize: 13,
-  fontWeight: 600,
-  color: '#3a2540',
-  marginBottom: 6,
-  letterSpacing: '.02em',
 }
 
 export default function Register() {
@@ -68,6 +47,13 @@ export default function Register() {
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [loading, setLoading] = useState(false)
+
+  const emailOk = EMAIL_RE.test(form.email)
+  const emailBad = form.email.length > 3 && !emailOk
+  const pass = form.password
+  const strength = [pass.length >= 8, /[A-Z]/.test(pass), /[0-9]/.test(pass), /[^A-Za-z0-9]/.test(pass)].filter(Boolean).length
+  const strengthColor = strength < 2 ? '#840033' : strength < 3 ? '#D99A1E' : '#28765B'
+  const canSubmit = emailOk && pass.length >= 8 && form.name.trim().length > 1 && !loading
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -126,148 +112,63 @@ export default function Register() {
   }
 
   return (
-    <div className="auth-page" style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Questrial', Arial, sans-serif" }}>
+    <AuthShell
+      asideTitle="Seu plano de estudos começa com um diagnóstico rápido."
+      asideText="A gente descobre o que você já sabe e o que falta — e monta um caminho só seu até a prova."
+      topRight={<Link to="/entrar" className="auth-switch">Já tenho conta</Link>}
+      step={0}
+      title="Crie sua conta"
+      subtitle="Leva menos de um minuto."
+    >
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <label className="k-field">
+          <span>Como quer ser chamado?</span>
+          <input className={`k-input${errors.name ? ' is-error' : ''}`} id="name" name="name" type="text" autoComplete="name" placeholder="Seu nome"
+            value={form.name} onChange={handleChange} aria-invalid={!!errors.name} />
+          {errors.name && <span className="auth-field-msg">{errors.name}</span>}
+        </label>
+        <label className="k-field">
+          <span>E-mail</span>
+          <span className="auth-input-wrap">
+            <input className={`k-input${emailBad || errors.email ? ' is-error' : emailOk ? ' is-ok' : ''}`} id="email" name="email" type="email" autoComplete="email" placeholder="voce@email.com"
+              value={form.email} onChange={handleChange} aria-invalid={emailBad || !!errors.email} />
+            <i className={`bi ${emailOk ? 'bi-check-lg' : emailBad ? 'bi-exclamation-circle' : 'bi-envelope'}`} style={{ color: emailOk ? '#28765B' : emailBad ? '#840033' : '#B0A6B3' }} aria-hidden="true" />
+          </span>
+          <span className="auth-field-msg">{errors.email ?? (emailBad ? 'Confere o e-mail — parece faltar algo.' : '')}</span>
+        </label>
+        <label className="k-field">
+          <span>Senha</span>
+          <input className={`k-input${errors.password ? ' is-error' : ''}`} id="password" name="password" type="password" autoComplete="new-password" placeholder="Mínimo 8 caracteres"
+            value={form.password} onChange={handleChange} aria-invalid={!!errors.password} aria-describedby="password-hint" />
+          <span className="auth-strength" aria-hidden="true">{[0, 1, 2, 3].map((index) => <span key={index} style={index < strength ? { background: strengthColor } : undefined} />)}</span>
+          <span id="password-hint" className={errors.password ? 'auth-field-msg' : 'auth-field-hint'}>{errors.password ?? (pass.length === 0 ? 'Use 8+ caracteres, com número e maiúscula.' : ['Muito fraca', 'Fraca', 'Ok', 'Boa', 'Forte'][strength])}</span>
+        </label>
 
-      {/* Left brand panel */}
-      <div
-        style={{ flex: '0 0 400px', backgroundColor: '#2a0d33', flexDirection: 'column', padding: '48px 44px', position: 'relative', overflow: 'hidden' }}
-        className="auth-brand hidden lg:flex"
-      >
-        <img className="auth-brand-mascot" src="/kuaa-logo.png" alt="" aria-hidden="true" />
-
-        <KuaaLogo size={38} dark showTagline />
-
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingBottom: 48 }}>
-          <div className="k-pill ghost-dark" style={{ marginBottom: 24 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#FFDC5C', flexShrink: 0 }} />
-            Comece por aqui
+        <details className="auth-optional">
+          <summary>Escola e cidade (opcional)</summary>
+          <div className="auth-optional-grid">
+            <label className="k-field"><span>Escola</span><input className="k-input" id="school" name="school" type="text" value={form.school} onChange={handleChange} /></label>
+            <label className="k-field"><span>Cidade</span><input className="k-input" id="city" name="city" type="text" value={form.city} onChange={handleChange} /></label>
+            <label className="k-field"><span>UF</span>
+              <select className="k-input" id="state" name="state" value={form.state} onChange={handleChange}>
+                <option value="">—</option>
+                {BR_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </label>
           </div>
-          <h2 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 28, color: '#fff', letterSpacing: '-.03em', lineHeight: 1.1, marginBottom: 16 }}>
-            Organize seus estudos.
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 15, lineHeight: 1.7, marginBottom: 32 }}>
-            Crie sua conta para escolher o vestibular e montar sua trilha de estudos.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {['ENEM', 'FUVEST', 'UNICAMP'].map((v) => (
-              <div key={v} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: 'rgba(255,220,92,.15)', display: 'grid', placeItems: 'center', fontSize: 10, color: '#FFDC5C', fontWeight: 700, fontFamily: "'Unbounded', sans-serif" }}>✓</span>
-                <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 14 }}>{v} coberto</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        </details>
 
-        <p style={{ color: 'rgba(255,255,255,.7)', fontSize: 12 }}>
-          Kuaa · estudos no seu ritmo
-        </p>
-      </div>
+        {errors.general && <div role="alert" className="k-alert">{errors.general}</div>}
+        {errors.validation && errors.validation.length > 0 && (
+          <ul role="alert" className="k-alert" style={{ paddingLeft: 32, margin: 0 }}>
+            {errors.validation.map((msg, i) => <li key={i}>{msg}</li>)}
+          </ul>
+        )}
 
-      {/* Right form panel */}
-      <div className="auth-form-panel" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflowY: 'auto' }}>
-        <div style={{ width: '100%', maxWidth: 420 }}>
-
-          {/* Mobile logo */}
-          <div className="lg:hidden" style={{ marginBottom: 40 }}>
-            <KuaaLogo size={38} />
-          </div>
-
-          <h1 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 24, color: '#1a0a1f', letterSpacing: '-.03em', marginBottom: 8 }}>
-            Crie sua conta
-          </h1>
-          <p style={{ color: '#6b566f', fontSize: 14, marginBottom: 32 }}>
-            Já tem conta?{' '}
-            <Link to="/entrar" style={{ color: '#531A61', fontWeight: 600, textDecoration: 'none' }}>
-              Entrar
-            </Link>
-          </p>
-
-          <form onSubmit={handleSubmit} noValidate>
-            {/* Nome */}
-            <div style={{ marginBottom: 18 }}>
-              <label htmlFor="name" style={labelStyle}>Nome completo</label>
-              <input id="name" name="name" type="text" autoComplete="name" aria-invalid={!!errors.name}
-                value={form.name} onChange={handleChange}
-                style={inputStyle(!!errors.name)}
-              />
-              {errors.name && <p style={{ color: '#840033', fontSize: 12, marginTop: 6 }}>{errors.name}</p>}
-            </div>
-
-            {/* E-mail */}
-            <div style={{ marginBottom: 18 }}>
-              <label htmlFor="email" style={labelStyle}>E-mail</label>
-              <input id="email" name="email" type="email" autoComplete="email" aria-invalid={!!errors.email}
-                value={form.email} onChange={handleChange}
-                style={inputStyle(!!errors.email)}
-              />
-              {errors.email && <p style={{ color: '#840033', fontSize: 12, marginTop: 6 }}>{errors.email}</p>}
-            </div>
-
-            {/* Senha */}
-            <div style={{ marginBottom: 18 }}>
-              <label htmlFor="password" style={labelStyle}>Senha</label>
-              <input id="password" name="password" type="password" autoComplete="new-password" aria-invalid={!!errors.password}
-                value={form.password} onChange={handleChange}
-                style={inputStyle(!!errors.password)}
-              />
-              {errors.password && <p style={{ color: '#840033', fontSize: 12, marginTop: 6 }}>{errors.password}</p>}
-            </div>
-
-            {/* Escola */}
-            <div style={{ marginBottom: 18 }}>
-              <label htmlFor="school" style={labelStyle}>
-                Escola <span style={{ color: '#6b566f', fontWeight: 400 }}>(opcional)</span>
-              </label>
-              <input id="school" name="school" type="text"
-                value={form.school} onChange={handleChange}
-                style={inputStyle(false)}
-              />
-            </div>
-
-            {/* Cidade + Estado */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 12, marginBottom: 28 }}>
-              <div>
-                <label htmlFor="city" style={labelStyle}>
-                  Cidade <span style={{ color: '#6b566f', fontWeight: 400 }}>(opc.)</span>
-                </label>
-                <input id="city" name="city" type="text"
-                  value={form.city} onChange={handleChange}
-                  style={inputStyle(false)}
-                />
-              </div>
-              <div>
-                <label htmlFor="state" style={labelStyle}>
-                  UF <span style={{ color: '#6b566f', fontWeight: 400 }}>(opc.)</span>
-                </label>
-                <select id="state" name="state"
-                  value={form.state} onChange={handleChange}
-                  style={{ ...inputStyle(false), appearance: 'none', backgroundImage: 'none' }}
-                >
-                  <option value="">—</option>
-                  {BR_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-            </div>
-
-            {errors.general && (
-              <div role="alert" style={{ marginBottom: 18, backgroundColor: 'rgba(132,0,51,.08)', border: '1px solid rgba(132,0,51,.2)', borderRadius: 8, padding: '12px 16px', color: '#840033', fontSize: 14 }}>
-                {errors.general}
-              </div>
-            )}
-            {errors.validation && errors.validation.length > 0 && (
-              <ul role="alert" style={{ marginBottom: 18, backgroundColor: 'rgba(132,0,51,.08)', border: '1px solid rgba(132,0,51,.2)', borderRadius: 8, padding: '12px 16px 12px 28px', color: '#840033', fontSize: 14 }}>
-                {errors.validation.map((msg, i) => <li key={i}>{msg}</li>)}
-              </ul>
-            )}
-
-            <button type="submit" disabled={loading} className="auth-submit"
-            >
-              {loading ? 'Criando conta…' : 'Criar conta'}
-            </button>
-
-          </form>
-        </div>
-      </div>
-    </div>
+        <button type="submit" disabled={loading} className={`k-btn is-lg is-block ${canSubmit ? 'k-btn-primary' : 'k-btn-outline'}`} style={{ marginTop: 12 }}>
+          {loading ? 'Criando conta…' : 'Continuar'} <i className="bi bi-arrow-right" aria-hidden="true" />
+        </button>
+      </form>
+    </AuthShell>
   )
 }

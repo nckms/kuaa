@@ -1,97 +1,83 @@
+import { Link } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import { useAuthStore } from '../../stores/auth.store'
 import { useRanking } from '../../hooks/useRanking'
+import './RankingPage.css'
 
-function PositionBadge({ label, size, bg }: { label: string; size: number; bg: string }) {
-  return (
-    <div style={{ width: size, height: size, borderRadius: '50%', backgroundColor: bg, display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700, fontSize: size * 0.32, flexShrink: 0 }}>
-      {label}
-    </div>
-  )
+const MEDALS = ['#FFDC5C', '#E4DEE6', '#E8B07A']
+const HEIGHTS = ['150px', '110px', '84px']
+
+function initials(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')
 }
 
 export default function RankingPage() {
-  // Usa o primeiro vestibular matriculado (mesma limitação do IndicePage — sem seletor multi-vestibular)
   const firstVestibularSlug = useAuthStore((s) => s.firstVestibularSlug)
-  const { data, isLoading, isError } = useRanking(firstVestibularSlug ?? '')
+  const vestibularName = useAuthStore((s) => s.enrollments.find((item) => item.vestibular.slug === s.firstVestibularSlug)?.vestibular.name)
+  const { data, isLoading, isError, refetch } = useRanking(firstVestibularSlug ?? '')
 
   const entries = data?.entries ?? []
   const myRank = data?.myRank ?? null
-
-  const top3 = entries.slice(0, 3)
+  const podium = [1, 0, 2].map((index) => entries[index] ? { entry: entries[index]!, place: index } : null).filter(Boolean) as { entry: NonNullable<typeof entries[number]>; place: number }[]
   const rest = entries.slice(3)
+  const above = myRank ? entries.find((entry) => entry.rank === myRank.rank - 1) : undefined
 
   return (
     <AppLayout>
-      <div className="ranking-page" style={{ padding: '32px 24px 80px', fontFamily: 'Inter, Arial, sans-serif', maxWidth: 760, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
-          <div><h1 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 28, color: '#531A61' }}>Comparativo anônimo</h1><p style={{ color: '#840033', fontSize: 14, marginTop: 6 }}>Uma referência do seu percurso de estudos.</p></div>
-        </div>
+      <div className="k-page is-narrow">
+        <header><p className="k-eyebrow">Comparativo anônimo{vestibularName ? ` · ${vestibularName}` : ''}</p><h1 className="k-h1">Ranking</h1></header>
 
-        {isLoading && (
-          <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 14, padding: '40px 0' }}>Carregando ranking...</p>
-        )}
+        {isLoading && <div className="k-state">Carregando ranking...</div>}
+        {isError && <div className="k-state" role="alert"><p style={{ margin: 0 }}>Não foi possível carregar o ranking.</p><button className="k-btn k-btn-primary is-sm" onClick={() => void refetch()}>Tentar novamente</button></div>}
+        {!isLoading && !isError && entries.length === 0 && <div className="k-state">Nenhum participante encontrado para este vestibular.</div>}
 
-        {isError && (
-          <p style={{ textAlign: 'center', color: '#840033', fontSize: 14, padding: '40px 0' }}>Não foi possível carregar o ranking. Tente novamente.</p>
-        )}
-
-        {!isLoading && !isError && entries.length === 0 && (
-          <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 14, padding: '40px 0' }}>Nenhum participante encontrado para este vestibular.</p>
-        )}
-
-        {!isLoading && !isError && entries.length > 0 && (
+        {entries.length > 0 && (
           <>
-            <div style={{ background: '#531A61', padding: 24, marginBottom: 20 }}>
-              <h2 style={{ color: '#FFDC5C', fontSize: 16, marginBottom: 16 }}>Participantes em destaque</h2>
-              <div style={{ display: 'grid', gap: 8 }}>
-                {top3.map((entry) => {
-                  if (!entry) return null
+            <section className="rk-podium" aria-label="Pódio">
+              {podium.map(({ entry, place }) => (
+                <div key={entry.rank} className="rk-podium-col">
+                  <span className="rk-avatar" style={{ width: place === 0 ? 72 : 58, height: place === 0 ? 72 : 58, borderColor: MEDALS[place] }}>{initials(entry.displayName)}</span>
+                  <div className="rk-podium-name"><strong>{entry.displayName}</strong><small className="k-mono">{entry.xp.toLocaleString('pt-BR')} XP</small></div>
+                  <div className="rk-step" style={{ height: HEIGHTS[place], background: MEDALS[place] }}>{entry.rank}</div>
+                </div>
+              ))}
+            </section>
+
+            {myRank && (
+              <div className="rk-me">
+                <i className="bi bi-graph-up-arrow" aria-hidden="true" />
+                <div>{myRank.rank === 1 ? 'Você está em #1. Continue assim!' : <>Você está em <strong>#{myRank.rank}</strong>{above ? <>. Faltam {Math.max(1, above.xp - myRank.xp)} XP pra passar {above.displayName}.</> : '.'}</>}</div>
+                <Link to={firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'} className="k-btn is-sm" style={{ background: 'var(--k-roxo-deep)', color: '#fff' }}><i className="bi bi-play-fill" aria-hidden="true" />Praticar</Link>
+              </div>
+            )}
+
+            {rest.length > 0 && (
+              <div className="k-card is-flush">
+                {rest.map((entry) => {
+                  const me = myRank?.rank === entry.rank
                   return (
-                    <div key={entry.rank} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,.18)' }}>
-                      <PositionBadge label={String(entry.rank)} size={36} bg="#840033" />
-                      <p style={{ color: '#fff', fontSize: 14, fontWeight: 600, flex: 1, overflowWrap: 'anywhere' }}>{entry.displayName}</p>
-                      <p style={{ fontSize: 13, color: '#FFDC5C' }}>{entry.xp} XP · Nível {entry.level}</p>
+                    <div key={entry.rank} className={`rk-row${me ? ' is-me' : ''}`}>
+                      <span className="k-mono rk-rank">{entry.rank}</span>
+                      <span className="rk-row-avatar">{initials(entry.displayName)}</span>
+                      <div className="rk-row-name"><strong>{me ? `Você · ${entry.displayName}` : entry.displayName}</strong><small>Nível {entry.level}</small></div>
+                      <span className="k-mono rk-xp">{entry.xp.toLocaleString('pt-BR')} XP</span>
                     </div>
                   )
                 })}
               </div>
-            </div>
+            )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {rest.map((entry) => (
-                <div key={entry.rank} style={{ backgroundColor: '#fff', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 14, borderBottom: '1px solid rgba(83,26,97,.2)' }}>
-                  <span style={{ width: 28, fontSize: 14, color: '#9ca3af', fontWeight: 600, textAlign: 'center' }}>{entry.rank}</span>
-                  <PositionBadge label={String(entry.rank)} size={36} bg="#531A61" />
-                  <div style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
-                    <p style={{ fontSize: 15, fontWeight: 600, color: '#1a1a1a' }}>{entry.displayName}</p>
-                    <p style={{ fontSize: 12, color: '#9ca3af' }}>{entry.xp} XP · Nível {entry.level}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {myRank && !entries.some((entry) => entry.rank === myRank.rank) && (
+              <div className="k-card is-flush"><div className="rk-row is-me">
+                <span className="k-mono rk-rank">{myRank.rank}</span>
+                <span className="rk-row-avatar">{initials(myRank.name)}</span>
+                <div className="rk-row-name"><strong>Você · {myRank.name}</strong><small>Nível {myRank.level}</small></div>
+                <span className="k-mono rk-xp">{myRank.xp.toLocaleString('pt-BR')} XP</span>
+              </div></div>
+            )}
           </>
         )}
-
-        {myRank && (
-          <div style={{ marginTop: 16, backgroundColor: '#FFDC5C', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 14, borderLeft: '4px solid #840033' }}>
-            <span style={{ width: 28, fontSize: 13, color: '#531A61', fontWeight: 700, textAlign: 'center' }}>#{myRank.rank}</span>
-            <PositionBadge label="EU" size={36} bg="#840033" />
-            <div style={{ flex: 1 }}>
-              {/* name completo: é o próprio usuário vendo a si mesmo */}
-              <p style={{ fontSize: 15, fontWeight: 600, color: '#1a1a1a' }}>{myRank.name}</p>
-              <p style={{ fontSize: 12, color: '#9ca3af' }}>{myRank.xp} XP · Nível {myRank.level}</p>
-            </div>
-          </div>
-        )}
-
-        <style>{`
-          @media (max-width: 768px) {
-            .ranking-page {
-              padding: 20px 16px 140px !important;
-            }
-          }
-        `}</style>
+        <p className="k-muted" style={{ fontSize: 13, textAlign: 'center', margin: 0 }}>Nomes abreviados pra preservar a privacidade. É uma referência do seu percurso, não uma competição.</p>
       </div>
     </AppLayout>
   )

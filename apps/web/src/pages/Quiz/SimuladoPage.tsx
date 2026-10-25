@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import KuaaLogo from '../../components/ui/KuaaLogo'
-import KuaaIcon from '../../components/ui/KuaaIcon'
+import AppLayout from '../../components/layout/AppLayout'
 import QuestionMedia from '../../components/quiz/QuestionMedia'
 import { useAuthStore } from '../../stores/auth.store'
 import {
@@ -12,26 +11,9 @@ import {
   useFinishSimulado,
 } from '../../hooks/useSimulado'
 import type { SimuladoAttempt, SimuladoQuestion, FinishResult } from '../../types/simulado'
-
-type QuestionStatus = 'answered' | 'flagged' | 'current' | 'unanswered'
-
-function getStatusColor(status: QuestionStatus): string {
-  switch (status) {
-    case 'answered': return '#531A61'
-    case 'flagged': return '#FFDC5C'
-    case 'current': return '#840033'
-    case 'unanswered': return 'rgba(26,10,31,.08)'
-  }
-}
-
-function getStatusTextColor(status: QuestionStatus): string {
-  switch (status) {
-    case 'answered': return '#fff'
-    case 'flagged': return '#2a0d33'
-    case 'current': return '#fff'
-    case 'unanswered': return 'var(--k-tinta-3)'
-  }
-}
+import { subjectTheme } from '../../utils/subjectTheme'
+import { INDEX_BANDS, indexBand } from '../../utils/kuaaIndex'
+import './SimuladoPage.css'
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -41,52 +23,37 @@ function formatTime(seconds: number): string {
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
-  const day = d.getUTCDate()
   const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-  return `${day} de ${months[d.getUTCMonth()]}`
+  return `${d.getUTCDate()} de ${months[d.getUTCMonth()]}`
 }
 
-// ─── Landing ──────────────────────────────────────────────────────────────────
+// ─── Intro ────────────────────────────────────────────────────────────────────
 
-function SimuladoLanding({
-  vestibularName,
-  onStart,
-  isStarting,
-}: {
-  vestibularName?: string
-  onStart: () => void
-  isStarting: boolean
-}) {
+function SimuladoIntro({ vestibularName, onStart, isStarting }: { vestibularName?: string; onStart: () => void; isStarting: boolean }) {
+  const exam = vestibularName ?? 'ENEM'
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--k-creme)', padding: 'clamp(24px, 5vw, 56px) 20px', fontFamily: "'Questrial', Arial, sans-serif" }}>
-      <div style={{ maxWidth: 720, width: '100%', margin: '0 auto' }}>
-        <Link to="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#531A61', textDecoration: 'none', marginBottom: 36 }}><i className="bi bi-arrow-left" aria-hidden="true" /> Painel</Link>
-
-        <p style={{ fontWeight: 600, fontSize: 12, textTransform: 'uppercase', color: 'var(--k-tinta-3)', marginBottom: 8 }}>
-          {vestibularName ?? 'ENEM'} · Semana atual
-        </p>
-
-        <h1 style={{ fontFamily: "'Questrial', sans-serif", fontWeight: 700, fontSize: 28, color: '#2a0d33', lineHeight: 1.2, marginBottom: 12 }}>
-          Simulado semanal
-        </h1>
-
-        <p style={{ fontSize: 15, color: 'var(--k-tinta-2)', lineHeight: 1.6, marginBottom: 20 }}>
-          Até 45 questões do banco de estudo para {vestibularName ?? 'ENEM'}. Você tem <strong>90 minutos</strong>. Um novo simulado fica disponível todo domingo. Não é uma prova oficial.
-        </p>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 0, borderTop: '1px solid var(--k-line)', borderBottom: '1px solid var(--k-line)', marginBottom: 24 }}>
-          <div style={{ padding: '16px 8px 16px 0' }}><strong style={{ display: 'block', fontSize: 20 }}>Até 45</strong><span style={{ color: 'var(--k-tinta-3)', fontSize: 13 }}>questões</span></div>
-          <div style={{ padding: '16px 8px 16px 0' }}><strong style={{ display: 'block', fontSize: 20 }}>90 min</strong><span style={{ color: 'var(--k-tinta-3)', fontSize: 13 }}>tempo disponível</span></div>
-        </div>
-
-        <button
-          onClick={onStart}
-          disabled={isStarting}
-          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 48, padding: '12px 22px', borderRadius: 6, border: 'none', background: '#531A61', color: '#fff', fontWeight: 700, fontSize: 14, cursor: isStarting ? 'not-allowed' : 'pointer', opacity: isStarting ? 0.7 : 1 }}
-        >
-          {isStarting ? 'Carregando...' : 'Iniciar simulado'}
-        </button>
+    <div className="k-page is-narrow">
+      <p className="k-eyebrow">{exam} · Semana atual</p>
+      <h1 className="sim-title">Simulado semanal</h1>
+      <p className="sim-lead">Questões no estilo {exam}, cronometradas. O resultado vira nota de 300 a 1000 e atualiza seu Índice Kuaa. Não é prova oficial.</p>
+      <div className="k-grid sim-facts" style={{ ['--min' as string]: '160px' }}>
+        {[
+          { icon: 'bi-list-check', v: 'Até 45', l: 'questões' },
+          { icon: 'bi-stopwatch', v: '90 min', l: 'de prova' },
+          { icon: 'bi-calendar3', v: 'Dom', l: 'novo toda semana' },
+          { icon: 'bi-speedometer2', v: '300–1000', l: 'escala da nota' },
+        ].map((fact) => (
+          <div key={fact.l} className="k-card is-sm"><i className={`bi ${fact.icon}`} aria-hidden="true" /><strong className="k-num">{fact.v}</strong><small>{fact.l}</small></div>
+        ))}
       </div>
+      <div className="k-card is-sm sim-rules">
+        <div><i className="bi bi-check-lg" aria-hidden="true" />Navegue livremente e marque questões pra revisar</div>
+        <div><i className="bi bi-check-lg" aria-hidden="true" />Gabarito comentado assim que você entregar</div>
+        <div><i className="bi bi-check-lg" aria-hidden="true" />Se sair, o tempo continua contando</div>
+      </div>
+      <button type="button" onClick={onStart} disabled={isStarting} className="k-btn k-btn-primary is-lg has-glow" style={{ alignSelf: 'flex-start', marginTop: 12 }}>
+        {isStarting ? 'Carregando...' : 'Iniciar simulado'}<i className="bi bi-arrow-right" aria-hidden="true" />
+      </button>
     </div>
   )
 }
@@ -99,89 +66,54 @@ function SimuladoResults({ attempt, result }: { attempt: SimuladoAttempt; result
   const wrong = result?.wrong ?? attempt.wrong ?? 0
   const total = result?.total ?? attempt.questions.length
   const skipped = total - correct - wrong
-  const pct = total > 0 ? Math.round((correct / total) * 100) : 0
-
-  function getFaixa(s: number): { label: string; color: string } {
-    if (s < 500) return { label: 'Iniciante', color: '#9ca3af' }
-    if (s < 700) return { label: 'Básico', color: '#531A61' }
-    if (s < 850) return { label: 'Forte', color: '#840033' }
-    return { label: 'Elite', color: '#FFDC5C' }
-  }
-
-  const faixa = getFaixa(score)
-  const nextWeek = formatDate(attempt.nextWeekStart)
+  const band = indexBand(score)
+  const used = attempt.finishedAt ? Math.min(attempt.totalSeconds, Math.round((new Date(attempt.finishedAt).getTime() - new Date(attempt.startedAt).getTime()) / 1000)) : null
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--k-creme)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', fontFamily: "'Questrial', Arial, sans-serif" }}>
-      <div style={{ maxWidth: 520, width: '100%' }}>
-        <div style={{ background: 'linear-gradient(135deg, #2a0d33, #531A61)', borderRadius: 24, padding: '40px 36px', textAlign: 'center', marginBottom: 20 }}>
-          <p style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 500, fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,.5)', marginBottom: 16 }}>
-            Resultado · {attempt.vestibularName}
-          </p>
-          <div style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 72, color: '#FFDC5C', letterSpacing: '-0.05em', lineHeight: 0.9, marginBottom: 12 }}>
-            {score}
-          </div>
-          <div style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 600, fontSize: 13, color: faixa.color === '#FFDC5C' ? '#FFDC5C' : 'rgba(255,255,255,.7)', letterSpacing: '.1em', textTransform: 'uppercase' }}>
-            {faixa.label}
-          </div>
+    <div className="k-page is-narrow">
+      <p className="k-eyebrow">Resultado · {attempt.vestibularName}</p>
+      <section className="sim-score">
+        <div><div className="sim-score-label">Sua nota</div><div className="sim-score-value">{score}</div><div className="sim-score-band">Faixa {band.name}</div></div>
+        <div className="sim-score-stats">
+          <div><strong>{correct}</strong><small>acertos</small></div>
+          <div><strong>{wrong}</strong><small>erros</small></div>
+          <div><strong>{skipped}</strong><small>em branco</small></div>
+          {used !== null && <div><strong>{formatTime(used)}</strong><small>usados</small></div>}
         </div>
+      </section>
+      <div className="k-card is-md">
+        <div style={{ fontWeight: 600, marginBottom: 14 }}>Onde sua nota fica na escala</div>
+        <div className="k-track is-lg"><span style={{ width: `${Math.max(0, Math.min(100, ((score - 300) / 700) * 100))}%` }} /></div>
+        <div className="sim-bands">{INDEX_BANDS.map((item, index) => <div key={item.name} className={index === band.index ? 'is-on' : ''}><small className="k-mono">{item.range}</small><span>{item.name}</span></div>)}</div>
+        <p className="k-muted" style={{ fontSize: 13, margin: '14px 0 0' }}>Próximo simulado disponível em <strong>{formatDate(attempt.nextWeekStart)}</strong>.</p>
+      </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 20 }}>
-          {[
-            { label: 'Acertos', value: correct, color: '#531A61' },
-            { label: 'Erros', value: wrong, color: '#840033' },
-            { label: 'Em branco', value: skipped, color: '#9ca3af' },
-          ].map(({ label, value, color }) => (
-            <div key={label} style={{ background: '#fff', borderRadius: 16, padding: '20px 16px', textAlign: 'center', border: '1.5px solid var(--k-line)' }}>
-              <div style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 32, color, letterSpacing: '-0.04em' }}>{value}</div>
-              <div style={{ fontSize: 12, color: 'var(--k-tinta-3)', marginTop: 4 }}>{label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ background: '#fff', borderRadius: 16, padding: '20px 24px', border: '1.5px solid var(--k-line)', marginBottom: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 13, color: 'var(--k-tinta-2)' }}>Aproveitamento</span>
-            <span style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 15, color: '#531A61' }}>{pct}%</span>
-          </div>
-          <div style={{ height: 8, background: 'var(--k-line)', borderRadius: 999, overflow: 'hidden' }}>
-            <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #531A61, #840033)', borderRadius: 999 }} />
-          </div>
-        </div>
-
-        <p style={{ fontSize: 12, color: 'var(--k-tinta-3)', textAlign: 'center', marginBottom: 24 }}>
-          Próximo simulado disponível em <strong>{nextWeek}</strong>
-        </p>
-
-        <section aria-label="Revisão do simulado" style={{ marginBottom: 24, overflowWrap: 'anywhere' }}>
-          <h2 style={{ fontSize: 20, marginBottom: 12 }}>Revisão das questões</h2>
-          {attempt.questions.map((question, index) => {
-            const answer = attempt.answers[question.id]
-            const correctOption = question.options.find((option) => option.id === question.correctOptionId)
-            const selected = question.options.find((option) => option.id === answer)
-            return (
-              <details key={question.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--k-line)' }}>
-                <summary style={{ cursor: 'pointer', fontSize: 14 }}>
-                  {index + 1}. {question.subjectName} · {!answer ? 'Em branco' : !correctOption ? 'Respondida' : answer === correctOption.id ? 'Correta' : 'Errada'}
-                </summary>
-                <p style={{ marginTop: 12 }}>{question.body}</p>
+      <section className="k-card is-flush" aria-label="Revisão do simulado">
+        <h2 className="k-h3" style={{ padding: '22px 24px 8px' }}>Gabarito comentado</h2>
+        {attempt.questions.map((question, index) => {
+          const answer = attempt.answers[question.id]
+          const correctOption = question.options.find((option) => option.id === question.correctOptionId)
+          const selected = question.options.find((option) => option.id === answer)
+          const status = !answer ? 'Em branco' : !correctOption ? 'Respondida' : answer === correctOption.id ? 'Correta' : 'Errada'
+          const color = status === 'Correta' ? 'var(--k-verde)' : status === 'Errada' ? 'var(--k-vinho)' : 'var(--k-faint)'
+          return (
+            <details key={question.id} className="sim-review">
+              <summary><span className="sim-review-bar" style={{ background: color }} /><span className="k-mono">{String(index + 1).padStart(2, '0')}</span><span className="sim-review-subj">{question.subjectName}</span><span style={{ color, fontWeight: 600, fontSize: 13 }}>{status}</span></summary>
+              <div className="sim-review-body">
+                <p className="sim-review-q">{question.body}</p>
                 <QuestionMedia {...question} />
                 <p>Sua resposta: {selected ? `${selected.id}) ${selected.text}` : 'Em branco'}</p>
                 {correctOption && <p><strong>Resposta correta:</strong> {correctOption.id}) {correctOption.text}</p>}
-                <p>{question.explanation ?? 'Explicação não disponível nesta tentativa antiga.'}</p>
-              </details>
-            )
-          })}
-        </section>
+                <div className="k-tip"><i className="bi bi-lightbulb" aria-hidden="true" /><div>{question.explanation ?? 'Explicação não disponível nesta tentativa antiga.'}</div></div>
+              </div>
+            </details>
+          )
+        })}
+      </section>
 
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <Link to="/indice" style={{ padding: '12px 24px', borderRadius: 12, background: '#531A61', color: '#fff', textDecoration: 'none', fontFamily: "'Unbounded', sans-serif", fontWeight: 600, fontSize: 12, letterSpacing: '.05em' }}>
-            Ver Índice Kuaa
-          </Link>
-          <Link to="/dashboard" style={{ padding: '12px 24px', borderRadius: 12, border: '1.5px solid var(--k-line-2)', color: 'var(--k-tinta-2)', textDecoration: 'none', fontFamily: "'Unbounded', sans-serif", fontWeight: 500, fontSize: 12, letterSpacing: '.05em' }}>
-            Dashboard
-          </Link>
-        </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <Link to="/indice" className="k-btn k-btn-primary">Ver meu Índice<i className="bi bi-arrow-right" aria-hidden="true" /></Link>
+        <Link to="/dashboard" className="k-btn k-btn-outline">Voltar ao início</Link>
       </div>
     </div>
   )
@@ -190,19 +122,7 @@ function SimuladoResults({ attempt, result }: { attempt: SimuladoAttempt; result
 // ─── Exam ─────────────────────────────────────────────────────────────────────
 
 function SimuladoExam({
-  attempt,
-  localAnswers,
-  localFlagged,
-  currentIdx,
-  timeLeft,
-  onAnswer,
-  onFlag,
-  onNext,
-  onPrev,
-  onJump,
-  onFinish,
-  isFinishing,
-  isSaving,
+  attempt, localAnswers, localFlagged, currentIdx, timeLeft, onAnswer, onFlag, onNext, onPrev, onJump, onFinish, isFinishing, isSaving,
 }: {
   attempt: SimuladoAttempt
   localAnswers: Record<string, string>
@@ -218,215 +138,81 @@ function SimuladoExam({
   isFinishing: boolean
   isSaving: boolean
 }) {
+  const [confirming, setConfirming] = useState(false)
   const questions = attempt.questions
   const q: SimuladoQuestion = questions[currentIdx]!
   const selected = localAnswers[q.id]
   const isFlagged = localFlagged.includes(q.id)
   const answeredCount = Object.keys(localAnswers).length
   const flaggedCount = localFlagged.length
-  const progress = ((attempt.totalSeconds - timeLeft) / attempt.totalSeconds) * 100
+  const blank = questions.length - answeredCount
+  const locked = isSaving || isFinishing || timeLeft === 0
+  const theme = subjectTheme(q.subjectSlug)
+
+  const map = (
+    <>
+      <div className="sim-legend"><span><i style={{ background: 'var(--k-roxo)' }} />Respondida</span><span><i style={{ background: 'var(--k-amarelo)' }} />Marcada</span><span><i style={{ border: '1.5px solid #D9D0D6' }} />Em branco</span></div>
+      <div className="sim-map">
+        {questions.map((item, idx) => {
+          const flagged = localFlagged.includes(item.id)
+          const done = !!localAnswers[item.id]
+          return (
+            <button key={item.id} type="button" onClick={() => onJump(idx)} aria-label={`Questão ${item.order}${done ? ', respondida' : ''}${flagged ? ', marcada' : ''}`} aria-current={idx === currentIdx ? 'true' : undefined}
+              className={`${flagged ? 'is-flag' : done ? 'is-done' : ''}${idx === currentIdx ? ' is-current' : ''}`}>{item.order}</button>
+          )
+        })}
+      </div>
+      <div className="sim-summary">{answeredCount} respondidas · {flaggedCount} marcadas · {blank} em branco</div>
+      <button type="button" className="k-btn k-btn-dark is-block" onClick={() => setConfirming(true)} disabled={isFinishing || isSaving}>{isFinishing ? 'Entregando...' : 'Entregar simulado'}</button>
+    </>
+  )
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--k-creme)', display: 'flex', flexDirection: 'column', fontFamily: "'Questrial', Arial, sans-serif" }}>
-
-      {/* Top bar */}
-      <div className="simulado-header" style={{ background: 'var(--k-roxo-deep)', padding: '12px 32px', minHeight: 62, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 24, flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <KuaaLogo size={32} dark />
-          <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,.15)' }} />
-          <span style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 600, fontSize: 12, color: 'rgba(255,255,255,.7)', letterSpacing: '.05em' }}>
-            {attempt.vestibularName} · Simulado Completo
-          </span>
+    <div className="sim-exam">
+      <div className="sim-exam-main">
+        <div className="sim-bar">
+          <span className="k-mono">Questão {currentIdx + 1} de {questions.length}</span>
+          <div className="sim-bar-track"><span style={{ width: `${(answeredCount / questions.length) * 100}%` }} /></div>
+          <span className={`sim-timer${timeLeft < 600 ? ' is-low' : ''}`} role="timer" aria-label="Tempo restante"><i className="bi bi-stopwatch" aria-hidden="true" />{formatTime(timeLeft)}</span>
         </div>
-
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 14, maxWidth: 480, margin: '0 auto' }}>
-          <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,.12)', borderRadius: 999, overflow: 'hidden' }}>
-            <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg,#840033,#531A61,#FFDC5C)', borderRadius: 999 }} />
+        <div className="sim-question" key={q.id}>
+          <span className="k-tag" style={{ color: theme.color, background: theme.soft }}>{q.subjectName}</span>
+          <p className="sim-q-body">{q.body}</p>
+          <QuestionMedia {...q} />
+          <div className="sim-options">
+            {q.options.map(({ id, text }) => (
+              <button key={id} type="button" className="k-option" onClick={() => onAnswer(id)} disabled={locked} aria-pressed={selected === id}>
+                <span className="k-letter">{id}</span><span style={{ flex: 1 }}>{text}</span>
+              </button>
+            ))}
           </div>
-          <span style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 13, color: '#FFDC5C', whiteSpace: 'nowrap' }}>
-            {answeredCount} / {questions.length}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={onFinish}
-            disabled={isFinishing || isSaving}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: 'rgba(255,220,92,.15)', color: '#FFDC5C', fontFamily: "'Unbounded', sans-serif", fontSize: 11, fontWeight: 700, cursor: isFinishing ? 'not-allowed' : 'pointer', letterSpacing: '.08em' }}
-          >
-            {isFinishing ? 'finalizando...' : 'finalizar'}
-          </button>
+          <div className="sim-nav">
+            <button type="button" className="k-btn k-btn-outline" onClick={onPrev} disabled={currentIdx === 0}><i className="bi bi-arrow-left" aria-hidden="true" />Anterior</button>
+            <button type="button" className={`k-btn sim-flag${isFlagged ? ' is-on' : ''}`} onClick={onFlag} disabled={locked} aria-pressed={isFlagged}><i className="bi bi-flag" aria-hidden="true" />{isFlagged ? 'Marcada' : 'Marcar'}</button>
+            <button type="button" className="k-btn k-btn-primary" style={{ marginLeft: 'auto' }} onClick={onNext} disabled={currentIdx === questions.length - 1}>Próxima<i className="bi bi-arrow-right" aria-hidden="true" /></button>
+          </div>
+          <details className="sim-map-mobile"><summary>Mapa da prova e entrega</summary><div>{map}</div></details>
         </div>
       </div>
+      <aside className="sim-aside" aria-label="Mapa da prova">
+        <div style={{ fontWeight: 600, fontSize: 15 }}>Mapa da prova</div>
+        {map}
+      </aside>
 
-      {/* Question header */}
-      <div style={{ padding: '24px 32px 16px', borderBottom: '1px solid var(--k-line)', background: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <span style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 500, fontSize: 11, color: 'var(--k-tinta-3)', letterSpacing: '.15em', textTransform: 'uppercase' }}>
-            questão {q.order} de {questions.length}
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-          <h2 style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 600, fontSize: 15, color: 'var(--k-tinta)', letterSpacing: '-0.02em', margin: 0 }}>
-            {q.subjectName}
-          </h2>
-          <button
-            onClick={onFlag}
-            disabled={isSaving || isFinishing || timeLeft === 0}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 999, border: '1px solid var(--k-line-2)', background: isFlagged ? 'var(--k-amarelo-soft)' : '#fff', color: isFlagged ? 'var(--k-tinta)' : 'var(--k-tinta-3)', fontSize: 11, fontFamily: "'Unbounded', sans-serif", fontWeight: 500, cursor: 'pointer', letterSpacing: '.1em', textTransform: 'uppercase' }}
-          >
-            <KuaaIcon name="flag" size={13} color={isFlagged ? '#840033' : 'var(--k-tinta-3)'} />
-            marcar p/ revisar
-          </button>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="simulado-body" style={{ flex: 1, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 20, padding: '24px 32px', alignItems: 'start' }}>
-
-        {/* Question card */}
-        <div className="simulado-question" style={{ minWidth: 0, overflowWrap: 'anywhere', background: '#fff', borderRadius: 20, padding: '32px 36px', boxShadow: 'var(--k-shadow-sm)' }}>
-          <p style={{ color: 'var(--k-tinta-2)', fontSize: 15, lineHeight: 1.65, marginBottom: 28 }}>
-            {q.body}
-          </p>
-          <QuestionMedia key={q.id} {...q} />
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {q.options.map(({ id, text }) => {
-              const isSelected = selected === id
-              return (
-                <button
-                  key={id}
-                  onClick={() => onAnswer(id)}
-                  disabled={isSaving || isFinishing || timeLeft === 0}
-                  aria-pressed={isSelected}
-                  style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 18px', borderRadius: 12, border: '1.5px solid', borderColor: isSelected ? '#840033' : 'var(--k-line-2)', background: isSelected ? 'rgba(132,0,51,.06)' : '#fff', cursor: 'pointer', textAlign: 'left', transition: 'all .12s' }}
-                >
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: isSelected ? '#840033' : 'var(--k-creme)', color: isSelected ? '#fff' : 'var(--k-tinta-3)', display: 'grid', placeItems: 'center', fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 12, flexShrink: 0 }}>
-                    {id}
-                  </div>
-                  <span style={{ fontSize: 14, color: isSelected ? 'var(--k-tinta)' : 'var(--k-tinta-2)', lineHeight: 1.55, paddingTop: 3 }}>
-                    {text}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Bottom nav */}
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--k-line)' }}>
-            <button
-              onClick={onPrev}
-              disabled={currentIdx === 0}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 10, border: '1px solid var(--k-line-2)', background: '#fff', color: 'var(--k-tinta-2)', fontFamily: "'Unbounded', sans-serif", fontSize: 12, fontWeight: 500, cursor: currentIdx === 0 ? 'not-allowed' : 'pointer', opacity: currentIdx === 0 ? 0.4 : 1, letterSpacing: '.05em' }}
-            >
-              ← anterior
-            </button>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <KuaaIcon name="clock" size={14} color="var(--k-tinta-3)" />
-              <span style={{ fontSize: 12, color: 'var(--k-tinta-3)', fontFamily: "'Unbounded', sans-serif" }}>
-                {formatTime(timeLeft)} restante
-              </span>
-            </div>
-
-            <button
-              onClick={onNext}
-              disabled={currentIdx === questions.length - 1}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 10, border: 'none', background: 'var(--k-roxo-deep)', color: '#FFDC5C', fontFamily: "'Unbounded', sans-serif", fontSize: 12, fontWeight: 700, cursor: currentIdx === questions.length - 1 ? 'not-allowed' : 'pointer', opacity: currentIdx === questions.length - 1 ? 0.4 : 1, letterSpacing: '.05em' }}
-            >
-              próxima →
-            </button>
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Timer */}
-          <div style={{ background: 'var(--k-amarelo)', borderRadius: 18, padding: '22px 24px' }}>
-            <div style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 54, color: 'var(--k-roxo-deep)', letterSpacing: '-0.045em', lineHeight: 0.92, textAlign: 'center', marginBottom: 12 }}>
-              {formatTime(timeLeft)}
-            </div>
-            <div style={{ height: 6, background: 'rgba(26,10,31,.12)', borderRadius: 999, overflow: 'hidden' }}>
-              <div style={{ width: `${Math.max(0, 100 - (timeLeft / attempt.totalSeconds) * 100)}%`, height: '100%', background: 'var(--k-vinho)', borderRadius: 999 }} />
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--k-tinta-2)', textAlign: 'center', marginTop: 8 }}>tempo restante</div>
-          </div>
-
-          {/* Mini stats */}
-          <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: 'var(--k-shadow-sm)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 28, color: 'var(--k-roxo)', letterSpacing: '-0.04em' }}>{answeredCount}</div>
-              <div style={{ fontSize: 11, color: 'var(--k-tinta-3)' }}>respondidas</div>
-              <div style={{ fontSize: 10, color: 'var(--k-tinta-3)' }}>de {questions.length}</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Unbounded', sans-serif", fontWeight: 700, fontSize: 28, color: '#FFDC5C', letterSpacing: '-0.04em' }}>{String(flaggedCount).padStart(2, '0')}</div>
-              <div style={{ fontSize: 11, color: 'var(--k-tinta-3)' }}>marcadas</div>
-              <div style={{ fontSize: 10, color: 'var(--k-tinta-3)' }}>p/ revisar</div>
-            </div>
-          </div>
-
-          {/* Question map */}
-          <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', boxShadow: 'var(--k-shadow-sm)' }}>
-            <div style={{ fontSize: 10, fontFamily: "'Unbounded', sans-serif", fontWeight: 500, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--k-tinta-3)', marginBottom: 12 }}>
-              mapa de questões
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: 4 }}>
-              {questions.map((qs, idx) => {
-                let status: QuestionStatus = 'unanswered'
-                if (idx === currentIdx) status = 'current'
-                else if (localFlagged.includes(qs.id)) status = 'flagged'
-                else if (localAnswers[qs.id]) status = 'answered'
-                return (
-                  <div
-                    key={qs.id}
-                    onClick={() => onJump(idx)}
-                    style={{ width: '100%', aspectRatio: '1', borderRadius: 5, background: getStatusColor(status), border: status === 'current' ? '2px solid #FFDC5C' : '2px solid transparent', display: 'grid', placeItems: 'center', fontSize: 8, fontFamily: "'Unbounded', sans-serif", fontWeight: 700, color: getStatusTextColor(status), cursor: 'pointer' }}
-                  >
-                    {qs.order}
-                  </div>
-                )
-              })}
-            </div>
-            <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-              {[
-                { color: '#531A61', label: 'respondida' },
-                { color: '#FFDC5C', label: 'marcada' },
-                { color: '#840033', label: 'atual' },
-                { color: 'rgba(26,10,31,.08)', label: 'pendente' },
-              ].map(({ color, label }) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 9, color: 'var(--k-tinta-3)' }}>{label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Tip */}
-          <div style={{ background: 'var(--k-roxo-deep)', borderRadius: 16, padding: '20px 22px' }}>
-            <div style={{ fontSize: 10, fontFamily: "'Unbounded', sans-serif", fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--k-amarelo)', marginBottom: 10 }}>
-              Seu ritmo
-            </div>
-            <p style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic', fontSize: 14, color: 'rgba(255,255,255,.8)', lineHeight: 1.65, margin: 0 }}>
-              {answeredCount >= questions.length / 2
-                ? `Você já respondeu ${answeredCount} questões. Siga com calma e revise as marcadas ao final.`
-                : `Responda primeiro as questões que conhece e volte às demais depois.`}
+      {confirming && (
+        <div className="k-overlay" onClick={() => setConfirming(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="sim-confirm-title" className="k-dialog" style={{ maxWidth: 420, gap: 16 }} onClick={(event) => event.stopPropagation()}>
+            <h3 id="sim-confirm-title" className="k-h3" style={{ fontSize: 20 }}>Entregar agora?</h3>
+            <p style={{ margin: 0, fontFamily: 'var(--k-read)', fontSize: 15, color: 'var(--k-muted)', lineHeight: 1.5 }}>
+              {blank > 0 ? `Você ainda tem ${blank} questões em branco${flaggedCount ? ` e ${flaggedCount} marcadas pra revisar` : ''}. Questões em branco contam como erro.` : 'Todas respondidas. Bora ver a nota?'}
             </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button type="button" className="k-btn k-btn-outline" style={{ flex: 1 }} onClick={() => setConfirming(false)}>Revisar</button>
+              <button type="button" className="k-btn k-btn-primary" style={{ flex: 1 }} disabled={isFinishing} onClick={() => { setConfirming(false); onFinish() }}>Entregar</button>
+            </div>
           </div>
         </div>
-      </div>
-
-      <style>{`
-        @media (max-width: 900px) {
-          .simulado-body { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 600px) {
-          .simulado-body, .simulado-header { padding: 16px !important; }
-          .simulado-question { padding: 20px 16px !important; }
-        }
-      `}</style>
+      )}
     </div>
   )
 }
@@ -540,48 +326,20 @@ export default function SimuladoPage() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
-  if (isLoading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--k-creme)' }}>
-        <p style={{ color: 'var(--k-tinta-3)', fontFamily: "'Unbounded', sans-serif", fontSize: 13 }}>Carregando...</p>
-      </div>
-    )
-  }
+  const errorMessage = error ? <p role="alert" className="k-alert sim-error">{error}</p> : null
+  let content: React.ReactNode
 
-  if (!slug) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--k-creme)' }}>
-        <p style={{ color: 'var(--k-tinta-3)', fontSize: 14 }}>Nenhum vestibular selecionado.</p>
-      </div>
-    )
-  }
-
-  if (isError) {
-    return <div role="alert" style={{ padding: 24 }}>
-      <p>Não foi possível carregar o simulado.</p>
-      <button onClick={() => void refetch()}>Tentar novamente</button>
-      <Link to="/dashboard">Voltar ao dashboard</Link>
-    </div>
-  }
-
-  const errorMessage = error ? <p role="alert" style={{ padding: '12px 24px', margin: 0, background: '#fff', color: '#840033' }}>{error}</p> : null
-
-  if (!attempt) {
-    return (
-      <>{errorMessage}<SimuladoLanding
-        vestibularName={vestibularName}
-        onStart={handleStart}
-        isStarting={startMutation.isPending}
-      /></>
-    )
-  }
-
-  if (result || attempt.finishedAt) {
-    return <SimuladoResults attempt={attempt} result={result} />
-  }
-
-  return (
-    <>{errorMessage}<SimuladoExam
+  if (!slug) content = <div className="k-page"><div className="k-state">Nenhum vestibular selecionado.</div></div>
+  else if (isLoading) content = <div className="k-page"><div className="k-state">Carregando...</div></div>
+  else if (isError) {
+    content = <div className="k-page"><div className="k-state" role="alert">
+      <p style={{ margin: 0 }}>Não foi possível carregar o simulado.</p>
+      <div style={{ display: 'flex', gap: 10 }}><button className="k-btn k-btn-primary is-sm" onClick={() => void refetch()}>Tentar novamente</button><Link to="/dashboard" className="k-btn k-btn-outline is-sm">Voltar ao início</Link></div>
+    </div></div>
+  } else if (!attempt) content = <SimuladoIntro vestibularName={vestibularName} onStart={handleStart} isStarting={startMutation.isPending} />
+  else if (result || attempt.finishedAt) content = <SimuladoResults attempt={attempt} result={result} />
+  else {
+    content = <SimuladoExam
       attempt={attempt}
       localAnswers={localAnswers}
       localFlagged={localFlagged}
@@ -595,6 +353,8 @@ export default function SimuladoPage() {
       onFinish={handleFinish}
       isFinishing={finishMutation.isPending}
       isSaving={answerMutation.isPending || flagMutation.isPending}
-    /></>
-  )
+    />
+  }
+
+  return <AppLayout>{errorMessage}{content}</AppLayout>
 }

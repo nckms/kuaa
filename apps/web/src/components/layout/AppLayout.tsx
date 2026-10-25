@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import { MotionConfig } from 'framer-motion'
 import { useAuthStore } from '../../stores/auth.store'
-import KuaaLogo from '../ui/KuaaLogo'
+import KuaaMascotLogo from '../ui/KuaaMascotLogo'
 import './AppLayout.css'
 
 interface Props {
@@ -10,21 +10,19 @@ interface Props {
   rightSidebar?: React.ReactNode
 }
 
-const navigation = [
-  { label: 'Trilha', icon: 'bi-map', path: '/trilha' },
-  { label: 'Painel', icon: 'bi-grid-1x2', path: '/dashboard' },
-  { label: 'Simulado', icon: 'bi-journal-check', path: '/simulado' },
-  { label: 'Sabiá', icon: 'bi-chat-dots', path: '/sabia' },
-  { label: 'Meu desempenho', icon: 'bi-graph-up', path: '/indice' },
-  { label: 'Ranking', icon: 'bi-trophy', path: '/ranking' },
-  { label: 'Perfil', icon: 'bi-person', path: '/perfil' },
-  { label: 'Configurações', icon: 'bi-gear', path: '/configuracoes' },
-]
+interface NavItem {
+  key: string
+  label: string
+  icon: string
+  href: string
+  match: string[]
+  badge?: string
+}
 
 export default function AppLayout({ children, rightSidebar }: Props) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const { user, logout, firstVestibularSlug } = useAuthStore()
+  const { user, logout, firstVestibularSlug, enrollments } = useAuthStore()
   const [moreOpen, setMoreOpen] = useState(false)
   const moreButton = useRef<HTMLButtonElement>(null)
   const previousActive = useRef(user?.activeVestibularId)
@@ -42,58 +40,102 @@ export default function AppLayout({ children, rightSidebar }: Props) {
     navigate('/')
   }
 
-  const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'
-  const links = navigation.map((item) => ({ ...item, href: item.path === '/trilha' ? trailHref : item.path }))
-  const active = (path: string) => pathname === path || pathname.startsWith(`${path}/`)
+  const slug = firstVestibularSlug
+  const examName = enrollments.find((item) => item.vestibular.slug === slug)?.vestibular.name
+  const trailHref = slug ? `/trilha/${slug}` : '/trilha'
+  const essayHref = slug ? `/redacao/${slug}` : '/trilha'
+
+  const items: Record<string, NavItem> = {
+    painel: { key: 'painel', label: 'Início', icon: 'bi-house', href: '/dashboard', match: ['/dashboard'] },
+    trilha: { key: 'trilha', label: 'Minha trilha', icon: 'bi-signpost-split', href: trailHref, match: ['/trilha', '/estudar', '/revisao'] },
+    simulado: { key: 'simulado', label: 'Simulado', icon: 'bi-clipboard-check', href: '/simulado', match: ['/simulado'], badge: 'Novo' },
+    sabia: { key: 'sabia', label: 'Sabiá IA', icon: 'bi-stars', href: '/sabia', match: ['/sabia'] },
+    redacao: { key: 'redacao', label: 'Redação', icon: 'bi-pen', href: essayHref, match: ['/redacao'] },
+    indice: { key: 'indice', label: 'Índice Kuaa', icon: 'bi-speedometer2', href: '/indice', match: ['/indice'] },
+    ranking: { key: 'ranking', label: 'Ranking', icon: 'bi-trophy', href: '/ranking', match: ['/ranking'] },
+    perfil: { key: 'perfil', label: 'Perfil', icon: 'bi-person', href: '/perfil', match: ['/perfil'] },
+    config: { key: 'config', label: 'Configurações', icon: 'bi-gear', href: '/configuracoes', match: ['/configuracoes', '/avaliacao'] },
+  }
+  const groups = [
+    [items.painel, items.trilha, items.simulado, items.sabia, items.redacao],
+    [items.indice, items.ranking],
+    [items.perfil, items.config],
+  ] as NavItem[][]
+  const moreItems = [items.indice, items.redacao, items.ranking, items.perfil, items.config] as NavItem[]
+  const bottomItems = [
+    { ...items.trilha!, label: 'Trilha' },
+    items.painel!,
+    items.simulado!,
+    { ...items.sabia!, label: 'Sabiá' },
+  ]
+  const isActive = (item: NavItem) => item.match.some((path) => pathname === path || pathname.startsWith(`${path}/`))
+  const moreActive = moreItems.some(isActive)
+  const initial = user?.name.charAt(0).toUpperCase() ?? 'K'
 
   return (
     <MotionConfig reducedMotion={user?.preferences?.reducedMotion ? 'always' : 'user'}>
       <div className="kuaa-app" data-reduced-motion={user?.preferences?.reducedMotion || undefined} data-high-contrast={user?.preferences?.highContrast || undefined}>
         <aside className="kuaa-sidebar" aria-label="Menu principal">
-          <Link className="kuaa-sidebar-brand" to={trailHref} aria-label="Kuaa: ir para a trilha">
-            <KuaaLogo size={34} dark />
+          <Link className="kuaa-sidebar-brand" to="/dashboard" aria-label="Kuaa: ir para o início">
+            <KuaaMascotLogo size={34} radius={10} />
+            <img className="kuaa-wordmark" src="/brand/wordmark-w.png" alt="Kuaa" />
           </Link>
           <nav className="kuaa-sidebar-nav" aria-label="Navegação principal">
-            {links.map((item, index) => (
-              <Link
-                key={item.path}
-                to={item.href}
-                className={`kuaa-nav-link${active(item.path) ? ' is-active' : ''}${index === 4 ? ' has-separator' : ''}`}
-                aria-current={active(item.path) ? 'page' : undefined}
-              >
-                <i className={`bi ${item.icon}`} aria-hidden="true" />
-                <span>{item.label}</span>
-              </Link>
+            {groups.map((group, index) => (
+              <div key={index} className="kuaa-nav-group">
+                {group.map((item) => (
+                  <Link key={item.key} to={item.href} title={item.label} className={`kuaa-nav-link${isActive(item) ? ' is-active' : ''}`} aria-current={isActive(item) ? 'page' : undefined}>
+                    <i className={`bi ${item.icon}`} aria-hidden="true" />
+                    <span>{item.label}</span>
+                    {item.badge && <span className="k-badge">{item.badge}</span>}
+                  </Link>
+                ))}
+              </div>
             ))}
           </nav>
           {user && (
             <div className="kuaa-sidebar-account">
-              <div className="kuaa-account-avatar" aria-hidden="true">{user.name.charAt(0).toUpperCase()}</div>
-              <div className="kuaa-account-text"><strong>{user.name}</strong><small>{user.email}</small></div>
+              <span className="kuaa-account-avatar" aria-hidden="true">{initial}</span>
+              <div className="kuaa-account-text"><strong>{user.name}</strong><small>{examName ? `${examName} · ` : ''}Nível {user.level}</small></div>
               <button type="button" onClick={handleLogout} className="kuaa-logout" aria-label="Sair" title="Sair"><i className="bi bi-box-arrow-right" aria-hidden="true" /></button>
             </div>
           )}
         </aside>
 
-        <main className="app-main-content" id="main-content">{children}</main>
+        <main className="app-main-content" id="main-content">
+          <div className="kuaa-mobile-top">
+            <Link to="/dashboard" aria-label="Kuaa: ir para o início"><img src="/brand/wordmark-t.png" alt="Kuaa" /></Link>
+            <Link to="/perfil" className="kuaa-mobile-avatar" aria-label="Perfil">{initial}</Link>
+          </div>
+          {children}
+        </main>
         {rightSidebar && <aside className="kuaa-context-sidebar">{rightSidebar}</aside>}
 
         <nav className="mobile-bottom-nav" aria-label="Navegação principal">
-          {links.slice(0, 4).map((item) => (
-            <Link key={item.path} to={item.href} className={active(item.path) ? 'is-active' : ''} aria-current={active(item.path) ? 'page' : undefined}>
-              <i className={`bi ${item.icon}`} aria-hidden="true" /><span>{item.label}</span>
+          {bottomItems.map((item) => (
+            <Link key={item.key} to={item.href} className={isActive(item) ? 'is-active' : ''} aria-current={isActive(item) ? 'page' : undefined}>
+              <span className="kuaa-bottom-pill"><i className={`bi ${item.icon}`} aria-hidden="true" /></span>{item.label}
             </Link>
           ))}
-          <button ref={moreButton} type="button" className={links.slice(4).some((item) => active(item.path)) ? 'is-active' : ''} aria-expanded={moreOpen} aria-controls="mobile-more-nav" onClick={() => setMoreOpen((open) => !open)}>
-            <i className="bi bi-list" aria-hidden="true" /><span>Mais</span>
+          <button ref={moreButton} type="button" className={moreActive ? 'is-active' : ''} aria-expanded={moreOpen} aria-controls="mobile-more-nav" onClick={() => setMoreOpen(true)}>
+            <span className="kuaa-bottom-pill"><i className="bi bi-grid" aria-hidden="true" /></span>Mais
           </button>
-          {moreOpen && (
-            <div id="mobile-more-nav" className="kuaa-more-menu" onKeyDown={(event) => { if (event.key === 'Escape') { setMoreOpen(false); moreButton.current?.focus() } }}>
-              {links.slice(4).map((item) => <Link key={item.path} to={item.href} aria-current={active(item.path) ? 'page' : undefined}><i className={`bi ${item.icon}`} aria-hidden="true" />{item.label}</Link>)}
-              <button type="button" onClick={handleLogout}><i className="bi bi-box-arrow-right" aria-hidden="true" />Sair</button>
-            </div>
-          )}
         </nav>
+
+        {moreOpen && (
+          <div className="kuaa-more-overlay" onClick={() => { setMoreOpen(false); moreButton.current?.focus() }}>
+            <div id="mobile-more-nav" role="dialog" aria-label="Mais opções" className="kuaa-more-sheet" onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => { if (event.key === 'Escape') { setMoreOpen(false); moreButton.current?.focus() } }}>
+              <span className="kuaa-sheet-handle" aria-hidden="true" />
+              {moreItems.map((item) => (
+                <Link key={item.key} to={item.href} className={isActive(item) ? 'is-active' : ''} aria-current={isActive(item) ? 'page' : undefined}>
+                  <i className={`bi ${item.icon}`} aria-hidden="true" /><span>{item.label}</span><i className="bi bi-chevron-right" aria-hidden="true" />
+                </Link>
+              ))}
+              <button type="button" onClick={handleLogout}><i className="bi bi-box-arrow-right" aria-hidden="true" /><span>Sair</span></button>
+            </div>
+          </div>
+        )}
       </div>
     </MotionConfig>
   )

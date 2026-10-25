@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import type { SessionSummary } from '../../types/quiz'
-import ProgressBar from '../../components/ui/ProgressBar'
 import { useSessionSummary } from '../../hooks/useQuiz'
+import { useAuthStore } from '../../stores/auth.store'
+import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import './QuizPage.css'
 
-const WingGlyph = () => (
-  <svg width="56" height="48" viewBox="0 0 28 24" fill="none">
-    <path d="M2 20 C6 12 14 8 26 4 C20 10 18 16 20 22 C14 18 8 18 2 20Z" fill="#FFDC5C" opacity="0.9"/>
-    <path d="M2 20 C8 16 14 14 20 22 C14 22 8 22 2 20Z" fill="#FFDC5C" opacity="0.5"/>
-  </svg>
-)
+const CONFETTI_COLORS = ['#FFDC5C', '#FF8FA3', '#7FE0B0', '#C9A3FF']
 
 function useCountUp(target: number, duration: number, active: boolean): number {
   const [count, setCount] = useState(0)
@@ -22,9 +17,8 @@ function useCountUp(target: number, duration: number, active: boolean): number {
     let raf: number
     const animate = (ts: number) => {
       if (!startRef.current) startRef.current = ts
-      const elapsed = ts - startRef.current
-      const progress = Math.min(elapsed / duration, 1)
-      setCount(Math.round(target * progress))
+      const progress = Math.min((ts - startRef.current) / duration, 1)
+      setCount(Math.round(target * (1 - Math.pow(1 - progress, 3))))
       if (progress < 1) raf = requestAnimationFrame(animate)
     }
     raf = requestAnimationFrame(animate)
@@ -34,156 +28,136 @@ function useCountUp(target: number, duration: number, active: boolean): number {
   return count
 }
 
+function Confetti() {
+  return (
+    <div className="qz-confetti" aria-hidden="true">
+      {Array.from({ length: 36 }).map((_, k) => (
+        <span key={k} style={{
+          left: `${(k * 2.8 + ((k * 37) % 11)) % 100}%`, width: k % 3 ? 8 : 6, height: k % 3 ? 14 : 6, borderRadius: k % 3 ? 2 : '50%',
+          background: CONFETTI_COLORS[k % 4], animation: `kfall ${2.4 + (k % 5) * 0.4}s cubic-bezier(.3,.6,.5,1) ${(k % 9) * 0.12}s 1 forwards`,
+        }} />
+      ))}
+    </div>
+  )
+}
+
 export default function ResultPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const location = useLocation()
   const navigate = useNavigate()
+  const reducedMotion = useAuthStore((state) => state.user?.preferences?.reducedMotion ?? false)
 
   const routeSummary = location.state as SessionSummary | null
   const { data: fetchedSummary, isLoading, isError } = useSessionSummary(sessionId, !routeSummary)
   const summary = routeSummary ?? fetchedSummary ?? null
 
   const [animating, setAnimating] = useState(false)
+  const [showReview, setShowReview] = useState(false)
+  const [reviewTab, setReviewTab] = useState<'all' | 'wrong' | 'right'>('all')
   useEffect(() => { const t = setTimeout(() => setAnimating(true), 300); return () => clearTimeout(t) }, [])
 
-  const xpCount = useCountUp(summary?.xpEarned ?? 0, 1200, animating)
+  const xpCount = useCountUp(summary?.xpEarned ?? 0, 1100, animating)
 
   if (isLoading && !summary) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif' }}>
-        <p style={{ color: 'rgba(255,255,255,.65)' }}>Carregando resultado...</p>
-      </div>
-    )
+    return <div className="qz qz-center"><p className="qz-sub">Carregando resultado...</p></div>
   }
 
   if (!summary || isError) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif' }}>
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ color: 'rgba(255,255,255,.6)', marginBottom: 16 }}>Resultado não encontrado.</p>
-          <button onClick={() => navigate('/trilha')} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, Arial, sans-serif' }}>Voltar à trilha</button>
+      <div className="qz qz-center">
+        <div className="qz-stack">
+          <p className="qz-sub">Resultado não encontrado.</p>
+          <button type="button" className="k-btn k-btn-yellow" onClick={() => navigate('/trilha')}>Voltar à trilha</button>
         </div>
       </div>
     )
   }
 
   const { topicName, vestibularSlug, correct, wrong, isPerfect, accuracy, newMasteryLevel, newAchievements, levelUp, newLevel, questions } = summary
+  const answered = correct + wrong
+  const pct = Math.round(accuracy * 100)
+  const title = isPerfect ? 'Gabaritou!' : accuracy >= 0.5 ? 'Boa evolução.' : 'Faz parte do processo.'
+  const sub = isPerfect ? `${topicName} está quase dominado.` : `${correct} de ${answered + summary.skipped} certas.${wrong > 0 ? ' Revise as que você errou antes de seguir.' : ''}`
+  const review = questions.filter((question) => reviewTab === 'all' || (reviewTab === 'wrong' ? !question.isCorrect : question.isCorrect))
 
   return (
-    <div className="quiz-result" style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        style={{ maxWidth: 520, width: '90%', textAlign: 'center', padding: '60px 24px' }}
-      >
-        <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
-          <WingGlyph />
-        </motion.div>
+    <div className="qz">
+      {accuracy >= 0.75 && !reducedMotion && <Confetti />}
+      <div className="qz-result">
+        <KuaaMascotLogo size={104} radius={28} />
+        <p className="qz-eyebrow">SESSÃO CONCLUÍDA</p>
+        <h1>{title}</h1>
+        <p className="qz-result-sub">{sub}</p>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: animating ? 1 : 0, scale: animating ? 1 : 0.8 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 600, color: '#FFDC5C', letterSpacing: 0, lineHeight: 1.4, marginTop: 24, marginBottom: 8 }}
-        >
-          +{xpCount} XP
-        </motion.div>
+        <div className="qz-tiles">
+          <div><strong style={{ color: '#7FE0B0' }}>{correct}</strong><small>acertos</small></div>
+          <div><strong style={{ color: '#FF8FA3' }}>{wrong}</strong><small>erros</small></div>
+          <div><strong>{pct}%</strong><small>de acerto</small></div>
+        </div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
-          <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 26, color: '#fff', marginBottom: 8 }}>Sessão concluída!</p>
-          <span style={{ backgroundColor: '#840033', color: '#fff', fontSize: 12, fontWeight: 600, padding: '4px 14px', borderRadius: 999 }}>{topicName}</span>
-
-          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 24, marginTop: 32, marginBottom: 24 }}>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: 24, color: '#10b981' }}>✓</span>
-              <p style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 28, color: '#fff', fontWeight: 700, letterSpacing: '-0.04em', margin: '4px 0 2px' }}>{correct}</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>corretas</p>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: 24, color: '#840033' }}>✗</span>
-              <p style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 28, color: '#fff', fontWeight: 700, letterSpacing: '-0.04em', margin: '4px 0 2px' }}>{wrong}</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>erradas</p>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: 24, color: '#FFDC5C' }}>⚡</span>
-              <p style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 28, color: '#fff', fontWeight: 700, letterSpacing: '-0.04em', margin: '4px 0 2px' }}>{Math.round(accuracy * 100)}%</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>acerto</p>
-            </div>
+        <div className="qz-panel qz-xp-row">
+          <strong>+{xpCount}</strong>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#BFAFC5', marginBottom: 8 }}><span>Domínio em {topicName}</span><span className="k-mono">{newMasteryLevel}/5</span></div>
+            <div className="qz-bar"><span style={{ width: animating ? `${(newMasteryLevel / 5) * 100}%` : '0%' }} /></div>
           </div>
+        </div>
 
-          <p style={{ color: '#d1d5db', fontSize: 13 }}>{summary.skipped} questão(ões) em branco. O percentual considera todas as questões da sessão.</p>
-          {summary.generation?.targetSatisfied === false && (
-            <p style={{ color: '#d1d5db', fontSize: 13, lineHeight: 1.5, marginTop: 12 }}>
-              A dificuldade das questões disponíveis nesta sessão ficou fora da faixa planejada.
-            </p>
-          )}
-
-          {isPerfect && (
-            <div style={{ backgroundColor: 'rgba(255,220,92,.15)', border: '1px solid #FFDC5C', borderRadius: 16, padding: 16, marginBottom: 12 }}>
-              <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 17, color: '#FFDC5C' }}>Sessão perfeita! 100% de acerto</p>
-            </div>
-          )}
-
-          {levelUp && (
-            <div style={{ backgroundColor: 'rgba(83,26,97,.4)', border: '1px solid #531A61', borderRadius: 16, padding: 16, marginBottom: 12 }}>
-              <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 17, color: '#fff' }}>Você subiu para o Nível {newLevel}!</p>
-            </div>
-          )}
-
-          {newAchievements.map((a) => (
-            <div key={a.slug} style={{ backgroundColor: 'rgba(255,220,92,.08)', borderLeft: '3px solid #FFDC5C', borderRadius: '0 12px 12px 0', padding: 14, marginBottom: 10, textAlign: 'left' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 15, color: '#FFDC5C' }}>{a.name}</p>
-                {a.xpBonus > 0 && <span style={{ backgroundColor: 'rgba(255,220,92,.2)', color: '#FFDC5C', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>+{a.xpBonus} XP</span>}
-              </div>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,.6)', marginTop: 4 }}>{a.description}</p>
-            </div>
-          ))}
-
-          <div style={{ marginTop: 24 }}>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', marginBottom: 8 }}>Nível de maestria: {newMasteryLevel}/5</p>
-            <div style={{ maxWidth: 280, margin: '0 auto' }}>
-              <ProgressBar value={newMasteryLevel / 5 * 100} color="amarelo" size="md" />
-            </div>
+        {summary.skipped > 0 && <p className="qz-result-sub" style={{ fontSize: 13 }}>{summary.skipped} questão(ões) em branco. O percentual considera todas as questões da sessão.</p>}
+        {summary.generation?.targetSatisfied === false && <p className="qz-result-sub" style={{ fontSize: 13 }}>A dificuldade das questões disponíveis nesta sessão ficou fora da faixa planejada.</p>}
+        {levelUp && <div className="qz-panel" style={{ border: '1px solid #531A61' }}><h2>Você subiu para o Nível {newLevel}!</h2></div>}
+        {newAchievements.map((achievement) => (
+          <div key={achievement.slug} className="qz-panel" style={{ borderLeft: '3px solid var(--k-amarelo)' }}>
+            <h2 style={{ color: 'var(--k-amarelo)', display: 'flex', justifyContent: 'space-between', gap: 8 }}>{achievement.name}{achievement.xpBonus > 0 && <span className="qz-xp">+{achievement.xpBonus} XP</span>}</h2>
+            <p>{achievement.description}</p>
           </div>
+        ))}
+        {summary.performance && (
+          <section className="qz-panel" aria-label="Evolução neste tópico">
+            <h2>{summary.performance.decision === 'advance' ? 'Você avançou neste tópico' : summary.performance.decision === 'reinforce' ? 'Próximo passo: reforçar' : summary.performance.decision === 'collect' ? 'Construindo seu diagnóstico' : 'Consolidando seu domínio'}</h2>
+            <p>{summary.performance.reason}</p>
+            <p style={{ marginTop: 8, color: '#A797AE', fontSize: 13 }}>Domínio: {summary.performance.previousLevel}/5 → {summary.performance.newLevel}/5 · {summary.performance.evidenceCount} resposta(s) consideradas.</p>
+          </section>
+        )}
 
-          {summary.performance && (
-            <section aria-label="Evolução neste tópico" style={{ marginTop: 24, textAlign: 'left', borderTop: '1px solid rgba(255,255,255,.2)', paddingTop: 20 }}>
-              <h2 style={{ fontSize: 17, color: '#fff', marginBottom: 8 }}>
-                {summary.performance.decision === 'advance' ? 'Você avançou neste tópico'
-                  : summary.performance.decision === 'reinforce' ? 'Próximo passo: reforçar'
-                    : summary.performance.decision === 'collect' ? 'Construindo seu diagnóstico' : 'Consolidando seu domínio'}
-              </h2>
-              <p style={{ fontSize: 14, color: '#e5e7eb', lineHeight: 1.6 }}>{summary.performance.reason}</p>
-              <p style={{ fontSize: 13, color: '#d1d5db', lineHeight: 1.6, marginTop: 8 }}>
-                Domínio: {summary.performance.previousLevel}/5 → {summary.performance.newLevel}/5.
-                {' '}{summary.performance.evidenceCount} resposta(s) consideradas nesta avaliação.
-              </p>
-            </section>
+        <div className="qz-result-actions">
+          <button type="button" className="qz-btn-ghost" onClick={() => setShowReview((open) => !open)} aria-expanded={showReview}><i className="bi bi-list-check" aria-hidden="true" />{showReview ? 'Esconder revisão' : 'Revisar questões'}</button>
+          {summary.guideAvailable && (wrong > 0 || summary.skipped > 0) && (
+            <button type="button" className="qz-btn-ghost" onClick={() => navigate(`/estudar/${summary.topicId}`)}><i className="bi bi-book" aria-hidden="true" />Estudar dúvidas</button>
           )}
+          <button type="button" className="k-btn k-btn-yellow" style={{ minHeight: 52, padding: '0 28px' }} onClick={() => navigate(`/trilha/${vestibularSlug}`)}>Próximo tópico <i className="bi bi-arrow-right" aria-hidden="true" /></button>
+        </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32 }}>
-            {summary.guideAvailable && (wrong > 0 || summary.skipped > 0) && (
-              <button
-                onClick={() => navigate(`/estudar/${summary.topicId}`)}
-                style={{ width: '100%', padding: 14, borderRadius: 6, backgroundColor: '#f0f5f3', border: 'none', color: '#163d34', cursor: 'pointer', fontSize: 15, fontWeight: 700 }}
-              >
-                Estudar os pontos de dúvida
-              </button>
-            )}
-            <button
-              onClick={() => navigate(`/revisao/${sessionId}`, { state: { questions, topicId: summary.topicId, topicName, vestibularSlug, correct, total: correct + wrong + summary.skipped, accuracy } })}
-              style={{ width: '100%', padding: 14, borderRadius: 12, backgroundColor: 'transparent', border: '1.5px solid rgba(255,255,255,.25)', color: '#fff', cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, Arial, sans-serif' }}
-            >
-              Revisar respostas
-            </button>
-            <button
-              onClick={() => navigate(`/trilha/${vestibularSlug}`)}
-              style={{ width: '100%', padding: 14, borderRadius: 12, backgroundColor: '#840033', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 15, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}
-            >
-              Voltar à trilha
+        {showReview && (
+          <div className="qz-review">
+            <div className="qz-review-tabs" role="group" aria-label="Filtrar revisão">
+              {([['all', 'Todas'], ['wrong', 'Erros'], ['right', 'Acertos']] as const).map(([id, label]) => (
+                <button key={id} type="button" aria-pressed={reviewTab === id} onClick={() => setReviewTab(id)}>{label}</button>
+              ))}
+            </div>
+            {review.map((question) => {
+              const mine = question.options.find((option) => option.id === question.userAnswerId)
+              const right = question.options.find((option) => option.isCorrect)
+              const dot = question.isCorrect ? '#7FE0B0' : '#FF8FA3'
+              return (
+                <div key={question.id} className="qz-review-item">
+                  <span className="qz-review-dot" style={{ background: dot }}><i className={`bi ${question.isCorrect ? 'bi-check-lg' : 'bi-x-lg'}`} aria-hidden="true" /></span>
+                  <div>
+                    <div className="qz-review-q">{question.body}</div>
+                    <div className="qz-review-ans">Você: <span style={{ color: dot }}>{mine ? `${mine.id}) ${mine.text}` : 'Em branco'}</span> · Correta: <span style={{ color: '#7FE0B0' }}>{right ? `${right.id}) ${right.text}` : '—'}</span></div>
+                    <div className="qz-review-exp">{question.explanation}</div>
+                  </div>
+                </div>
+              )
+            })}
+            {review.length === 0 && <p className="qz-sub">Nenhuma questão neste filtro.</p>}
+            <button type="button" className="k-link-btn" style={{ color: 'var(--k-amarelo)', marginTop: 8 }}
+              onClick={() => navigate(`/revisao/${sessionId}`, { state: { questions, topicId: summary.topicId, topicName, vestibularSlug, correct, total: correct + wrong + summary.skipped, accuracy } })}>
+              Abrir revisão completa e praticar erros<i className="bi bi-arrow-right" aria-hidden="true" />
             </button>
           </div>
-        </motion.div>
-      </motion.div>
+        )}
+      </div>
     </div>
   )
 }

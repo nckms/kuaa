@@ -1,13 +1,21 @@
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
-import ProgressBar from '../../components/ui/ProgressBar'
 import { useAuthStore } from '../../stores/auth.store'
 import { useTrail } from '../../hooks/useTrail'
 import { useIndex } from '../../hooks/useIndex'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
+import { subjectTheme, subjectThemeByName } from '../../utils/subjectTheme'
+import { formatStudyTime, indexBand, sparkPoints, topicProgressScore } from '../../utils/kuaaIndex'
+import './DashboardPage.css'
 
-const DAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+const DAYS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
+const WEEK_TARGET = 5
+
+function greeting() {
+  const hour = new Date().getHours()
+  return hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
+}
 
 export default function DashboardPage() {
   const { user, firstVestibularSlug, enrollments } = useAuthStore()
@@ -19,29 +27,149 @@ export default function DashboardPage() {
   const topics = useMemo(() => trail?.subjects.flatMap((subject) => subject.topics) ?? [], [trail])
   const recommendation = topics.find((topic) => topic.id === trail?.recommendation?.topicId)
   const summary = trail?.summary
-  const progress = summary?.totalTopics ? Math.round((topics.reduce((sum, topic) => sum + (topic.progress.completed ? 1 : topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0 ? 0.5 : 0), 0) / summary.totalTopics) * 100) : 0
   const week = summary?.weeklyAnsweredQuestions ?? [0, 0, 0, 0, 0, 0, 0]
   const weekTotal = week.reduce((sum, value) => sum + value, 0)
+  const weekMax = Math.max(...week, 1)
+  const todayIndex = (new Date().getDay() + 6) % 7
+  const activeDays = week.filter((value) => value > 0).length
   const gaps = summary?.knowledgeGaps ?? []
+  const examName = trail?.vestibular.name ?? enrollments.find((item) => item.vestibular.slug === firstVestibularSlug)?.vestibular.name ?? 'Sua prova'
+  const today = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'short' }).replace('.', '')
+  const hasIndex = (indexData?.subjectBreakdown.length ?? 0) > 0
+  const band = indexData ? indexBand(indexData.score) : null
+  const history = indexData?.history.map((point) => point.score) ?? []
+
+  const subjects = (trail?.subjects ?? []).map((subject, index) => {
+    const total = subject.topics.length
+    const pct = total ? Math.round((subject.topics.reduce((sum, topic) => sum + topicProgressScore(topic), 0) / total) * 100) : 0
+    return { id: subject.id, name: subject.name, pct, ...subjectTheme(subject.slug, index) }
+  })
 
   function start(topicId?: string) {
     if (topicId) generateQuiz.mutate({ topicId, count: 5 })
     else navigate(trailHref)
   }
 
-  return <AppLayout><div className="dashboard-page">
-    {isLoading || isError ? <div className="dashboard-state" role={isError ? 'alert' : 'status'}><p>{isError ? 'Não foi possível carregar seu progresso.' : 'Carregando seu progresso...'}</p>{isError && <button onClick={() => void refetch()}>Tentar novamente</button>}</div> : <>
-      <header className="dashboard-heading"><div><p className="dashboard-eyebrow">{trail?.vestibular.name ?? enrollments[0]?.vestibular.name ?? 'Sua trilha'}</p><h1>Olá, {user?.name.split(' ')[0] ?? 'estudante'}</h1></div><Link to={trailHref}>Ver trilha <i className="bi bi-arrow-right" aria-hidden="true" /></Link></header>
-      <div className="dashboard-main-grid"><section className="dashboard-primary" aria-labelledby="next-study"><p className="dashboard-eyebrow">Próximo estudo</p><h2 id="next-study">{recommendation?.name ?? (summary?.totalTopics ? 'Trilha concluída' : 'Comece sua trilha')}</h2>{trail?.recommendation?.reason && <p className="dashboard-reason">{trail.recommendation.reason}</p>}<button className="dashboard-action" onClick={() => start(recommendation?.id)} disabled={generateQuiz.isPending}>{generateQuiz.isPending ? 'Preparando...' : recommendation ? 'Estudar agora' : 'Abrir trilha'} <i className="bi bi-arrow-right" aria-hidden="true" /></button>{generateQuiz.isError && <p role="alert" className="dashboard-error">Não foi possível preparar a sessão. Tente novamente.</p>}</section>
-      <section className="dashboard-progress" aria-labelledby="trail-progress"><div className="dashboard-section-head"><h2 id="trail-progress">Progresso da trilha</h2><strong>{progress}%</strong></div><ProgressBar value={progress} color="vinho" size="md" /><div className="dashboard-facts"><span><strong>{summary?.completedTopics ?? 0}</strong> concluídos</span><span><strong>{summary?.answeredTopics ?? 0}</strong> respondidos</span><span><strong>{summary?.totalTopics ?? 0}</strong> tópicos</span></div></section></div>
-      <div className="dashboard-detail-grid"><section className="dashboard-panel" aria-labelledby="index-title"><div className="dashboard-section-head"><h2 id="index-title">Índice Kuaa</h2><Link to="/indice">Ver detalhes <i className="bi bi-arrow-right" aria-hidden="true" /></Link></div><div className="dashboard-index"><strong>{indexData?.score ?? '—'}</strong><span>{summary?.finishedSessions ?? 0} sessões · {summary?.accuracy ?? 0}% de acerto</span></div><div className="dashboard-subjects">{trail?.subjects.map((subject) => { const score = indexData?.subjectBreakdown.find((item) => item.subjectId === subject.id)?.score; return <div key={subject.id}><span>{subject.name}</span><strong>{score == null ? '—' : `${score}%`}</strong></div> })}</div></section>
-      <section className="dashboard-panel" aria-labelledby="attention-title"><div className="dashboard-section-head"><h2 id="attention-title">Pontos de atenção</h2><span>{gaps.length}</span></div>{gaps.length ? <ul className="dashboard-gaps">{gaps.slice(0, 3).map((gap) => <li key={gap.topicId}><div><strong>{gap.topicName}</strong><small>{gap.subjectName} · {gap.wrongAnswers}/{gap.totalAnswers} erros · {gap.accuracy}% de acerto</small></div><button title={`Reforçar ${gap.topicName}`} aria-label={`Reforçar ${gap.topicName}`} disabled={generateQuiz.isPending} onClick={() => start(gap.topicId)}><i className="bi bi-arrow-right" aria-hidden="true" /></button></li>)}</ul> : <p className="dashboard-empty">Nenhum ponto de atenção identificado.</p>}</section></div>
-      <section className="dashboard-week" aria-labelledby="week-title"><div className="dashboard-section-head"><h2 id="week-title">Esta semana</h2><strong>{weekTotal} questões</strong></div><div className="dashboard-bars">{week.map((value, index) => <div key={DAYS[index]}><span className="dashboard-bar-track"><span style={{ height: `${value ? Math.max(8, (value / Math.max(...week, 1)) * 100) : 3}%` }} /></span><small>{DAYS[index]}</small></div>)}</div><p>{summary?.answeredQuestions ?? 0} questões no total · {summary?.correctAnswers ?? 0} acertos · {summary?.wrongAnswers ?? 0} erros</p></section>
-    </>}
-  </div><style>{`
-    .dashboard-page{padding:32px clamp(16px,4vw,48px) 64px;background:#f7f6f8;color:#251c28;min-height:100%}.dashboard-heading,.dashboard-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.dashboard-heading{margin-bottom:28px}.dashboard-heading h1{font:600 28px 'Questrial',sans-serif;margin:0;color:#531A61}.dashboard-eyebrow{font-size:12px;font-weight:700;color:#840033;margin:0 0 8px}.dashboard-heading a,.dashboard-section-head a{color:#531A61;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
-    .dashboard-main-grid,.dashboard-detail-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:20px;margin-bottom:20px}.dashboard-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-primary{background:#531A61;color:white;padding:32px;min-height:240px;display:flex;flex-direction:column;align-items:flex-start;border-radius:8px}.dashboard-primary .dashboard-eyebrow{color:#FFDC5C}.dashboard-primary h2{font:600 26px 'Questrial',sans-serif;margin:0;line-height:1.25}.dashboard-reason{font-size:14px;color:#fff;margin:12px 0 0;max-width:54ch}.dashboard-action{margin-top:auto;background:#FFDC5C;color:#531A61;border:0;border-radius:6px;padding:12px 18px;font-weight:700;display:flex;gap:18px;align-items:center;cursor:pointer}.dashboard-action:disabled,.dashboard-gaps button:disabled{opacity:.6;cursor:wait}.dashboard-error{color:#FFDC5C;margin:10px 0 0}
-    .dashboard-progress,.dashboard-panel,.dashboard-week{background:#fff;padding:24px;border:1px solid #e8e2ea;border-radius:8px}.dashboard-section-head{margin-bottom:18px}.dashboard-section-head h2{font:600 18px 'Questrial',sans-serif;margin:0;color:#251c28}.dashboard-section-head>strong{color:#531A61}.dashboard-facts{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:20px;font-size:12px}.dashboard-facts strong{color:#531A61}.dashboard-index{display:flex;align-items:baseline;gap:16px;margin-bottom:18px}.dashboard-index>strong{font-size:42px;color:#531A61;line-height:1}.dashboard-index>span{font-size:12px;color:#625b64}.dashboard-subjects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.dashboard-subjects>div{display:flex;justify-content:space-between;gap:8px;border-top:1px solid #eee9ef;padding:10px 0;font-size:12px}.dashboard-subjects span{overflow-wrap:anywhere}.dashboard-subjects strong{color:#840033}.dashboard-gaps{list-style:none;margin:0;padding:0}.dashboard-gaps li{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px 0;border-top:1px solid #eee9ef}.dashboard-gaps li>div{min-width:0}.dashboard-gaps strong,.dashboard-gaps small{display:block;overflow-wrap:anywhere}.dashboard-gaps strong{font-size:14px}.dashboard-gaps small,.dashboard-empty{font-size:12px;color:#625b64;margin-top:4px}.dashboard-gaps button{flex:0 0 36px;height:36px;border:1px solid #d6c8d9;border-radius:6px;background:#fff;color:#531A61}.dashboard-week>p{font-size:12px;color:#625b64;margin:12px 0 0}.dashboard-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;height:110px}.dashboard-bars>div{display:flex;flex-direction:column;align-items:center;gap:6px}.dashboard-bar-track{width:100%;height:86px;display:flex;align-items:end;justify-content:center;background:#f7f4f8;border-radius:4px}.dashboard-bar-track>span{display:block;width:100%;max-width:36px;background:#840033;border-radius:4px 4px 0 0}.dashboard-bars small{font-size:11px;color:#625b64}.dashboard-state{padding:24px;background:white}.dashboard-state button{border:0;background:#531A61;color:#fff;padding:9px 14px;border-radius:6px}
-    @media(max-width:900px){.dashboard-main-grid,.dashboard-detail-grid{grid-template-columns:1fr}.dashboard-primary{min-height:210px}}@media(max-width:600px){.dashboard-page{padding:20px 16px 100px}.dashboard-heading{align-items:flex-start}.dashboard-heading h1{font-size:24px}.dashboard-primary{padding:24px}.dashboard-primary h2{font-size:22px}.dashboard-progress,.dashboard-panel,.dashboard-week{padding:18px}.dashboard-subjects{grid-template-columns:1fr}}
-  `}</style></AppLayout>
+  if (isLoading || isError) {
+    return <AppLayout><div className="k-page"><div className="k-state" role={isError ? 'alert' : 'status'}>
+      <p style={{ margin: 0 }}>{isError ? 'Não foi possível carregar seu progresso.' : 'Carregando seu progresso...'}</p>
+      {isError && <button className="k-btn k-btn-primary is-sm" onClick={() => void refetch()}>Tentar novamente</button>}
+    </div></div></AppLayout>
+  }
+
+  return <AppLayout><div className="k-page dash">
+    <header className="k-page-head">
+      <div><p className="k-eyebrow">{examName} · {today}</p><h1 className="k-h1">{greeting()}, {user?.name.split(' ')[0] ?? 'estudante'}.</h1></div>
+      {user && <div className="dash-chips">
+        <span className="k-chip"><i className="bi bi-fire" style={{ color: '#D97706' }} aria-hidden="true" />{user.streakDays} {user.streakDays === 1 ? 'dia seguido' : 'dias seguidos'}</span>
+        <span className="k-chip"><i className="bi bi-lightning-charge-fill" style={{ color: 'var(--k-roxo)' }} aria-hidden="true" />{user.xp} XP</span>
+      </div>}
+    </header>
+
+    <div className="k-row">
+      <section className="dash-hero" aria-labelledby="next-study">
+        <div className="dash-hero-blob" aria-hidden="true" />
+        <div className="dash-hero-copy">
+          <span className="dash-hero-tag"><i className="bi bi-bullseye" aria-hidden="true" />Seu próximo passo</span>
+          <h2 id="next-study">{recommendation?.name ?? (summary?.totalTopics ? 'Trilha concluída' : 'Comece sua trilha')}</h2>
+          <p>{trail?.recommendation?.reason ?? 'Abra a trilha para escolher por onde começar.'}</p>
+        </div>
+        <div className="dash-hero-actions">
+          <button className="k-btn k-btn-yellow" onClick={() => start(recommendation?.id)} disabled={generateQuiz.isPending}>
+            <i className="bi bi-play-fill" aria-hidden="true" />{generateQuiz.isPending ? 'Preparando...' : recommendation ? 'Praticar agora' : 'Abrir trilha'}
+          </button>
+          <Link to={trailHref} className="k-btn k-btn-ghost-light">Ver trilha</Link>
+        </div>
+        {generateQuiz.isError && <p role="alert" className="dash-hero-error">Não foi possível preparar a sessão. Tente novamente.</p>}
+      </section>
+
+      <section className="k-card dash-week" aria-labelledby="week-goal">
+        <div className="dash-card-top"><strong id="week-goal">Meta da semana</strong><span>{user?.preferences?.dailyStudyMinutes ?? 30} min/dia</span></div>
+        <div className="dash-ring-row">
+          <div className="dash-ring">
+            <svg viewBox="0 0 120 120" width="112" height="112" aria-hidden="true">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--k-track)" strokeWidth="12" />
+              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--k-verde)" strokeWidth="12" strokeLinecap="round" pathLength={100} strokeDasharray={`${Math.min(100, (activeDays / WEEK_TARGET) * 100)} 100`} />
+            </svg>
+            <span className="k-num">{activeDays}/{WEEK_TARGET}</span>
+          </div>
+          <p>{activeDays >= WEEK_TARGET ? 'Semana fechada. Mandou bem!' : `Estude em mais ${WEEK_TARGET - activeDays} ${WEEK_TARGET - activeDays === 1 ? 'dia' : 'dias'} pra fechar a semana. Uma sessão de prática resolve.`}</p>
+        </div>
+        <div className="dash-dots" aria-label="Dias com estudo nesta semana">
+          {week.map((value, index) => <div key={index}><span style={{ background: value > 0 ? 'var(--k-verde)' : index === todayIndex ? '#CDE5D9' : '#EFEAED' }} title={`${value} questões`} /><small>{DAYS[index]}</small></div>)}
+        </div>
+      </section>
+    </div>
+
+    <div className="k-grid" style={{ ['--min' as string]: '200px' }}>
+      {[
+        { label: 'Questões', value: String(summary?.answeredQuestions ?? 0), sub: `${weekTotal} nesta semana`, icon: 'bi-list-check' },
+        { label: 'Acerto', value: `${summary?.accuracy ?? 0}%`, sub: `${summary?.correctAnswers ?? 0} acertos`, icon: 'bi-bullseye' },
+        { label: 'Tempo de estudo', value: formatStudyTime(summary?.studyTimeMs ?? 0), sub: `${summary?.finishedSessions ?? 0} sessões`, icon: 'bi-clock' },
+        { label: 'Tópicos dominados', value: String(summary?.completedTopics ?? 0), sub: `de ${summary?.totalTopics ?? 0}`, icon: 'bi-check2-all' },
+      ].map((stat) => (
+        <div key={stat.label} className="k-card is-sm dash-stat">
+          <div><span>{stat.label}</span><i className={`bi ${stat.icon}`} aria-hidden="true" /></div>
+          <div><strong className="k-num">{stat.value}</strong><small>{stat.sub}</small></div>
+        </div>
+      ))}
+    </div>
+
+    <div className="k-row">
+      <section className="k-card dash-activity" aria-labelledby="activity-title">
+        <div className="k-card-head" style={{ marginBottom: 0 }}><h3 id="activity-title" className="k-h3">Atividade da semana</h3><span className="k-muted" style={{ fontSize: 13 }}>{weekTotal} questões</span></div>
+        <div className="dash-bars">
+          {week.map((value, index) => (
+            <div key={index}>
+              <span className="k-mono">{value || ''}</span>
+              <div style={{ height: `${Math.max(4, (value / weekMax) * 120)}px`, background: index === todayIndex ? 'var(--k-roxo)' : value ? '#E4D7EA' : '#F1ECEF' }} />
+              <small style={{ color: index === todayIndex ? 'var(--k-roxo)' : undefined }}>{DAYS[index]}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="k-card dash-index" aria-labelledby="index-title">
+        <div className="dash-card-top"><h3 id="index-title" className="k-h3">Índice Kuaa</h3><Link to="/indice" className="k-link-btn" style={{ fontSize: 13 }}>Detalhes<i className="bi bi-arrow-up-right" aria-hidden="true" /></Link></div>
+        <div className="dash-index-score">
+          <strong className="k-num">{hasIndex ? indexData!.score : '—'}</strong>
+          {hasIndex && indexData!.delta7d !== 0 && <span style={{ color: indexData!.delta7d > 0 ? 'var(--k-verde)' : 'var(--k-vinho)' }}>{indexData!.delta7d > 0 ? '↑' : '↓'} {Math.abs(indexData!.delta7d)} em 7 dias</span>}
+        </div>
+        {history.length >= 2
+          ? <svg viewBox="0 0 280 70" width="100%" height="70" preserveAspectRatio="none" aria-hidden="true"><polyline points={sparkPoints(history, 280, 70)} fill="none" stroke="var(--k-roxo)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" /></svg>
+          : <p className="k-muted" style={{ fontSize: 13, margin: 0 }}>{hasIndex ? 'O gráfico aparece após dois meses de atividade.' : 'Responda questões para ver seu índice.'}</p>}
+        {hasIndex && band && <div className="dash-index-foot"><span>Faixa {band.name}</span>{band.next && <span>Faltam {band.next.from - indexData!.score} pts p/ {band.next.name}</span>}</div>}
+      </section>
+    </div>
+
+    <div className="k-row">
+      <section className="k-card dash-subjects" aria-labelledby="subjects-title">
+        <h3 id="subjects-title" className="k-h3" style={{ marginBottom: 20 }}>Progresso por matéria</h3>
+        <div className="dash-subject-grid">
+          {subjects.map((subject) => (
+            <button key={subject.id} type="button" onClick={() => navigate(trailHref, { state: { subjectId: subject.id } })}>
+              <span className="dash-subject-head"><span><span className="dash-dot" style={{ background: subject.color }} />{subject.name}</span><span className="k-mono">{subject.pct}%</span></span>
+              <span className="k-track"><span style={{ width: `${Math.max(subject.pct, 2)}%`, background: subject.color }} /></span>
+            </button>
+          ))}
+        </div>
+      </section>
+      <div className="dash-side">
+        <section className="k-card is-md dash-gaps" aria-labelledby="attention-title">
+          <h3 id="attention-title" className="k-h3" style={{ marginBottom: 8 }}>Pontos de atenção</h3>
+          {gaps.length ? gaps.slice(0, 3).map((gap, index) => (
+            <button key={gap.topicId} type="button" disabled={generateQuiz.isPending} onClick={() => start(gap.topicId)} aria-label={`Reforçar ${gap.topicName}`}>
+              <span className="dash-gap-bar" style={{ background: subjectThemeByName(gap.subjectName, index).color }} />
+              <span className="dash-gap-text"><strong>{gap.topicName}</strong><small>{gap.subjectName} · {gap.wrongAnswers} de {gap.totalAnswers} erradas</small></span>
+              <span className="k-mono dash-gap-acc">{gap.accuracy}%</span>
+            </button>
+          )) : <p className="k-muted" style={{ fontSize: 14, margin: '8px 0 0' }}>Nenhum ponto de atenção ainda. Eles aparecem depois de algumas questões.</p>}
+        </section>
+        <section className="dash-simulado" aria-labelledby="simulado-title">
+          <div><span>Simulado semanal</span><span className="k-badge">Disponível</span></div>
+          <strong id="simulado-title">Até 45 questões · 90 min</strong>
+          <Link to="/simulado" className="k-btn is-sm" style={{ background: '#fff', color: 'var(--k-ink)', alignSelf: 'flex-start' }}>Fazer agora<i className="bi bi-arrow-right" aria-hidden="true" /></Link>
+        </section>
+      </div>
+    </div>
+  </div></AppLayout>
 }

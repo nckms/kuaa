@@ -1,0 +1,55 @@
+.sabia { display: flex; height: 100dvh; min-height: 0; }
+.sabia-history { width: 260px; flex: none; border-right: 1px solid var(--k-line); background: #fff; padding: 20px 14px; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
+.sabia-new { height: 44px; border-radius: 12px; border: 1px solid var(--k-line-2); background: #fff; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; color: var(--k-ink); flex: none; }
+.sabia-recent { font-size: 12px; color: #8A8090; padding: 4px 10px; }
+.sabia-hist-note { font-size: 13px; color: var(--k-muted-2); padding: 4px 10px; margin: 0; }
+.sabia-hist-item { text-align: left; padding: 10px 12px; border-radius: 10px; border: 0; font-size: 14px; background: transparent; color: var(--k-ink); display: flex; flex-direction: column; gap: 2px; flex: none; }
+.sabia-hist-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+.sabia-hist-item small { font-size: 12px; color: #8A8090; }
+.sabia-hist-item:hover, .sabia-hist-item.is-active { background: var(--k-roxo-soft); }
+
+.sabia-main { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+.sabia-head { padding: 16px 24px; border-bottom: 1px solid var(--k-line); display: flex; align-items: center; gap: 12px; background: var(--k-bg); }
+.sabia-head h1 { font-family: var(--k-display); font-weight: 600; font-size: 16px; letter-spacing: -.03em; margin: 0; }
+.sabia-status { font-size: 12px; color: var(--k-muted-2); display: flex; align-items: center; gap: 6px; }
+.sabia-status span { width: 6px; height: 6px; border-radius: 50%; background: var(--k-verde); flex: none; }
+.sabia-icon-btn { width: 40px; height: 40px; flex: none; border-radius: 12px; border: 1px solid var(--k-line-2); background: #fff; color: var(--k-roxo); display: grid; place-items: center; }
+.sabia-hist-toggle { display: none; }
+.sabia-history-drop { position: absolute; top: 73px; left: 12px; right: 12px; z-index: 5; background: #fff; border: 1px solid var(--k-line); border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 4px; max-height: 60%; overflow: auto; box-shadow: var(--k-shadow-pop); }
+
+.sabia-scroll { flex: 1; min-height: 0; overflow: auto; padding: 28px 24px; }
+.sabia-thread { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.sabia-empty { text-align: center; padding: 40px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.sabia-empty img { width: 120px; }
+.sabia-empty h2 { font-family: var(--k-display); font-weight: 600; font-size: 24px; letter-spacing: -.04em; margin: 0; }
+.sabia-empty p { margin: 0; color: var(--k-muted-2); font-family: var(--k-read); font-size: 16px; }
+.sabia-msg { display: flex; gap: 12px; animation: kup .25s ease; }
+.sabia-msg.is-user { flex-direction: row-reverse; }
+.sabia-msg-col { max-width: 78%; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 0; }
+.is-user .sabia-msg-col { align-items: flex-end; }
+.sabia-bubble { padding: 13px 16px; border-radius: 18px; font-size: 15px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; background: #fff; color: var(--k-ink); border: 1px solid var(--k-line); }
+.is-user .sabia-bubble { background: var(--k-roxo); color: #fff; border: 0; }
+.sabia-msg time { font-size: 11px; color: #8A8090; }
+.sabia-typing { display: flex; gap: 5px; align-items: center; padding: 16px 18px; }
+.sabia-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--k-roxo); animation: sabia-bounce 1.2s ease-in-out infinite; }
+.sabia-typing span:nth-child(2) { animation-delay: .2s; }
+.sabia-typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes sabia-bounce { 0%, 80%, 100% { transform: scale(.7); opacity: .4; } 40% { transform: scale(1); opacity: 1; } }
+
+.sabia-compose { padding: 12px 24px 20px; border-top: 1px solid var(--k-line); background: var(--k-bg); }
+.sabia-compose-inner { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.sabia-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.sabia-chips button { flex: none; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--k-line-2); background: #fff; font-size: 13px; color: var(--k-ink-2); white-space: nowrap; }
+.sabia-input { display: flex; align-items: flex-end; gap: 8px; background: #fff; border: 1.5px solid var(--k-line-2); border-radius: 18px; padding: 8px 8px 8px 16px; }
+.sabia-input:focus-within { border-color: var(--k-roxo); }
+.sabia-input textarea { flex: 1; min-width: 0; border: 0; outline: none; resize: none; font-size: 16px; line-height: 1.5; padding: 8px 0; background: transparent; max-height: 140px; color: var(--k-ink); }
+.sabia-input button { flex: none; width: 42px; height: 42px; border-radius: 12px; border: 0; font-size: 18px; display: grid; place-items: center; background: var(--k-line); color: #A59BA9; }
+.sabia-input button.is-ready { background: var(--k-roxo); color: #fff; }
+.sabia-foot { display: flex; justify-content: space-between; font-size: 11px; color: #8A8090; }
+
+@media (max-width: 1179px) { .sabia-history { display: none; } .sabia-hist-toggle { display: grid; } }
+@media (max-width: 819px) {
+  .sabia { height: calc(100dvh - 57px - 84px - env(safe-area-inset-bottom)); }
+  .sabia-head, .sabia-scroll, .sabia-compose { padding-left: 16px; padding-right: 16px; }
+  .sabia-foot > span:first-child { display: none; }
+}
