@@ -1,23 +1,15 @@
 interface Props {
   size?: number
+  radius?: number
   className?: string
+  alt?: string
 }
 
-export default function KuaaMascotLogo({ size = 48, className }: Props) {
+/** Ícone quadrado da coruja (app icon), recortado para esconder a borda branca do PNG. */
+export default function KuaaMascotLogo({ size = 48, radius, className, alt = '' }: Props) {
   return (
-    <img
-      className={className}
-      src="/kuaa-logo.png"
-      alt="Kuaa"
-      width={size}
-      height={size}
-      style={{
-        display: 'block',
-        flexShrink: 0,
-        objectFit: 'contain',
-        width: size,
-        height: size,
-      }}
-    />
+    <span className={`k-owl${className ? ` ${className}` : ''}`} style={{ width: size, height: size, borderRadius: radius ?? Math.round(size * 0.28) }}>
+      <img src="/brand/owl-icon.png" alt={alt} width={size} height={size} />
+    </span>
   )
 }

@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth.store'
+import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import './EssayPage.css'
 
 type ReviewKey = 'respondsToPrompt' | 'argumentSupported' | 'coherenceReviewed' | 'finalReview'
@@ -162,7 +163,7 @@ function EssayEditor({ essayId, slug, onLeave }: { essayId: string; slug: string
     <button className="essay-back" type="button" onClick={() => void leave()}><i className="bi bi-arrow-left" aria-hidden="true" /> Propostas e histórico</button>
     <header className="essay-heading"><div><span className="essay-eyebrow">{essay.textType}</span><h1>{essay.themeTitle}</h1></div>
       <span className="essay-status" role="status">{submitted ? 'Enviada' : saveState === 'saved' ? 'Salvo' : saveState === 'pending' ? 'Alterações pendentes' : saveState === 'saving' ? 'Salvando...' : 'Falha ao salvar'}</span></header>
-    <section className="essay-prompt" aria-labelledby="essay-prompt-title"><h2 id="essay-prompt-title">Proposta</h2><p>{essay.prompt}</p></section>
+    <section className="essay-prompt" aria-labelledby="essay-prompt-title"><h2 id="essay-prompt-title"><i className="bi bi-quote" aria-hidden="true" />Proposta</h2><p>{essay.prompt}</p></section>
     <div className="essay-workspace">
       <div className="essay-writing"><div className="essay-field-heading"><label htmlFor="essay-body">Seu texto</label><span>{words} palavras</span></div>
         <textarea id="essay-body" value={content.body} maxLength={30000} readOnly={submitted} onChange={(event) => update({ ...content, body: event.target.value })}
@@ -175,7 +176,7 @@ function EssayEditor({ essayId, slug, onLeave }: { essayId: string; slug: string
     </div>
     {message && <p className="essay-error" role="alert">{message}</p>}
     {!submitted && <footer className="essay-actions"><button type="button" className="essay-secondary" onClick={() => void flush().catch(() => setMessage('Não foi possível salvar. Tente novamente.'))}>Salvar agora</button>
-      <button type="button" className="essay-primary" disabled={!canSubmit || submitting || saveState === 'error'} onClick={() => void submit()}>{submitting ? 'Enviando...' : 'Enviar redação'}</button>
+      <button type="button" className="essay-primary" disabled={!canSubmit || submitting || saveState === 'error'} onClick={() => void submit()}><i className="bi bi-send" aria-hidden="true" />{submitting ? 'Enviando...' : 'Enviar redação'}</button>
       {!canSubmit && <span className="essay-note">Para enviar: mínimo de 30 palavras e 200 caracteres.</span>}</footer>}
     {submitted && <>
       <p className="essay-submitted">Enviada em {essay.submittedAt ? new Date(essay.submittedAt).toLocaleDateString('pt-BR') : 'data não informada'}. Esta versão permanece disponível no seu histórico.</p>
@@ -190,12 +191,12 @@ function EssayEditor({ essayId, slug, onLeave }: { essayId: string; slug: string
           </article>)}</div></div>
           <div className="essay-feedback-block"><h3>Plano de revisão</h3><ol>{essay.feedback.revisionPlan.map((step, index) => <li key={index}>{step}</li>)}</ol></div>
         </div> : <>
-          {essay.feedbackRequestedAt && <p className="essay-feedback-pending" role="status">Análise em andamento. Esta página verificará o resultado automaticamente.</p>}
+          {essay.feedbackRequestedAt && <p className="essay-feedback-pending" role="status"><KuaaMascotLogo size={48} radius={14} />A Sabiá está lendo sua redação. Esta página verificará o resultado automaticamente.</p>}
           {!essay.feedbackRequestedAt && <>
             <label className="essay-consent"><input type="checkbox" checked={aiConsent} onChange={(event) => setAiConsent(event.target.checked)} />
               <span>Autorizo o envio deste texto para análise por IA. Entendo que o retorno é apenas formativo e não oficial.</span></label>
             <button type="button" className="essay-primary" disabled={!aiConsent || feedbackMutation.isPending} onClick={() => feedbackMutation.mutate()}>
-              {feedbackMutation.isPending ? 'Analisando texto...' : 'Solicitar análise por IA'}</button>
+              <i className="bi bi-stars" aria-hidden="true" />{feedbackMutation.isPending ? 'Analisando texto...' : 'Solicitar análise por IA'}</button>
           </>}
           {feedbackMutation.isError && <div className="essay-feedback-alert" role="alert">
             {axios.isAxiosError(feedbackMutation.error) && feedbackMutation.error.response?.status === 503
@@ -226,7 +227,7 @@ export default function EssayPage() {
   return <AppLayout><main className="essay-page"><div className="essay-inner">
     {essayId ? <EssayEditor key={essayId} essayId={essayId} slug={vestibularSlug} onLeave={() => navigate(`/redacao/${vestibularSlug}`)} /> : <>
       <button className="essay-back" type="button" onClick={() => navigate(`/trilha/${vestibularSlug}`)}><i className="bi bi-arrow-left" aria-hidden="true" /> Voltar à trilha</button>
-      <header className="essay-heading"><div><span className="essay-eyebrow">Prática de escrita</span><h1>Redação {themes.data?.vestibular.name ?? ''}</h1></div></header>
+      <header className="essay-heading"><div><span className="essay-eyebrow">Redação · {themes.data?.vestibular.name ?? ''}</span><h1>Prática de redação</h1></div></header>
       {themes.isLoading && <p className="essay-message">Carregando propostas...</p>}
       {themes.isError && <p className="essay-error" role="alert">{errorMessage(themes.error)} <button onClick={() => void themes.refetch()}>Tentar novamente</button></p>}
       {themes.data && <section className="essay-section" aria-labelledby="essay-themes-title"><h2 id="essay-themes-title">Propostas</h2>

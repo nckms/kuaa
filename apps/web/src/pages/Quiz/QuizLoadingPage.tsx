@@ -1,65 +1,55 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useJobStatus } from '../../hooks/useQuiz'
+import { useAuthStore } from '../../stores/auth.store'
+import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import './QuizPage.css'
-
-const WingGlyph = () => (
-  <svg width="48" height="41" viewBox="0 0 28 24" fill="none" style={{ color: '#FFDC5C' }}>
-    <path d="M2 20 C6 12 14 8 26 4 C20 10 18 16 20 22 C14 18 8 18 2 20Z" fill="currentColor" opacity="0.9"/>
-    <path d="M2 20 C8 16 14 14 20 22 C14 22 8 22 2 20Z" fill="currentColor" opacity="0.5"/>
-  </svg>
-)
 
 export default function QuizLoadingPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const [searchParams] = useSearchParams()
   const jobId = searchParams.get('jobId')
   const navigate = useNavigate()
+  const reducedMotion = useAuthStore((state) => state.user?.preferences?.reducedMotion ?? false)
+  const [count, setCount] = useState(0)
 
   const { data, isError } = useJobStatus(jobId, sessionId ?? null)
+  const readyId = data?.status === 'ready' ? data.sessionId : undefined
 
   useEffect(() => {
-    if (data?.status === 'ready' && data.sessionId) {
-      navigate(`/quiz/${data.sessionId}`, { replace: true })
-    }
-  }, [data, navigate])
+    if (!readyId) return
+    if (reducedMotion) { navigate(`/quiz/${readyId}`, { replace: true }); return }
+    setCount(3)
+    const timers = [
+      setTimeout(() => setCount(2), 800),
+      setTimeout(() => setCount(1), 1600),
+      setTimeout(() => navigate(`/quiz/${readyId}`, { replace: true }), 2400),
+    ]
+    return () => timers.forEach(clearTimeout)
+  }, [readyId, reducedMotion, navigate])
 
   const hasError = !jobId || !sessionId || isError || data?.status === 'error'
 
   return (
-    <div className="quiz-loading" style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif', padding: 24, textAlign: 'center' }}>
+    <div className="qz qz-center">
       {hasError ? (
-        <>
-          <p style={{ color: '#fca5a5', fontSize: 16, marginBottom: 24 }}>
-            {data?.message ?? 'Erro ao gerar questões. Tente novamente.'}
-          </p>
-          <button
-            onClick={() => navigate(-1)}
-            style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, Arial, sans-serif' }}
-          >
-            Voltar à trilha
-          </button>
-        </>
+        <div className="qz-stack">
+          <KuaaMascotLogo size={96} radius={26} />
+          <p className="qz-error-text">{data?.message ?? 'Erro ao gerar questões. Tente novamente.'}</p>
+          <button type="button" className="k-btn k-btn-yellow" onClick={() => navigate(-1)}>Voltar à trilha</button>
+        </div>
+      ) : count > 0 ? (
+        <div className="qz-stack" aria-live="polite">
+          <div key={count} className="qz-count">{count}</div>
+          <p className="qz-sub">Respira. Lê com calma.</p>
+        </div>
       ) : (
-        <>
-          <div style={{ animation: 'float 2s ease-in-out infinite', marginBottom: 32 }}>
-            <WingGlyph />
-          </div>
-          <p style={{ fontFamily: "'Questrial', sans-serif", fontSize: 24, color: '#fff', marginBottom: 12 }}>
-            Preparando suas questões...
-          </p>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,.55)', marginBottom: 32 }}>
-            Carregando a sessão de estudo
-          </p>
-          <div style={{ width: 280, height: 6, backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 999, overflow: 'hidden' }}>
-            <div style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #531A61, #840033)', animation: 'shimmer 1.5s ease-in-out infinite', backgroundSize: '200% 100%' }} />
-          </div>
-        </>
+        <div className="qz-stack" style={{ animation: 'kup .4s ease' }}>
+          <span className="qz-owl-float"><KuaaMascotLogo size={120} radius={32} alt="Sabiá" /></span>
+          <h1 className="qz-loading-title">Preparando sua sessão</h1>
+          <p className="qz-sub" role="status">A Sabiá está separando questões no seu nível<span style={{ animation: 'kblink 1s steps(1) infinite' }}>…</span></p>
+        </div>
       )}
-      <style>{`
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-      `}</style>
     </div>
   )
 }

@@ -1,32 +1,54 @@
-.kuaa-app { display: flex; min-height: 100dvh; height: 100dvh; overflow: hidden; background: var(--bg); }
-.kuaa-sidebar { width: 224px; flex: 0 0 224px; min-height: 0; display: flex; flex-direction: column; background: #35143e; color: #fff; border-right: 1px solid #35143e; }
-.kuaa-sidebar-brand { display: flex; align-items: center; min-height: 76px; padding: 12px 22px; text-decoration: none; }
-.kuaa-sidebar-nav { display: flex; flex-direction: column; gap: 3px; padding: 12px; overflow-y: auto; flex: 1; }
-.kuaa-nav-link { display: flex; align-items: center; min-height: 44px; gap: 13px; padding: 9px 12px; color: #e2d6e5; text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 6px; }
-.kuaa-nav-link i { width: 20px; text-align: center; font-size: 18px; }
-.kuaa-nav-link:hover, .kuaa-nav-link:focus-visible { background: #4b2254; color: #fff; }
-.kuaa-nav-link.is-active { background: #fff; color: #531a61; font-weight: 700; }
-.kuaa-nav-link.has-separator { margin-top: 14px; position: relative; }
-.kuaa-nav-link.has-separator::before { content: ''; position: absolute; top: -8px; left: 12px; right: 12px; border-top: 1px solid #75517d; }
-.kuaa-sidebar-account { display: flex; align-items: center; gap: 9px; min-width: 0; padding: 14px 12px; border-top: 1px solid #75517d; }
-.kuaa-account-avatar { width: 34px; height: 34px; flex: none; display: grid; place-items: center; background: #ffdc5c; color: #35143e; font-weight: 700; border-radius: 50%; }
-.kuaa-account-text { display: flex; flex: 1; flex-direction: column; min-width: 0; font-size: 12px; }
+.kuaa-app { display: flex; min-height: 100dvh; height: 100dvh; overflow: hidden; background: var(--k-bg); }
+
+/* Sidebar */
+.kuaa-sidebar { width: 244px; flex: 0 0 244px; min-height: 0; display: flex; flex-direction: column; background: var(--k-roxo-deep); color: #E9DDED; padding: 22px 14px; }
+.kuaa-sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 2px 10px 24px; }
+.kuaa-wordmark { height: 24px; width: auto; }
+.kuaa-sidebar-nav { display: flex; flex-direction: column; flex: 1; overflow-y: auto; }
+.kuaa-nav-group { display: flex; flex-direction: column; gap: 2px; }
+.kuaa-nav-group + .kuaa-nav-group { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.08); }
+.kuaa-nav-link { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 12px; color: #E9DDED; font-size: 14.5px; font-weight: 500; transition: background .15s; }
+.kuaa-nav-link i { font-size: 18px; width: 20px; text-align: center; }
+.kuaa-nav-link > span:not(.k-badge) { flex: 1; }
+.kuaa-nav-link:hover, .kuaa-nav-link:focus-visible { background: rgba(255,255,255,.07); color: #fff; }
+.kuaa-nav-link.is-active { background: rgba(255,255,255,.12); color: var(--k-amarelo); }
+.kuaa-sidebar-account { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,.06); }
+.kuaa-account-avatar { width: 36px; height: 36px; flex: none; display: grid; place-items: center; background: var(--k-amarelo); color: var(--k-roxo-deep); font-weight: 600; border-radius: 50%; }
+.kuaa-account-text { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.kuaa-account-text strong { font-size: 14px; font-weight: 600; color: #fff; }
+.kuaa-account-text small { font-size: 12px; color: #BCA9C2; }
 .kuaa-account-text strong, .kuaa-account-text small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.kuaa-account-text small { color: #d5c4d9; }
-.kuaa-logout { color: #fff; background: transparent; border: 0; border-radius: 4px; min-width: 36px; min-height: 36px; cursor: pointer; }
-.kuaa-logout:hover, .kuaa-logout:focus-visible { background: #4b2254; }
+.kuaa-logout { background: none; border: 0; color: #BCA9C2; font-size: 16px; min-width: 32px; min-height: 32px; border-radius: 8px; }
+.kuaa-logout:hover { color: #fff; background: rgba(255,255,255,.08); }
+
+/* Main */
 .app-main-content { flex: 1; min-width: 0; overflow-y: auto; display: flex; flex-direction: column; }
-.kuaa-context-sidebar { width: 280px; flex: 0 0 280px; overflow-y: auto; background: #fff; border-left: 1px solid var(--line-soft); }
+.kuaa-context-sidebar { width: 300px; flex: 0 0 300px; overflow-y: auto; background: #fff; border-left: 1px solid var(--k-line); }
+.kuaa-mobile-top { display: none; }
 .mobile-bottom-nav { display: none; }
-@media (max-width: 1279px) { .kuaa-context-sidebar { display: none; } }
-@media (max-width: 767px) {
+.kuaa-more-overlay { display: none; }
+
+@media (max-width: 1179px) { .kuaa-context-sidebar { display: none; } }
+
+@media (max-width: 819px) {
   .kuaa-sidebar { display: none; }
-  .app-main-content { padding-bottom: calc(62px + env(safe-area-inset-bottom)); scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
-  .mobile-bottom-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; z-index: 30; bottom: 0; left: 0; right: 0; min-height: calc(62px + env(safe-area-inset-bottom)); padding: 4px 3px calc(4px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line-soft); box-shadow: 0 -4px 18px #35143e0b; }
-  .mobile-bottom-nav > a, .mobile-bottom-nav > button { min-width: 0; min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 0; background: transparent; color: #756d78; font-size: 11px; font-weight: 600; text-decoration: none; cursor: pointer; }
-  .mobile-bottom-nav > a i, .mobile-bottom-nav > button i { font-size: 20px; line-height: 1.1; }
-  .mobile-bottom-nav > .is-active { color: #531a61; }
-  .kuaa-more-menu { position: absolute; bottom: calc(100% + 5px); right: 8px; width: min(280px, calc(100vw - 16px)); display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line-soft); border-radius: 8px; box-shadow: 0 10px 28px #35143e26; padding: 7px; }
-  .kuaa-more-menu a, .kuaa-more-menu button { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 9px 12px; color: #35143e; text-decoration: none; font-size: 14px; background: transparent; border: 0; border-radius: 4px; text-align: left; }
-  .kuaa-more-menu a:hover, .kuaa-more-menu button:hover, .kuaa-more-menu [aria-current=page] { background: #f2eaf4; }
+  .app-main-content { padding-bottom: calc(84px + env(safe-area-inset-bottom)); scroll-padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+  .kuaa-mobile-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: rgba(246,244,242,.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--k-line); }
+  .kuaa-mobile-top img { height: 24px; width: auto; }
+  .kuaa-mobile-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--k-amarelo); color: var(--k-roxo-deep) !important; display: grid; place-items: center; font-weight: 600; font-size: 14px; }
+
+  .mobile-bottom-nav { display: flex; position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--k-line); padding: 8px 6px calc(14px + env(safe-area-inset-bottom)); }
+  .mobile-bottom-nav > a, .mobile-bottom-nav > button { flex: 1; min-width: 0; min-height: 52px; background: none; border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500; color: var(--k-muted-2); }
+  .kuaa-bottom-pill { width: 44px; height: 28px; border-radius: 999px; display: grid; place-items: center; font-size: 19px; }
+  .mobile-bottom-nav > .is-active { color: var(--k-roxo); }
+  .mobile-bottom-nav > .is-active .kuaa-bottom-pill { background: var(--k-roxo-soft); }
+
+  .kuaa-more-overlay { display: flex; position: fixed; inset: 0; z-index: 55; background: rgba(30,20,36,.45); backdrop-filter: blur(6px); align-items: flex-end; }
+  .kuaa-more-sheet { background: #fff; width: 100%; border-radius: 28px 28px 0 0; padding: 12px 16px calc(28px + env(safe-area-inset-bottom)); animation: kup .25s ease; display: flex; flex-direction: column; gap: 4px; }
+  .kuaa-sheet-handle { width: 40px; height: 4px; border-radius: 999px; background: var(--k-line-2); align-self: center; margin-bottom: 12px; }
+  .kuaa-more-sheet a, .kuaa-more-sheet button { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 14px; border: 0; background: #fff; font-size: 16px; font-weight: 500; color: var(--k-ink); text-align: left; }
+  .kuaa-more-sheet a > span, .kuaa-more-sheet button > span { flex: 1; }
+  .kuaa-more-sheet a > i:first-child, .kuaa-more-sheet button > i { font-size: 20px; color: var(--k-roxo); }
+  .kuaa-more-sheet a > i:last-child { color: #B0A6B3; }
+  .kuaa-more-sheet a.is-active { background: var(--k-roxo-soft); }
 }

@@ -1,468 +1,102 @@
-import { useAuthStore } from '../../stores/auth.store'
-import KuaaIcon from '../../components/ui/KuaaIcon'
-import Avatar from '../../components/ui/Avatar'
+import { Link } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import { useIndex } from '../../hooks/useIndex'
+import { useAuthStore } from '../../stores/auth.store'
+import { INDEX_BANDS, indexBand, sparkPoints } from '../../utils/kuaaIndex'
+import { subjectThemeByName } from '../../utils/subjectTheme'
+import './IndicePage.css'
 
-const MAX_SCORE = 1000
-
-const FAIXAS = [
-  { label: '300–499', name: 'iniciante' },
-  { label: '500–699', name: 'básico' },
-  { label: '700–849', name: 'forte' },
-  { label: '850+', name: 'elite' },
-]
-
-// Threshold para atingir a próxima faixa (undefined = já está na elite)
-const FAIXA_NEXT_THRESHOLD = [500, 700, 850, undefined] as const
-
-const SUBJECT_COLORS = ['#531A61', '#840033', '#531A61', '#840033', '#531A61']
-
-function getFaixaIndex(score: number): number {
-  if (score < 500) return 0
-  if (score < 700) return 1
-  if (score < 850) return 2
-  return 3
-}
-
-function SparkLine({ values }: { values: number[] }) {
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const w = 240
-  const h = 60
-  const points = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * w
-    const y = h - ((v - min) / (max - min || 1)) * h
-    return `${x},${y}`
-  })
-  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p}`).join(' ')
-
+function Gauge({ score }: { score: number }) {
+  const frac = Math.max(0, Math.min(1, (score - 300) / 700))
+  const angle = Math.PI * (1 - frac)
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: 'visible', maxWidth: '100%', height: 'auto' }}>
-      <defs>
-        <linearGradient id="spark-line" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#531A61" />
-          <stop offset="100%" stopColor="#840033" />
-        </linearGradient>
-      </defs>
-      <path d={pathD} stroke="url(#spark-line)" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      {values.map((v, i) => {
-        const x = (i / (values.length - 1)) * w
-        const y = h - ((v - min) / (max - min || 1)) * h
-        return (
-          <circle
-            key={i}
-            cx={x}
-            cy={y}
-            r={i === values.length - 1 ? 4 : 2.5}
-            fill={i === values.length - 1 ? '#FFDC5C' : '#531A61'}
-          />
-        )
-      })}
-    </svg>
-  )
-}
-
-function BigGauge({ score }: { score: number }) {
-  const cx = 170
-  const cy = 165
-  const r = 130
-  const pct = (score - 300) / 700
-  const arcLength = Math.PI * r
-  const filled = arcLength * Math.max(0, Math.min(1, pct))
-
-  const needleAngle = Math.PI - pct * Math.PI
-  const nx = cx + r * Math.cos(needleAngle)
-  const ny = cy - r * Math.sin(needleAngle)
-
-  const ticks = [0, 0.25, 0.5, 0.75, 1]
-  const tickLabels = ['300', '475', '650', '825', '1000']
-
-  return (
-    <svg width={340} height={210} viewBox="0 0 340 210" style={{ display: 'block', maxWidth: '100%', height: 'auto' }}>
-      <defs>
-        <linearGradient id="gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#531A61" />
-          <stop offset="60%" stopColor="#840033" />
-          <stop offset="100%" stopColor="#4a001c" />
-        </linearGradient>
-      </defs>
-
-      {/* Track */}
-      <path
-        d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-        stroke="#e8dfea"
-        strokeWidth="14"
-        fill="none"
-        strokeLinecap="round"
-      />
-
-      {/* Filled arc */}
-      <path
-        d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-        stroke="url(#gauge-grad)"
-        strokeWidth="14"
-        fill="none"
-        strokeLinecap="round"
-        strokeDasharray={`${filled} ${arcLength}`}
-      />
-
-      {/* Needle dot */}
-      <circle cx={nx} cy={ny} r={8} fill="#FFDC5C" />
-      <circle cx={nx} cy={ny} r={4} fill="#2a0d33" />
-
-      {/* Tick marks + labels — cor escura para contraste sobre fundo amarelo/creme */}
-      {ticks.map((t, i) => {
-        const a = Math.PI - t * Math.PI
-        const tx = cx + (r + 22) * Math.cos(a)
-        const ty = cy - (r + 22) * Math.sin(a)
-        const ix = cx + (r - 10) * Math.cos(a)
-        const iy = cy - (r - 10) * Math.sin(a)
-        const ox = cx + (r + 10) * Math.cos(a)
-        const oy = cy - (r + 10) * Math.sin(a)
-        return (
-          <g key={i}>
-            <line x1={ix} y1={iy} x2={ox} y2={oy} stroke="rgba(26,10,31,.3)" strokeWidth="1.5" />
-            <text
-              x={tx}
-              y={ty}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="11"
-              fill="rgba(26,10,31,.65)"
-              fontFamily="'Unbounded', sans-serif"
-            >
-              {tickLabels[i]}
-            </text>
-          </g>
-        )
-      })}
+    <svg viewBox="0 0 220 128" width="100%" role="img" aria-label={`Posição ${score} na escala de 300 a 1000`}>
+      <path d="M 20 110 A 90 90 0 0 1 200 110" fill="none" stroke="rgba(53,20,62,.14)" strokeWidth="16" strokeLinecap="round" />
+      <path d="M 20 110 A 90 90 0 0 1 200 110" fill="none" stroke="#35143E" strokeWidth="16" strokeLinecap="round" pathLength={100} strokeDasharray={`${(frac * 100).toFixed(1)} 100`} />
+      <circle cx={(110 + 90 * Math.cos(angle)).toFixed(1)} cy={(110 - 90 * Math.sin(angle)).toFixed(1)} r="9" fill="#fff" stroke="#35143E" strokeWidth="4" />
+      <text x="20" y="126" fontSize="9" fill="#35143E" textAnchor="middle" fontFamily="Geist Mono">300</text>
+      <text x="200" y="126" fontSize="9" fill="#35143E" textAnchor="middle" fontFamily="Geist Mono">1000</text>
     </svg>
   )
 }
 
 export default function IndicePage() {
-  const user = useAuthStore((s) => s.user)
-  // Usa o primeiro vestibular matriculado. Suporte a múltiplas matrículas exigiria um seletor.
-  const firstVestibularSlug = useAuthStore((s) => s.firstVestibularSlug)
-  const vestibularName = useAuthStore((s) => s.enrollments.find((e) => e.vestibular.slug === firstVestibularSlug)?.vestibular.name)
+  const firstVestibularSlug = useAuthStore((state) => state.firstVestibularSlug)
+  const vestibularName = useAuthStore((state) => state.enrollments.find((item) => item.vestibular.slug === firstVestibularSlug)?.vestibular.name)
   const { data, isLoading, isError, refetch } = useIndex(firstVestibularSlug ?? '')
+  const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'
 
-  const score = data?.score ?? 300
-  const delta7d = data?.delta7d ?? 0
-  const historyValues = data?.history.map((h) => h.score) ?? []
-  const historyMonths = data?.history.map((h) => h.month) ?? []
-  const subjects = (data?.subjectBreakdown ?? []).map((s, i) => ({
-    name: s.subjectName,
-    score: s.score,
-    delta: s.delta,
-    color: SUBJECT_COLORS[i % SUBJECT_COLORS.length] ?? '#531A61',
-  }))
-
-  const faixaIdx = getFaixaIndex(score)
-  const currentFaixa = FAIXAS[faixaIdx]
-  const nextFaixa = faixaIdx < FAIXAS.length - 1 ? FAIXAS[faixaIdx + 1] : null
-  const nextThreshold = FAIXA_NEXT_THRESHOLD[faixaIdx]
-  const ptsToNext = nextThreshold !== undefined ? nextThreshold - score : null
-
-  const percentile = data?.percentile ?? null
-  const topPercent = percentile !== null ? 100 - percentile : null
-
-  const faixaDescText = nextFaixa && ptsToNext !== null
-    ? `Faixa ${currentFaixa?.name ?? ''}. Faltam ${ptsToNext} pontos para a faixa ${nextFaixa.name}.`
-    : 'Você está na faixa mais alta do índice.'
-
-  if (isLoading || isError) {
-    return <AppLayout>
-      <div style={{ padding: 28 }} role={isError ? 'alert' : 'status'}>
-        <p>{isError ? 'Não foi possível carregar seu índice.' : 'Carregando seu índice...'}</p>
-        {isError && <button onClick={() => void refetch()}>Tentar novamente</button>}
-      </div>
-    </AppLayout>
+  if (isLoading || isError || !data) {
+    return <AppLayout><div className="k-page"><div className="k-state" role={isError ? 'alert' : 'status'}>
+      <p style={{ margin: 0 }}>{isError ? 'Não foi possível carregar seu índice.' : 'Carregando seu índice...'}</p>
+      {isError && <button type="button" className="k-btn k-btn-primary is-sm" onClick={() => void refetch()}>Tentar novamente</button>}
+    </div></div></AppLayout>
   }
 
-  return (
-    <AppLayout>
-      <div className="indice-page" style={{ fontFamily: "'Questrial', Arial, sans-serif", background: '#fff', minHeight: '100%', minWidth: 0, overflowWrap: 'anywhere' }}>
-        {/* Header */}
-        <div
-          className="indice-header"
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 16,
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '24px 40px',
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: 10,
-                fontFamily: "'Unbounded', sans-serif",
-                fontWeight: 500,
-                letterSpacing: 0,
-                textTransform: 'uppercase',
-                color: 'var(--k-tinta-3)',
-                marginBottom: 4,
-              }}
-            >
-              Acompanhamento de estudos
-            </div>
-            <h1
-              style={{
-                fontFamily: "'Unbounded', sans-serif",
-                fontWeight: 700,
-                fontSize: 26,
-                color: 'var(--k-tinta)',
-                letterSpacing: 0,
-                margin: 0,
-              }}
-            >
-              Índice Kuaa
-            </h1>
+  const hasActivity = data.subjectBreakdown.length > 0
+  const band = indexBand(data.score)
+  const lowestSubject = [...data.subjectBreakdown].sort((a, b) => a.score - b.score)[0]
+  const values = data.history.map((point) => point.score)
+  const line = sparkPoints(values, 560, 170)
+  const subjects = [...data.subjectBreakdown].sort((a, b) => b.score - a.score)
+
+  return <AppLayout><div className="k-page">
+    <header><p className="k-eyebrow">Seu perfil de aprovação{vestibularName ? ` · ${vestibularName}` : ''}</p><h1 className="k-h1">Índice Kuaa</h1></header>
+
+    <section className="ix-hero" aria-label="Seu índice atual">
+      <div className="ix-hero-main">
+        {data.percentile != null && hasActivity && <span className="ix-pill">Top {Math.max(1, 100 - Math.round(data.percentile))}%{vestibularName ? ` · ${vestibularName}` : ''}</span>}
+        <div className="ix-score">{hasActivity ? data.score : '—'}</div>
+        <div className="ix-score-sub">{hasActivity ? <>de 1000 · faixa <strong>{band.name}</strong></> : 'Responda questões para ver seu índice.'}</div>
+        {hasActivity && data.delta7d !== 0 && (
+          <div className="ix-delta" style={{ color: data.delta7d > 0 ? '#1E6B4E' : 'var(--k-vinho)' }}>
+            <i className={`bi ${data.delta7d > 0 ? 'bi-graph-up-arrow' : 'bi-graph-down-arrow'}`} aria-hidden="true" />{data.delta7d > 0 ? '+' : ''}{data.delta7d} pts em 7 dias
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexWrap: 'wrap' }}>
-            {vestibularName && <span className="k-pill ghost">{vestibularName}</span>}
-            <Avatar size={38} name={user?.name ?? 'K'} hue={0} ring />
-          </div>
-        </div>
-
-        {/* Hero amarelo */}
-        <div className="indice-content" style={{ padding: '0 40px' }}>
-          <div
-            className="indice-summary"
-            style={{
-              background: '#fff',
-              borderTop: '3px solid #FFDC5C',
-              borderBottom: '1px solid #e8dfea',
-              padding: '28px 0',
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1fr) auto',
-              gap: 32,
-              alignItems: 'center',
-              marginBottom: 24,
-            }}
-          >
-            {/* Left */}
-            <div>
-              <span className="k-pill wine" style={{ marginBottom: 20, display: 'inline-flex' }}>
-                {topPercent !== null ? `Entre os ${topPercent}% com maior índice` : 'Dados em formação'}
-              </span>
-
-              <div
-                className="indice-score"
-                style={{
-                  fontFamily: "'Unbounded', sans-serif",
-                  fontWeight: 700,
-                  fontSize: 72,
-                  color: 'var(--k-roxo-deep)',
-                  letterSpacing: 0,
-                  lineHeight: 0.88,
-                  margin: '16px 0 8px',
-                }}
-              >
-                {score}
-              </div>
-
-              <div style={{ fontSize: 14, color: 'var(--k-tinta-2)', marginBottom: 20 }}>
-                de {MAX_SCORE}
-                {ptsToNext !== null ? ` · próxima faixa em ${ptsToNext} pts` : ' · faixa máxima atingida'}
-              </div>
-
-              {/* Delta 7 dias */}
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  borderLeft: '3px solid #840033',
-                  padding: '4px 10px',
-                  marginBottom: 16,
-                }}
-              >
-                <KuaaIcon name="arrowUp" size={14} color="#840033" />
-                <span
-                  style={{
-                    fontFamily: "'Unbounded', sans-serif",
-                    fontWeight: 700,
-                    fontSize: 14,
-                    color: 'var(--k-vinho)',
-                  }}
-                >
-                  {delta7d >= 0 ? '+' : ''}{delta7d} pts em 7 dias
-                </span>
-              </div>
-
-              <p style={{ fontSize: 13, color: 'var(--k-tinta-2)', maxWidth: 360 }}>
-                {faixaDescText}
-              </p>
-
-              {/* Faixas */}
-              <div style={{ display: 'flex', gap: 8, marginTop: 24, flexWrap: 'wrap' }}>
-                {FAIXAS.map((f, i) => (
-                  <div
-                    key={f.name}
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: 4,
-                      border: i === faixaIdx ? '1px solid #531A61' : '1px solid #e8dfea',
-                      background: i === faixaIdx ? '#531A61' : '#fff',
-                      color: i === faixaIdx ? '#fff' : '#531A61',
-                      fontSize: 11,
-                      fontFamily: "'Unbounded', sans-serif",
-                      fontWeight: i === faixaIdx ? 700 : 400,
-                    }}
-                  >
-                    <div style={{ letterSpacing: 0, opacity: 0.8, fontSize: 9 }}>
-                      {f.label}
-                    </div>
-                    <div style={{ textTransform: 'capitalize', marginTop: 2 }}>{f.name}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right: BigGauge */}
-            <div style={{ minWidth: 0, maxWidth: 372 }}>
-              <div
-                style={{
-                  padding: '8px',
-                  display: 'inline-block',
-                  maxWidth: '100%',
-                }}
-              >
-                <BigGauge score={score} />
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom dark breakdown */}
-          <div
-            className="indice-breakdown"
-            style={{
-              background: '#fff',
-              borderTop: '1px solid #e8dfea',
-              padding: '28px 0',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
-              gap: 24,
-              marginBottom: 40,
-            }}
-          >
-            {/* Histórico card */}
-            <div>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontFamily: "'Unbounded', sans-serif",
-                  fontWeight: 500,
-                  letterSpacing: 0,
-                  textTransform: 'uppercase',
-                  color: '#531A61',
-                  marginBottom: 16,
-                }}
-              >
-                histórico
-              </div>
-              {historyValues.length >= 2
-                ? <SparkLine values={historyValues} />
-                : <p style={{ fontSize: 12, color: '#5f5463', lineHeight: 1.5 }}>O histórico mensal aparecerá após novos meses de estudo.</p>
-              }
-              {historyMonths.length > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                  {historyMonths.map((m, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        fontSize: 9,
-                        color: i === historyMonths.length - 1 ? '#840033' : '#5f5463',
-                        fontFamily: "'Unbounded', sans-serif",
-                      }}
-                    >
-                      {m}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Subject breakdown cards */}
-            {subjects.length > 0
-              ? subjects.map((s) => (
-                  <div key={s.name}>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontFamily: "'Unbounded', sans-serif",
-                        fontWeight: 500,
-                        letterSpacing: 0,
-                        textTransform: 'uppercase',
-                        color: '#531A61',
-                        marginBottom: 16,
-                      }}
-                    >
-                      {s.name}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "'Unbounded', sans-serif",
-                        fontWeight: 700,
-                        fontSize: 40,
-                        color: '#531A61',
-                        letterSpacing: 0,
-                        lineHeight: 0.92,
-                        marginBottom: 8,
-                      }}
-                    >
-                      {s.score}
-                    </div>
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        padding: '4px 0',
-                      }}
-                    >
-                      <KuaaIcon name="arrowUp" size={11} color="#840033" />
-                      <span
-                        style={{
-                          fontSize: 12,
-                          color: '#840033',
-                          fontFamily: "'Unbounded', sans-serif",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {s.delta >= 0 ? '+' : ''}{s.delta}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              : (
-                <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center' }}>
-                  <p style={{ fontSize: 13, color: '#5f5463', lineHeight: 1.5 }}>
-                    Responda questões para acompanhar o índice por matéria.
-                  </p>
-                </div>
-              )
-            }
-          </div>
-        </div>
-        <style>{`
-          @media (max-width: 1200px) {
-            .indice-summary { grid-template-columns: minmax(0, 1fr) !important; }
-          }
-          @media (max-width: 600px) {
-            .indice-header { padding: 24px 16px !important; }
-            .indice-content { padding: 0 16px !important; }
-            .indice-summary, .indice-breakdown { padding: 24px 20px !important; }
-            .indice-score { font-size: 64px !important; letter-spacing: 0 !important; }
-          }
-        `}</style>
+        )}
       </div>
-    </AppLayout>
-  )
+      <div className="ix-hero-gauge">
+        <Gauge score={hasActivity ? data.score : 300} />
+        <div className="ix-bands">
+          {INDEX_BANDS.map((item, index) => <div key={item.name} className={hasActivity && index === band.index ? 'is-on' : ''}><small className="k-mono">{item.range}</small><span>{item.name}</span></div>)}
+        </div>
+      </div>
+    </section>
+
+    <div className="k-row">
+      <section className="k-card ix-evo" aria-labelledby="ix-evo-title">
+        <div className="k-card-head"><h3 id="ix-evo-title" className="k-h3">Evolução</h3><span className="k-muted" style={{ fontSize: 13 }}>por mês</span></div>
+        {values.length >= 2 ? <>
+          <svg viewBox="0 0 560 180" width="100%" height="200" preserveAspectRatio="none" style={{ overflow: 'visible' }} role="img" aria-label="Evolução mensal do Índice Kuaa">
+            {[45, 90, 135].map((y) => <line key={y} x1="0" y1={y} x2="560" y2={y} stroke="var(--k-line-soft)" />)}
+            <polygon points={`0,180 ${line} 560,180`} fill="#531A61" opacity=".08" />
+            <polyline points={line} fill="none" stroke="#531A61" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          </svg>
+          <div className="ix-evo-labels k-mono">{data.history.map((point, index) => <span key={`${point.month}-${index}`}>{point.month}<strong>{point.score}</strong></span>)}</div>
+        </> : <p className="k-muted" style={{ fontSize: 14, margin: 0 }}>O gráfico aparece após dois meses de atividade.</p>}
+      </section>
+
+      <section className="k-card ix-subjects" aria-labelledby="ix-subj-title">
+        <div className="k-card-head"><h3 id="ix-subj-title" className="k-h3">Por matéria</h3><span className="k-muted" style={{ fontSize: 13 }}>% de acerto ponderado</span></div>
+        {subjects.length ? <div className="ix-subject-list">{subjects.map((subject, index) => {
+          const theme = subjectThemeByName(subject.subjectName, index)
+          return <div key={subject.subjectId}>
+            <div className="ix-subject-head"><span>{subject.subjectName}</span><span className="k-mono">
+              {subject.delta !== 0 && <span style={{ color: subject.delta > 0 ? 'var(--k-verde)' : 'var(--k-vinho)' }}>{subject.delta > 0 ? '↑' : '↓'} {Math.abs(subject.delta)}</span>}
+              <span>{subject.score}%</span>
+            </span></div>
+            <div className="k-track"><span style={{ width: `${Math.max(2, Math.min(100, subject.score))}%`, background: theme.color }} /></div>
+          </div>
+        })}</div> : <p className="k-muted" style={{ fontSize: 14, margin: 0 }}>Responda questões para ver seus acertos por matéria.</p>}
+      </section>
+    </div>
+
+    <div className="k-row">
+      <section className="ix-next">
+        <div><p className="k-eyebrow" style={{ color: 'var(--k-amarelo)' }}>Próximo passo</p><h2>{lowestSubject ? `Revise ${lowestSubject.subjectName}` : 'Comece pela trilha'}</h2>
+          <p>{lowestSubject ? 'É onde você tem o menor percentual de acertos até agora.' : 'Responda questões para acompanhar seu desempenho.'}</p></div>
+        <Link to={trailHref} className="k-btn k-btn-yellow">Abrir trilha<i className="bi bi-arrow-right" aria-hidden="true" /></Link>
+      </section>
+      <details className="k-card is-md ix-how"><summary>Como funciona o índice?</summary><p>Ele resume seus acertos nas questões da trilha e dos simulados em uma escala de 300 a 1000. Questões mais difíceis têm peso maior. Não é nota do vestibular nem previsão de aprovação.</p></details>
+    </div>
+  </div></AppLayout>
 }

@@ -4,42 +4,22 @@ interface Props {
   size?: number
   dark?: boolean
   showTagline?: boolean
+  showIcon?: boolean
 }
 
-export default function KuaaLogo({ size = 44, dark = false, showTagline = false }: Props) {
+/** Wordmark "Kuaa" (degradê vinho→roxo no claro, branco no escuro). */
+export default function KuaaLogo({ size = 28, dark = false, showTagline = false, showIcon = false }: Props) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-      <KuaaMascotLogo size={size} />
-      <div>
-        <div
-          style={{
-            fontFamily: "'Kaushan Script', 'Segoe Script', cursive",
-            fontWeight: 400,
-            fontSize: size * 0.78,
-            letterSpacing: 0,
-            color: dark ? '#fff' : '#531A61',
-            display: 'inline-flex',
-            alignItems: 'baseline',
-            gap: 2,
-          }}
-        >
-          kuaa<span style={{ color: dark ? '#FFDC5C' : '#840033' }}>.</span>
-        </div>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+      {showIcon && <KuaaMascotLogo size={Math.round(size * 1.4)} />}
+      <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <img src={dark ? '/brand/wordmark-w.png' : '/brand/wordmark-t.png'} alt="Kuaa" style={{ height: size, width: 'auto', display: 'block' }} />
         {showTagline && (
-          <div
-            style={{
-              fontSize: 9.5,
-              letterSpacing: 0,
-              textTransform: 'uppercase',
-              color: dark ? '#FFDC5C' : '#840033',
-              marginTop: 2,
-              fontFamily: "'Questrial', Arial, sans-serif",
-            }}
-          >
-            conhecimento que abre asas
-          </div>
+          <span style={{ fontFamily: 'var(--k-mono)', fontSize: 11, color: dark ? '#C9B4CF' : 'var(--k-muted-2)' }}>
+            Conhecimento que abre asas.
+          </span>
         )}
-      </div>
-    </div>
+      </span>
+    </span>
   )
 }

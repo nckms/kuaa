@@ -64,7 +64,7 @@ function EvaluationForm({ initial }: { initial: Evaluation | null }) {
         <input type="checkbox" required checked={consent} style={{ accentColor: '#531A61', marginTop: 4 }} onChange={(event) => { changed(); setConsent(event.target.checked) }} />
         <span>Participo voluntariamente e concordo com o uso destas respostas na avaliação de usabilidade do TCC, com divulgação apenas agregada e sem identificação. Sei que a resposta fica vinculada à minha conta e que posso sair sem enviar, sem prejuízo ao uso do Kuaa.</span>
       </label>
-      <button type="submit" className="btn btn-primary">{save.isPending ? 'Salvando...' : initial ? 'Atualizar avaliação' : 'Enviar avaliação'}</button>
+      <button type="submit" className="k-btn k-btn-primary">{save.isPending ? 'Salvando...' : initial ? 'Atualizar avaliação' : 'Enviar avaliação'}</button>
     </fieldset>
     {error && <p role="alert" style={{ marginTop: 16 }}>{error}</p>}
     {saved && <p role="status" style={{ marginTop: 16 }}>Avaliação salva. Obrigado pela participação.</p>}
@@ -75,13 +75,13 @@ export default function EvaluationPage() {
   const userId = useAuthStore((state) => state.user?.id)
   const { query } = useEvaluation()
   return <AppLayout>
-    <section style={{ maxWidth: 980, margin: '0 auto', padding: '24px 16px 120px', overflowWrap: 'anywhere', color: '#231b27' }}>
+    <section className="k-page is-narrow" style={{ overflowWrap: 'anywhere', display: 'block' }}>
       <Link to="/dashboard" style={{ color: '#531A61', fontWeight: 600 }}>Voltar ao painel</Link>
-      <h1 style={{ fontSize: 28, marginTop: 20, color: '#531A61' }}>Avaliação de usabilidade</h1>
+      <h1 className="k-h1" style={{ marginTop: 20 }}>Avaliação de usabilidade</h1>
       <p style={{ maxWidth: '70ch', lineHeight: 1.6 }}>Sua participação é voluntária. Este questionário, adaptado do SUS, avalia a experiência de uso do Kuaa, não a sua aprendizagem.</p>
       {!userId ? <p role="alert">Entre na sua conta para responder.</p> : query.isPending ? <p role="status">Carregando avaliação...</p> : query.isError ? <div role="alert">
         <p>Não foi possível carregar sua avaliação.</p>
-        <button type="button" className="btn btn-secondary" onClick={() => void query.refetch()}>Tentar novamente</button>
+        <button type="button" className="k-btn k-btn-outline is-sm" onClick={() => void query.refetch()}>Tentar novamente</button>
       </div> : <>
         {query.data && <section aria-label="Sua pontuação salva" style={{ padding: '16px 0', borderBottom: '1px solid #e4dce5' }}>
           <h2 style={{ fontSize: 20 }}>Sua pontuação salva: {query.data.score.toLocaleString('pt-BR')} de 100</h2>

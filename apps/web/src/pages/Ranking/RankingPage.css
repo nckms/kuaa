@@ -1,0 +1,21 @@
+.rk-podium { background: var(--k-roxo); border-radius: 28px; padding: 32px 20px 0; display: flex; justify-content: center; align-items: flex-end; gap: 12px; overflow: hidden; }
+.rk-podium-col { flex: 1; max-width: 200px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; animation: kup .5s ease; }
+.rk-avatar { border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: 18px; background: #fff; color: var(--k-roxo); border: 3px solid; }
+.rk-podium-name { text-align: center; color: #fff; min-width: 0; max-width: 100%; }
+.rk-podium-name strong { display: block; font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rk-podium-name small { font-size: 12px; color: #E3D3E8; }
+.rk-step { width: 100%; border-radius: 16px 16px 0 0; display: flex; justify-content: center; padding-top: 14px; font-family: var(--k-display); font-weight: 600; font-size: 28px; color: var(--k-roxo-deep); }
+.rk-me { background: var(--k-amarelo-soft); border: 1px solid #F0DB8A; border-radius: 20px; padding: 14px 16px 14px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.rk-me > i { color: #7A5A00; font-size: 20px; }
+.rk-me > div { flex: 1 1 200px; font-size: 15px; color: var(--k-ink-2); }
+.rk-row { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--k-line-soft); background: #fff; }
+.rk-row:last-child { border-bottom: 0; }
+.rk-row.is-me { background: var(--k-amarelo-soft); }
+.rk-rank { width: 28px; font-size: 14px; color: var(--k-muted-2); font-weight: 600; }
+.rk-row-avatar { width: 38px; height: 38px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 600; background: var(--k-roxo-soft); color: var(--k-roxo); }
+.is-me .rk-row-avatar { background: var(--k-amarelo); color: var(--k-roxo-deep); }
+.rk-row-name { flex: 1; min-width: 0; }
+.rk-row-name strong { display: block; font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+.is-me .rk-row-name strong { font-weight: 700; }
+.rk-row-name small { font-size: 12px; color: var(--k-muted-2); }
+.rk-xp { font-size: 13px; font-weight: 600; }

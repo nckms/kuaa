@@ -1,167 +1,87 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import type { TrailSubject, TrailTopic } from '../../types/trail'
-import { getIcon } from '../../utils/iconMap'
-import ProgressBar from '../ui/ProgressBar'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
-import { useNavigate } from 'react-router-dom'
-import { useParams } from 'react-router-dom'
+import { subjectTheme } from '../../utils/subjectTheme'
 
 interface TopicModalProps {
   topic: TrailTopic | null
   subject: TrailSubject | null
+  subjectIndex?: number
   onClose: () => void
 }
 
-export default function TopicModal({ topic, subject, onClose }: TopicModalProps) {
+export default function TopicModal({ topic, subject, subjectIndex = 0, onClose }: TopicModalProps) {
   const navigate = useNavigate()
   const { vestibularSlug } = useParams<{ vestibularSlug: string }>()
   const generateMutation = useGenerateQuiz()
-  const answeredQuestions = topic?.progress.answeredQuestionsCount ?? 0
-  const correctAnswers = topic?.progress.correctAnswersCount ?? 0
-  const wrongAnswers = topic?.progress.wrongAnswersCount ?? 0
-  const accuracy = topic?.progress.accuracy ?? null
 
-  function getButtonLabel(): string {
-    if (!topic) return ''
-    if (topic.progress.sessionsCount === 0) return 'Iniciar topico'
-    if (topic.progress.completed) return 'Revisar topico'
-    return 'Continuar topico'
-  }
-
-  async function handleStart() {
+  useEffect(() => {
     if (!topic) return
-    generateMutation.mutate({ topicId: topic.id, count: 5 })
-  }
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [topic, onClose])
+
+  if (!topic) return null
+  const theme = subjectTheme(subject?.slug, subjectIndex)
+  const { progress } = topic
+  const locked = !progress.unlocked
+  const description = locked
+    ? 'Esse tópico abre assim que você avançar no anterior. Assim você constrói a base na ordem certa.'
+    : topic.description || 'Teoria direta ao ponto, exemplos resolvidos e questões no formato da sua prova.'
+  const practiceLabel = progress.sessionsCount === 0 ? 'Praticar' : progress.completed ? 'Revisar' : 'Continuar'
 
   return (
-    <AnimatePresence>
-      {topic && (
-        <>
-          <motion.div
-            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(26,8,38,.55)', zIndex: 40, backdropFilter: 'blur(4px)' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
-          <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3" style={{ zIndex: 50 }}>
-            <motion.div
-              className="card border-0 shadow-lg"
-              style={{
-                width: '90vw',
-                maxWidth: 420,
-                borderRadius: 8,
-                fontFamily: 'Inter, Arial, sans-serif',
-              }}
-              initial={{ opacity: 0, scale: 0.96, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
-              transition={{ duration: 0.18 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="card-body p-4">
-                <button
-                  className="btn btn-sm btn-light border position-absolute d-grid"
-                  onClick={onClose}
-                  style={{ top: 16, right: 16, width: 34, height: 34, placeItems: 'center', color: 'var(--muted)' }}
-                  aria-label="Fechar"
-                >
-                  <i className="bi bi-x-lg" />
-                </button>
-
-                {subject && (
-                  <span className="badge rounded-pill d-inline-flex align-items-center gap-2 mb-3" style={{ backgroundColor: 'var(--roxo-light)', color: '#531A61', fontWeight: 600 }}>
-                    <i className={`bi ${getIcon(subject.iconSlug)}`} />
-                    {subject.name}
-                  </span>
-                )}
-
-                <h2 className="mb-3 pe-5" style={{ fontFamily: "'Questrial', sans-serif", fontSize: 22, color: 'var(--text)', lineHeight: 1.2 }}>
-                  {topic.name}
-                </h2>
-
-                <div className="d-flex gap-2 mb-3 flex-wrap">
-                  <span className="badge rounded-pill d-inline-flex align-items-center gap-1" style={{ background: 'var(--roxo-light)', color: '#531A61' }}>
-                    <i className="bi bi-bar-chart-fill" />
-                    Domínio {topic.progress.masteryLevel}/5
-                  </span>
-                  <span className="badge rounded-pill d-inline-flex align-items-center gap-1" style={{ background: 'var(--bg-soft)', color: 'var(--muted)' }}>
-                    <i className="bi bi-journal-text" />
-                    {topic.progress.sessionsCount} sessoes
-                  </span>
-                </div>
-
-                <ProgressBar value={(topic.progress.masteryLevel / 5) * 100} color="roxo" size="sm" />
-                <p className="text-muted mt-2 mb-3" style={{ fontSize: 12 }}>Progresso neste topico</p>
-
-                {answeredQuestions > 0 && (
-                  <div className="row g-2 mb-3">
-                    <div className="col-4">
-                      <div className="rounded-3 text-center py-2" style={{ background: 'rgba(16,185,129,.1)' }}>
-                        <p className="mb-0 fw-bold" style={{ color: '#047857' }}>{correctAnswers}</p>
-                        <p className="mb-0 text-muted" style={{ fontSize: 10 }}>acertos</p>
-                      </div>
-                    </div>
-                    <div className="col-4">
-                      <div className="rounded-3 text-center py-2" style={{ background: 'rgba(132,0,51,.08)' }}>
-                        <p className="mb-0 fw-bold" style={{ color: '#840033' }}>{wrongAnswers}</p>
-                        <p className="mb-0 text-muted" style={{ fontSize: 10 }}>erros</p>
-                      </div>
-                    </div>
-                    <div className="col-4">
-                      <div className="rounded-3 text-center py-2" style={{ background: 'var(--bg-soft)' }}>
-                        <p className="mb-0 fw-bold" style={{ color: '#531A61' }}>{accuracy ?? 0}%</p>
-                        <p className="mb-0 text-muted" style={{ fontSize: 10 }}>acerto</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <hr className="my-3" />
-
-                {subject?.slug === 'redacao' && vestibularSlug && (
-                  <button className="btn w-100 d-flex align-items-center justify-content-center gap-2 fw-semibold mb-2"
-                    onClick={() => navigate(`/redacao/${vestibularSlug}`)}
-                    style={{ minHeight: 46, border: '1px solid #531A61', color: '#531A61' }}>
-                    <i className="bi bi-pencil-square" aria-hidden="true" /> Escrever redação
-                  </button>
-                )}
-
-                {topic.guideAvailable && (
-                  <button
-                    className="btn w-100 d-flex align-items-center justify-content-center gap-2 fw-semibold mb-2"
-                    onClick={() => navigate(`/estudar/${topic.id}`)}
-                    style={{ minHeight: 46, border: '1px solid #531A61', color: '#531A61' }}
-                  >
-                    <i className="bi bi-book" />
-                    Estudar este tópico
-                  </button>
-                )}
-
-                <button
-                  className="btn w-100 rounded-pill d-flex align-items-center justify-content-center gap-2 text-white fw-bold"
-                  onClick={handleStart}
-                  disabled={generateMutation.isPending}
-                  style={{ backgroundColor: generateMutation.isPending ? 'var(--muted)' : '#840033', minHeight: 46 }}
-                >
-                  {generateMutation.isPending ? (
-                    <>
-                      <i className="bi bi-arrow-repeat" style={{ animation: 'spin 1s linear infinite' }} />
-                      Gerando questoes...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-play-fill" />
-                      {topic.guideAvailable ? 'Praticar agora' : getButtonLabel()}
-                    </>
-                  )}
-                </button>
-                {generateMutation.isError && <p role="alert" className="text-danger mt-2">Não foi possível preparar a sessão. Tente novamente.</p>}
-              </div>
-            </motion.div>
+    <div className="k-overlay is-sheet" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-labelledby="topic-modal-title" className="k-dialog" onClick={(event) => event.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+          <div>
+            {subject && <span className="k-tag" style={{ color: theme.color, background: theme.soft }}>{subject.name}</span>}
+            <h3 id="topic-modal-title" className="k-h3" style={{ fontSize: 22, letterSpacing: '-.04em', marginTop: 12 }}>{topic.name}</h3>
           </div>
-        </>
-      )}
-    </AnimatePresence>
+          <button type="button" onClick={onClose} aria-label="Fechar" className="topic-close"><i className="bi bi-x-lg" aria-hidden="true" /></button>
+        </div>
+        <p style={{ margin: 0, fontFamily: 'var(--k-read)', fontSize: 15, lineHeight: 1.55, color: 'var(--k-muted)' }}>{description}</p>
+        <div className="topic-stats">
+          <div><strong className="k-num">{progress.accuracy == null ? '—' : `${progress.accuracy}%`}</strong><small>acerto</small></div>
+          <div><strong className="k-num">{progress.answeredQuestionsCount}</strong><small>questões</small></div>
+          <div><strong className="k-num">{progress.masteryLevel}/5</strong><small>domínio</small></div>
+        </div>
+        {locked ? (
+          <div className="topic-locked"><i className="bi bi-lock" aria-hidden="true" />Conclua o tópico anterior para liberar.</div>
+        ) : (
+          <>
+            {subject?.slug === 'redacao' && vestibularSlug && (
+              <button type="button" className="k-btn k-btn-outline is-block" onClick={() => navigate(`/redacao/${vestibularSlug}`)}>
+                <i className="bi bi-pen" aria-hidden="true" />Escrever redação
+              </button>
+            )}
+            <div style={{ display: 'flex', gap: 10 }}>
+              {topic.guideAvailable && (
+                <button type="button" className="k-btn k-btn-outline" style={{ flex: 1, minHeight: 52, fontWeight: 600 }} onClick={() => navigate(`/estudar/${topic.id}`)}>
+                  <i className="bi bi-book" aria-hidden="true" />Estudar
+                </button>
+              )}
+              <button type="button" className="k-btn k-btn-primary" style={{ flex: 1, minHeight: 52 }} disabled={generateMutation.isPending}
+                onClick={() => generateMutation.mutate({ topicId: topic.id, count: 5 })}>
+                {generateMutation.isPending
+                  ? <><i className="bi bi-arrow-repeat" style={{ animation: 'spin 1s linear infinite' }} aria-hidden="true" />Gerando...</>
+                  : <><i className="bi bi-play-fill" aria-hidden="true" />{practiceLabel}</>}
+              </button>
+            </div>
+            {generateMutation.isError && <p role="alert" className="k-alert" style={{ margin: 0 }}>Não foi possível preparar a sessão. Tente novamente.</p>}
+          </>
+        )}
+      </div>
+      <style>{`
+        .topic-close { width: 36px; height: 36px; flex: none; border-radius: 10px; border: 0; background: var(--k-bg); font-size: 15px; display: grid; place-items: center; color: var(--k-muted); }
+        .topic-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+        .topic-stats > div { background: var(--k-bg); border-radius: 14px; padding: 14px; }
+        .topic-stats strong { display: block; font-size: 18px; }
+        .topic-stats small { display: block; font-size: 12px; color: var(--k-muted-2); margin-top: 4px; }
+        .topic-locked { display: flex; gap: 10px; align-items: center; background: var(--k-bg); border-radius: 14px; padding: 14px; font-size: 14px; color: var(--k-muted); }
+      `}</style>
+    </div>
   )
 }

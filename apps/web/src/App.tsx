@@ -62,7 +62,7 @@ function TrailIndex() {
   }, [firstVestibularSlug, isHydrating, loadEnrollments, navigate])
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#faf3e3' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--k-bg)' }}>
       <p style={{ color: '#9ca3af', fontSize: 14 }}>Carregando trilha...</p>
     </div>
   )

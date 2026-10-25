@@ -1,18 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useSession, useAnswer, useFinish } from '../../hooks/useQuiz'
-import ProgressBar from '../../components/ui/ProgressBar'
+import { useAuthStore } from '../../stores/auth.store'
 import QuestionMedia from '../../components/quiz/QuestionMedia'
 import type { AnswerResult } from '../../types/quiz'
 import './QuizPage.css'
-
-const WingGlyph = () => (
-  <svg width="20" height="17" viewBox="0 0 28 24" fill="none">
-    <path d="M2 20 C6 12 14 8 26 4 C20 10 18 16 20 22 C14 18 8 18 2 20Z" fill="#FFDC5C" opacity="0.9"/>
-    <path d="M2 20 C8 16 14 14 20 22 C14 22 8 22 2 20Z" fill="#FFDC5C" opacity="0.5"/>
-  </svg>
-)
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0')
@@ -23,6 +15,7 @@ function formatTime(seconds: number): string {
 export default function QuizPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
+  const userHearts = useAuthStore((state) => state.user?.hearts)
 
   const { data: session, isLoading, isError } = useSession(sessionId)
   const answerMutation = useAnswer(sessionId ?? '')
@@ -33,9 +26,8 @@ export default function QuizPage() {
   const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null)
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
-  const [markedForReview, setMarkedForReview] = useState<Set<string>>(new Set())
   const [answeredMap, setAnsweredMap] = useState<Record<string, AnswerResult>>({})
-  const [showFinishModal, setShowFinishModal] = useState(false)
+  const [showExit, setShowExit] = useState(false)
   const [questionStartTime, setQuestionStartTime] = useState(Date.now())
   const restoredSession = useRef<string | null>(null)
 
@@ -50,6 +42,7 @@ export default function QuizPage() {
     setAnswerResult(null)
     setIsConfirmed(false)
     setQuestionStartTime(Date.now())
+    window.scrollTo(0, 0)
   }, [])
 
   useEffect(() => {
@@ -66,36 +59,36 @@ export default function QuizPage() {
   }, [session, goToQuestion])
 
   if (isLoading) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, Arial, sans-serif' }}>
-        <p style={{ color: 'rgba(255,255,255,.6)', fontSize: 16 }}>Carregando sessão...</p>
-      </div>
-    )
+    return <div className="qz qz-center"><p className="qz-sub">Carregando sessão...</p></div>
   }
 
   if (isError || !session) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#2a0d33', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, fontFamily: 'Inter, Arial, sans-serif' }}>
-        <p style={{ color: '#fca5a5', fontSize: 16 }}>Erro ao carregar a sessão.</p>
-        <button onClick={() => navigate(-1)} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontSize: 15, fontFamily: 'Inter, Arial, sans-serif' }}>Voltar</button>
+      <div className="qz qz-center">
+        <div className="qz-stack">
+          <p className="qz-error-text">Erro ao carregar a sessão.</p>
+          <button type="button" className="k-btn k-btn-yellow" onClick={() => navigate(-1)}>Voltar</button>
+        </div>
       </div>
     )
   }
 
-  const { questions, topicName, subjectName, vestibularName } = session
+  const { questions, topicName, subjectName } = session
   const total = questions.length
-  const currentQ = questions[currentIndex]
+  const currentQ = questions[currentIndex]!
   const answeredCount = Object.keys(answeredMap).length
+  const prevResult = answeredMap[currentQ.id]
+  const displayResult = isConfirmed ? answerResult : prevResult ?? null
+  const answered = !!displayResult
+  const isLast = currentIndex >= total - 1
+  const hearts = Object.values(answeredMap).pop()?.heartsRemaining ?? userHearts
+  const busy = answerMutation.isPending || finishMutation.isPending
 
   async function handleConfirm() {
-    if (!selectedOption || !currentQ) return
+    if (!selectedOption) return
     const timeSpentMs = Math.min(300000, Math.max(0, Date.now() - questionStartTime))
     try {
-      const result = await answerMutation.mutateAsync({
-        questionId: currentQ.id,
-        optionId: selectedOption,
-        timeSpentMs,
-      })
+      const result = await answerMutation.mutateAsync({ questionId: currentQ.id, optionId: selectedOption, timeSpentMs })
       setAnswerResult(result)
       setIsConfirmed(true)
       setAnsweredMap((prev) => ({ ...prev, [currentQ.id]: { ...result, selectedOptionId: selectedOption } }))
@@ -105,253 +98,87 @@ export default function QuizPage() {
   }
 
   function handleNext() {
-    if (currentIndex < total - 1) {
-      goToQuestion(currentIndex + 1)
-    } else {
-      finishMutation.mutate()
-    }
+    if (!isLast) goToQuestion(currentIndex + 1)
+    else finishMutation.mutate()
   }
 
-  const handleFinish = () => finishMutation.mutate()
+  function optionClass(optId: string) {
+    if (!displayResult) return selectedOption === optId ? ' is-selected' : ''
+    if (optId === displayResult.correctOptionId) return ' is-correct'
+    if (optId === displayResult.selectedOptionId && !displayResult.isCorrect) return ' is-wrong'
+    return ' is-dim'
+  }
 
-  const prevResult = answeredMap[currentQ?.id ?? '']
-  const displayResult = isConfirmed ? answerResult : prevResult ?? null
-  const isAlreadyAnswered = !!prevResult && !isConfirmed
+  const correctLetter = displayResult?.correctOptionId
+  const ok = displayResult?.isCorrect
 
   return (
-    <div className="quiz-page" style={{ minHeight: '100vh', backgroundColor: '#2a0d33', fontFamily: 'Inter, Arial, sans-serif', display: 'flex', flexDirection: 'column' }}>
-
-      {/* Header */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'rgba(26,8,38,.95)', borderBottom: '1px solid rgba(255,255,255,.08)', padding: '14px 24px' }}>
-        <div className="quiz-header" style={{ maxWidth: 960, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div className="quiz-title" style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-            <WingGlyph />
-            <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 13 }}>{vestibularName} · {topicName}</span>
-          </div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: '100%', maxWidth: 400 }}>
-              <ProgressBar value={(answeredCount / total) * 100} color="vinho" size="sm" />
-            </div>
-            <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 11 }}>{currentIndex + 1} / {total}</span>
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <button
-              onClick={() => navigate(`/trilha/${session.vestibularSlug}`)}
-              disabled={answerMutation.isPending || finishMutation.isPending}
-              style={{ background: 'none', border: '1px solid rgba(255,255,255,.25)', color: 'rgba(255,255,255,.6)', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Inter, Arial, sans-serif' }}
-            >Voltar</button>
-            <button
-              onClick={() => setShowFinishModal(true)}
-              disabled={finishMutation.isPending || answerMutation.isPending}
-              style={{ backgroundColor: '#840033', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontFamily: 'Inter, Arial, sans-serif', fontWeight: 600 }}
-            >{finishMutation.isPending ? 'Finalizando...' : 'Finalizar'}</button>
-          </div>
+    <div className="qz">
+      <header className="qz-top">
+        <button type="button" className="qz-exit" aria-label="Sair do quiz" onClick={() => setShowExit(true)} disabled={busy}><i className="bi bi-x-lg" aria-hidden="true" /></button>
+        <div className="qz-progress" role="progressbar" aria-label="Progresso da sessão" aria-valuemin={0} aria-valuemax={total} aria-valuenow={answeredCount}>
+          <span style={{ width: `${(answeredCount / total) * 100}%` }} />
         </div>
-      </div>
+        <span className="qz-timer"><i className="bi bi-stopwatch" aria-hidden="true" />{formatTime(elapsedTime)}</span>
+        {hearts != null && <span className="qz-hearts" aria-label={`${hearts} vidas`}><i className="bi bi-heart-fill" aria-hidden="true" />{hearts}</span>}
+      </header>
 
-      {/* Content */}
-      <div style={{ flex: 1, maxWidth: 960, margin: '0 auto', width: '100%', padding: '32px 24px 80px', display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24 }} className="quiz-grid">
-
-        {/* Questão */}
-        <div style={{ minWidth: 0 }}>
-          <details className="quiz-question-info">
-            <summary>Sobre estas questões</summary>
-            <p>{session.generation?.source === 'AI_GENERATED' ? 'Questões criadas com apoio de IA. Confira dados importantes nas explicações.' : 'Questões selecionadas do acervo de estudos.'}</p>
-            {session.generation?.targetSatisfied === false && <p>Algumas questões podem estar fora da dificuldade prevista.</p>}
-            {(session.generation?.deliveredCount ?? session.questions.length) < (session.generation?.requestedCount ?? session.questions.length) && <p>Esta sessão tem menos questões porque não havia outras adequadas para este tópico.</p>}
-            {session.generation?.remediationSourceQuestionId && session.generation.source === 'CURATED' && <p>Esta prática retoma o tópico do erro, mas pode abordar outra parte do conteúdo.</p>}
-          </details>
-          {(answerMutation.isError || finishMutation.isError) && (
-            <p role="alert" style={{ color: '#fca5a5', marginBottom: 16 }}>Não foi possível salvar. Confira sua conexão e tente novamente.</p>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span style={{ fontSize: 11, color: '#FFDC5C', letterSpacing: '.12em', textTransform: 'uppercase', fontWeight: 700 }}>
-              QUESTÃO {currentIndex + 1} DE {total}
-            </span>
-            <button
-              onClick={() => setMarkedForReview((prev) => {
-                const next = new Set(prev)
-                if (next.has(currentQ.id)) next.delete(currentQ.id); else next.add(currentQ.id)
-                return next
-              })}
-              style={{ background: 'none', border: '1px solid rgba(255,255,255,.2)', color: markedForReview.has(currentQ.id) ? '#FFDC5C' : 'rgba(255,255,255,.6)', padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'Inter, Arial, sans-serif' }}
-            >
-              {markedForReview.has(currentQ.id) ? 'Marcada' : 'Marcar p/ revisão'}
-            </button>
-          </div>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 16 }}>{subjectName} · Nível {currentQ.difficulty}/5</p>
-          <p className="quiz-question-body" style={{ fontSize: 18, color: '#fff', lineHeight: 1.8 }}>{currentQ.body}</p>
-          <QuestionMedia key={currentQ.id} {...currentQ} />
-
-          {/* Opções */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 24 }}>
-            {currentQ.options.map((opt) => {
-              const isSelected = selectedOption === opt.id
-              const res = displayResult
-              const isConfirmedCorrect = res && opt.id === res.correctOptionId
-              const chosenOptionId = res?.selectedOptionId ?? selectedOption
-              const isRestoredSelected = !!res && opt.id === chosenOptionId
-              const isConfirmedWrong = res && isRestoredSelected && !res.isCorrect
-              const isDisabled = isConfirmed || isAlreadyAnswered || answerMutation.isPending || finishMutation.isPending
-
-              let bg = 'rgba(255,255,255,.05)'
-              let border = '1.5px solid rgba(255,255,255,.12)'
-              let letterColor = '#FFDC5C'
-              const textOpacity = res && opt.id !== res.correctOptionId && opt.id !== selectedOption ? 0.45 : 1
-
-              if ((isSelected || isRestoredSelected) && !isDisabled) { bg = 'rgba(83,26,97,.5)'; border = '1.5px solid #531A61' }
-              if (isConfirmedCorrect) { bg = 'rgba(6,78,59,.4)'; border = '1.5px solid #10b981'; letterColor = '#10b981' }
-              if (isConfirmedWrong) { bg = 'rgba(132,0,51,.4)'; border = '1.5px solid #840033'; letterColor = '#840033' }
-
-              return (
-                <button
-                  type="button"
-                  disabled={isDisabled}
-                  aria-pressed={isSelected || isRestoredSelected}
-                  key={opt.id}
-                  onClick={() => { if (!isDisabled) setSelectedOption(opt.id) }}
-                  className={`quiz-answer-option${isConfirmedCorrect ? ' is-correct' : ''}${isConfirmedWrong ? ' is-wrong' : ''}`}
-                  style={{ textAlign: 'left', width: '100%', display: 'flex', alignItems: 'flex-start', gap: 14, padding: '14px 18px', borderRadius: 14, backgroundColor: bg, border, cursor: isDisabled ? 'default' : 'pointer', transition: 'all 0.15s', opacity: textOpacity }}
-                >
-                  <span style={{ fontSize: 14, fontWeight: 700, color: letterColor, width: 22, flexShrink: 0, marginTop: 1 }}>{opt.id}</span>
-                  <span style={{ fontSize: 15, color: '#fff', lineHeight: 1.5, flex: 1 }}>{opt.text}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Botão confirmar */}
-          {selectedOption && !isConfirmed && !isAlreadyAnswered && (
-            <button
-              onClick={handleConfirm}
-              disabled={answerMutation.isPending}
-              style={{ width: '100%', padding: 15, marginTop: 20, borderRadius: 12, backgroundColor: '#840033', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', fontFamily: 'Inter, Arial, sans-serif' }}
-            >
-              {answerMutation.isPending ? 'Verificando...' : 'Confirmar resposta'}
-            </button>
-          )}
-
-          {/* Explicação */}
-          <AnimatePresence>
-            {(isConfirmed || isAlreadyAnswered) && displayResult && (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                style={{ marginTop: 20, backgroundColor: 'rgba(255,255,255,.06)', borderLeft: '3px solid #FFDC5C', borderRadius: '0 14px 14px 0', padding: 16 }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, color: '#FFDC5C', fontWeight: 700 }}>Explicação</span>
-                  {displayResult.xpDelta > 0 && (
-                    <span style={{ backgroundColor: 'rgba(255,220,92,.2)', color: '#FFDC5C', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 999 }}>+{displayResult.xpDelta} XP</span>
-                  )}
-                </div>
-                <p style={{ fontSize: 13, color: displayResult.isCorrect ? '#10b981' : '#fca5a5', marginBottom: 8 }}>
-                  {displayResult.isCorrect ? 'Resposta correta.' : 'Resposta incorreta. Veja a explicação antes de seguir.'}
-                </p>
-                <p style={{ fontSize: 15, color: 'rgba(255,255,255,.8)', lineHeight: 1.6 }}>{displayResult.explanation}</p>
-
-                <div style={{ textAlign: 'right', marginTop: 12 }}>
-                  <button
-                    onClick={handleNext}
-                    disabled={finishMutation.isPending}
-                    style={{ backgroundColor: currentIndex < total - 1 ? '#531A61' : '#840033', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}
-                  >
-                    {finishMutation.isPending ? 'Finalizando...' : currentIndex < total - 1 ? 'Próxima questão' : 'Ver resultado'}
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+      <main className="qz-main">
+        <div className="qz-meta">
+          <span className="qz-tag">{subjectName}</span><span>{topicName}</span><span className="k-mono qz-counter">{currentIndex + 1} / {total}</span>
         </div>
+        <details className="qz-info">
+          <summary>Sobre estas questões</summary>
+          <p>{session.generation?.source === 'AI_GENERATED' ? 'Questões criadas com apoio de IA. Confira dados importantes nas explicações.' : 'Questões selecionadas do acervo de estudos.'}</p>
+          {session.generation?.targetSatisfied === false && <p>Algumas questões podem estar fora da dificuldade prevista.</p>}
+          {(session.generation?.deliveredCount ?? total) < (session.generation?.requestedCount ?? total) && <p>Esta sessão tem menos questões porque não havia outras adequadas para este tópico.</p>}
+          {session.generation?.remediationSourceQuestionId && session.generation.source === 'CURATED' && <p>Esta prática retoma o tópico do erro, mas pode abordar outra parte do conteúdo.</p>}
+        </details>
+        {(answerMutation.isError || finishMutation.isError) && <p role="alert" className="qz-alert">Não foi possível salvar. Confira sua conexão e tente novamente.</p>}
+        <h2 className="qz-question">{currentQ.body}</h2>
+        <div className="qz-media"><QuestionMedia key={currentQ.id} {...currentQ} /></div>
+        <div className="qz-options">
+          {currentQ.options.map((opt) => (
+            <button type="button" key={opt.id} disabled={answered || busy} aria-pressed={selectedOption === opt.id || displayResult?.selectedOptionId === opt.id}
+              onClick={() => setSelectedOption(opt.id)} className={`qz-option${optionClass(opt.id)}`}>
+              <span className="qz-letter">{opt.id}</span><span style={{ flex: 1 }}>{opt.text}</span>
+            </button>
+          ))}
+        </div>
+      </main>
 
-        {/* Painel lateral */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Cronômetro */}
-          <div style={{ backgroundColor: '#FFDC5C', borderRadius: 20, padding: 20 }}>
-            <p style={{ fontSize: 11, color: 'rgba(83,26,97,.6)', letterSpacing: 0, textTransform: 'uppercase', marginBottom: 6 }}>TEMPO NESTA VISITA</p>
-            <div style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 40, fontWeight: 700, color: '#531A61', letterSpacing: 0, lineHeight: 1 }}>
-              {formatTime(elapsedTime)}
-            </div>
-          </div>
-
-          {/* Progresso */}
-          <div style={{ backgroundColor: 'rgba(255,255,255,.06)', borderRadius: 20, padding: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <footer className={`qz-feedback${answered ? (ok ? ' is-ok' : ' is-bad') : ''}`}>
+        <div className="qz-feedback-inner">
+          {answered && displayResult ? (
+            <div className="qz-feedback-text" role="status">
+              <span className="qz-feedback-icon"><i className={`bi ${ok ? 'bi-check-lg' : 'bi-x-lg'}`} aria-hidden="true" /></span>
               <div>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', letterSpacing: '.1em', textTransform: 'uppercase' }}>RESPONDIDAS</p>
-                <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginTop: 4 }}>{answeredCount}/{total}</p>
-              </div>
-              <div>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', letterSpacing: '.1em', textTransform: 'uppercase' }}>MARCADAS</p>
-                <p style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginTop: 4 }}>{markedForReview.size}</p>
+                <div className="qz-feedback-title">{ok ? 'Mandou bem!' : `Quase. A correta é ${correctLetter}.`}{displayResult.xpDelta > 0 && <span className="qz-xp">+{displayResult.xpDelta} XP</span>}</div>
+                <div className="qz-feedback-exp">{displayResult.explanation}</div>
               </div>
             </div>
-          </div>
-
-          {/* Navegar questões */}
-          <div style={{ backgroundColor: 'rgba(255,255,255,.06)', borderRadius: 20, padding: 20 }}>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', marginBottom: 12 }}>Navegar questões</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
-              {questions.map((q, i) => {
-                const ans = answeredMap[q.id]
-                const isCurrent = i === currentIndex
-                const isMarked = markedForReview.has(q.id)
-                let bg = 'rgba(255,255,255,.08)'
-                if (ans) bg = ans.isCorrect ? '#531A61' : '#840033'
-                return (
-                  <button key={q.id} onClick={() => goToQuestion(i)}
-                    style={{ width: 32, height: 32, borderRadius: '50%', border: isCurrent ? '2px solid #FFDC5C' : isMarked ? '2px solid rgba(255,220,92,.4)' : '2px solid transparent', backgroundColor: bg, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, Arial, sans-serif' }}
-                  >{i + 1}</button>
-                )
-              })}
-            </div>
-          </div>
-
+          ) : <div className="qz-feedback-hint">Escolha uma alternativa e confirme</div>}
+          {answered
+            ? <button type="button" className={`qz-action ${ok ? 'is-ok' : 'is-bad'}`} onClick={handleNext} disabled={finishMutation.isPending}>{finishMutation.isPending ? 'Finalizando...' : isLast ? 'Ver resultado' : 'Continuar'}</button>
+            : <button type="button" className={`qz-action${selectedOption ? ' is-ready' : ''}`} onClick={handleConfirm} disabled={!selectedOption || busy}>{answerMutation.isPending ? 'Verificando...' : 'Confirmar'}</button>}
         </div>
-      </div>
+      </footer>
 
-      {/* Modal finalizar */}
-      <AnimatePresence>
-        {showFinishModal && (
-          <>
-            <motion.div
-              style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,.6)', zIndex: 40 }}
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowFinishModal(false)}
-            />
-            <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
-                style={{ backgroundColor: '#fff', borderRadius: 24, padding: 28, maxWidth: 380, width: '100%', fontFamily: 'Inter, Arial, sans-serif' }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h3 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 22, color: '#1a1a1a', marginBottom: 8 }}>Finalizar sessão?</h3>
-                <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 24 }}>
-                  {answeredCount} de {total} questões respondidas.
-                  {answeredCount < total && ` As ${total - answeredCount} restantes serão puladas.`}
-                </p>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <button onClick={() => setShowFinishModal(false)} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1.5px solid #e5e7eb', backgroundColor: 'transparent', color: '#6b7280', cursor: 'pointer', fontSize: 14, fontFamily: 'Inter, Arial, sans-serif' }}>
-                    Continuar
-                  </button>
-                  <button onClick={handleFinish} disabled={finishMutation.isPending} style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', backgroundColor: '#840033', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'Inter, Arial, sans-serif' }}>
-                    {finishMutation.isPending ? 'Finalizando...' : 'Finalizar'}
-                  </button>
-                </div>
-              </motion.div>
+      {showExit && (
+        <div className="k-overlay" onClick={() => setShowExit(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="quiz-exit-title" className="k-dialog" style={{ maxWidth: 420 }} onClick={(event) => event.stopPropagation()}>
+            <h3 id="quiz-exit-title" className="k-h3" style={{ fontSize: 20 }}>Sair da sessão?</h3>
+            <p style={{ margin: 0, fontFamily: 'var(--k-read)', fontSize: 15, color: 'var(--k-muted)', lineHeight: 1.5 }}>
+              {answeredCount} de {total} questões respondidas.{answeredCount < total ? ' Você pode finalizar agora (as restantes ficam em branco) ou sair e continuar depois.' : ''}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button type="button" className="k-btn k-btn-primary is-block" onClick={() => finishMutation.mutate()} disabled={finishMutation.isPending}>{finishMutation.isPending ? 'Finalizando...' : 'Finalizar e ver resultado'}</button>
+              <button type="button" className="k-btn k-btn-outline is-block" onClick={() => navigate(`/trilha/${session.vestibularSlug}`)}>Sair e continuar depois</button>
+              <button type="button" className="k-link-btn" style={{ alignSelf: 'center', padding: 8 }} onClick={() => setShowExit(false)}>Voltar às questões</button>
             </div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <style>{`
-        .quiz-grid > * { min-width: 0; overflow-wrap: anywhere; }
-        .quiz-title svg { flex-shrink: 0; }
-        @media (max-width: 768px) {
-          .quiz-grid { grid-template-columns: minmax(0, 1fr) !important; }
-          .quiz-header { flex-wrap: wrap; gap: 10px !important; }
-          .quiz-title { flex-basis: 100%; }
-        }
-      `}</style>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

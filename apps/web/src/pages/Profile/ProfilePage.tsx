@@ -1,41 +1,22 @@
 import { useMemo, useState } from 'react'
 import type React from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
-import ProgressBar from '../../components/ui/ProgressBar'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth.store'
 import { useMyEnrollments } from '../../hooks/useEnrollments'
 import { useTrail } from '../../hooks/useTrail'
+import { levelProgress, topicProgressScore } from '../../utils/kuaaIndex'
+import { subjectTheme } from '../../utils/subjectTheme'
 import type { User } from '../../types/user'
+import './ProfilePage.css'
 
 interface ProfileForm {
   name: string
   school: string
   city: string
   state: string
-}
-
-function SemiGauge({ value, max = 1000 }: { value: number; max?: number }) {
-  const pct = Math.min(value / max, 1)
-  const percent = Math.round(pct * 100)
-
-  return (
-    <div style={{ minWidth: 220 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(83,26,97,.55)', fontSize: 11, marginBottom: 8 }}>
-        <span>0 XP</span>
-        <span>{max} XP</span>
-      </div>
-      <ProgressBar value={percent} color="vinho" size="md" />
-      <p style={{ textAlign: 'right', color: '#531A61', fontSize: 12, fontWeight: 700, marginTop: 8 }}>{percent}% da faixa atual</p>
-    </div>
-  )
-}
-
-function topicScore(topic: { progress: { completed: boolean; sessionsCount: number; answeredQuestionsCount: number } }): number {
-  if (topic.progress.completed) return 1
-  if (topic.progress.sessionsCount > 0 || topic.progress.answeredQuestionsCount > 0) return 0.5
-  return 0
 }
 
 const BR_STATES = [
@@ -46,8 +27,10 @@ const BR_STATES = [
 
 export default function ProfilePage() {
   const { user, updateUser, firstVestibularSlug } = useAuthStore()
+  const navigate = useNavigate()
   const { data: enrollments } = useMyEnrollments()
   const { data: trail } = useTrail(firstVestibularSlug ?? '')
+  const [tab, setTab] = useState<'geral' | 'dados'>('geral')
   const [isEditing, setIsEditing] = useState(false)
   const [savedMessage, setSavedMessage] = useState<string | null>(null)
   const [form, setForm] = useState<ProfileForm>({
@@ -74,31 +57,19 @@ export default function ProfilePage() {
     },
   })
 
-  const subjectCards = useMemo(() => {
-    if (!trail) return []
-    return trail.subjects.map((subject) => {
-      const total = subject.topics.length
-      const score = subject.topics.reduce((sum, topic) => sum + topicScore(topic), 0)
-      const answered = subject.topics.filter((topic) => topic.progress.answeredQuestionsCount > 0 || topic.progress.sessionsCount > 0).length
-      return {
-        id: subject.id,
-        name: subject.name,
-        percent: total > 0 ? Math.round((score / total) * 100) : 0,
-        answered,
-        total,
-      }
-    })
-  }, [trail])
+  const subjects = useMemo(() => (trail?.subjects ?? []).map((subject, index) => {
+    const total = subject.topics.length
+    const pct = total ? Math.round((subject.topics.reduce((sum, topic) => sum + topicProgressScore(topic), 0) / total) * 100) : 0
+    return { id: subject.id, name: subject.name, pct, ...subjectTheme(subject.slug, index) }
+  }), [trail])
 
   if (!user) return null
 
   const activeVestibular = trail?.vestibular.name ?? enrollments?.[0]?.vestibular.name ?? 'Vestibular'
-  const memberSince = new Date(user.createdAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-  const totalQuestions = trail?.summary.answeredQuestions ?? 0
-  const finishedSessions = trail?.summary.finishedSessions ?? 0
-  const completedTopics = trail?.summary.completedTopics ?? 0
-  const totalTopics = trail?.summary.totalTopics ?? 0
-  const progressPercent = totalTopics > 0 ? Math.round(((completedTopics + (trail?.summary.inProgressTopics ?? 0) * 0.5) / totalTopics) * 100) : 0
+  const memberSince = new Date(user.createdAt).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }).replace('.', '').replace(' de ', '/')
+  const level = levelProgress(user.xp)
+  const summary = trail?.summary
+  const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target
@@ -108,173 +79,96 @@ export default function ProfilePage() {
   function startEditing() {
     if (!user) return
     setSavedMessage(null)
-    setForm({
-      name: user.name,
-      school: user.school ?? '',
-      city: user.city ?? '',
-      state: user.state ?? '',
-    })
+    setForm({ name: user.name, school: user.school ?? '', city: user.city ?? '', state: user.state ?? '' })
     setIsEditing(true)
-  }
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    updateProfile.mutate(form)
   }
 
   return (
     <AppLayout>
-      <div className="profile-page" style={{ padding: '32px 24px 90px', fontFamily: 'Inter, Arial, sans-serif', background: 'var(--bg)', minHeight: '100%' }}>
-        <section className="profile-hero-card" style={{ backgroundColor: '#fff', borderTop: '4px solid #FFDC5C', padding: '28px 32px', marginBottom: 20 }}>
-          <div className="profile-hero-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 22 }}>
-            <div>
-              <p style={{ fontSize: 11, color: '#840033', textTransform: 'uppercase', marginBottom: 6 }}>Seu perfil</p>
-              <h1 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 32, color: '#531A61', marginBottom: 6 }}>{user.name}</h1>
-              <p style={{ color: '#531A61', fontSize: 14 }}>{activeVestibular} · estudando conosco desde {memberSince}</p>
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              <span style={{ color: '#531A61', fontSize: 12, fontWeight: 700 }}>Nível {user.level}</span>
-              <span style={{ color: '#840033', fontSize: 12, fontWeight: 700 }}>{user.streakDays} dias de sequência</span>
+      <div className="k-page" style={{ maxWidth: 1000 }}>
+        <section className="k-card pf-hero">
+          <span className="pf-avatar">{user.name.charAt(0).toUpperCase()}</span>
+          <div className="pf-id">
+            <h1>{user.name}</h1>
+            <div className="pf-meta">{[user.school, activeVestibular, `desde ${memberSince}`].filter(Boolean).join(' · ')}</div>
+            <div className="pf-chips">
+              <span style={{ background: 'var(--k-roxo-soft)', color: 'var(--k-roxo)' }}><i className="bi bi-lightning-charge-fill" aria-hidden="true" />Nível {user.level}</span>
+              <span style={{ background: '#FFF4CC', color: '#8A5600' }}><i className="bi bi-fire" aria-hidden="true" />{user.streakDays} {user.streakDays === 1 ? 'dia seguido' : 'dias seguidos'}</span>
             </div>
           </div>
-
-          <div className="profile-hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'end' }}>
-            <div>
-              <div className="profile-score" style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 48, fontWeight: 700, color: '#531A61', lineHeight: 1 }}>
-                {progressPercent}%
-              </div>
-              <p style={{ fontSize: 13, color: '#531A61', marginTop: 10, marginBottom: 18 }}>da trilha percorrida</p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ color: '#531A61', fontSize: 12 }}>{totalQuestions} questões respondidas</span>
-                <span style={{ color: '#531A61', fontSize: 12 }}>{finishedSessions} sessões concluídas</span>
-                <span style={{ color: '#531A61', fontSize: 12 }}>{user.xp} XP acumulados</span>
-              </div>
-            </div>
-            <div className="profile-gauge">
-              <SemiGauge value={user.xp} />
-            </div>
+          <div className="pf-level">
+            <div className="pf-level-head"><span>Nível {level.level} → {level.level + 1}</span><span className="k-mono">{user.xp} / {level.next} XP</span></div>
+            <div className="k-track is-lg"><span style={{ width: `${level.pct}%` }} /></div>
+            <div className="pf-level-foot">Faltam {level.left} XP pro próximo nível</div>
           </div>
         </section>
 
-        <section className="profile-history-card" style={{ backgroundColor: '#531A61', padding: 28, marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, gap: 12 }}>
-            <div>
-              <p style={{ fontSize: 12, color: '#FFDC5C', textTransform: 'uppercase' }}>Progresso por matéria</p>
-              <p style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>Acompanhe o que você já estudou em cada matéria.</p>
-            </div>
-            <span style={{ color: '#FFDC5C', fontSize: 13, fontWeight: 700 }}>{completedTopics}/{totalTopics} tópicos concluídos</span>
-          </div>
+        <div className="k-seg" role="group" aria-label="Seções do perfil" style={{ alignSelf: 'flex-start' }}>
+          <button type="button" aria-pressed={tab === 'geral'} onClick={() => setTab('geral')}>Visão geral</button>
+          <button type="button" aria-pressed={tab === 'dados'} onClick={() => setTab('dados')}>Seus dados</button>
+        </div>
 
-          <div className="profile-subject-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
-            {subjectCards.length > 0 ? subjectCards.map((subject) => (
-              <div className="profile-subject-card" key={subject.id} style={{ backgroundColor: 'rgba(255,255,255,.05)', borderRadius: 14, padding: 16, minWidth: 0 }}>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>{subject.name}</p>
-                <p style={{ fontFamily: "'Unbounded', sans-serif", fontSize: 28, fontWeight: 700, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>{subject.percent}%</p>
-                <p style={{ color: 'rgba(255,255,255,.75)', fontSize: 12, marginTop: 6 }}>{subject.answered}/{subject.total} tópicos com atividade</p>
-              </div>
-            )) : (
-              <p style={{ color: '#fff', fontSize: 14 }}>Escolha um vestibular para acompanhar suas matérias.</p>
-            )}
-          </div>
-        </section>
-
-        <section className="profile-info-card" style={{ backgroundColor: 'var(--surface)', borderRadius: 24, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
-          <div className="profile-info-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, gap: 12 }}>
-            <div>
-              <h2 style={{ fontFamily: "'Questrial', sans-serif", fontSize: 20, color: '#531A61' }}>Suas informações</h2>
-              {savedMessage && <p style={{ color: '#047857', fontSize: 13, marginTop: 4 }}>{savedMessage}</p>}
-              {updateProfile.isError && <p style={{ color: '#840033', fontSize: 13, marginTop: 4 }}>Não foi possível salvar. Confira os campos.</p>}
-            </div>
-            {!isEditing && (
-              <button onClick={startEditing} style={{ backgroundColor: 'transparent', border: '1.5px solid #531A61', color: '#531A61', padding: '9px 18px', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: 'Inter, Arial, sans-serif' }}>
-                Editar perfil
-              </button>
-            )}
-          </div>
-
-          {isEditing ? (
-            <form onSubmit={handleSubmit}>
-              <div className="profile-info-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16 }}>
-                <label style={{ display: 'block' }}>
-                  <span style={{ display: 'block', fontSize: 12, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.04em' }}>Nome</span>
-                  <input name="name" value={form.name} onChange={handleChange} required minLength={2} style={inputStyle} />
-                </label>
-                <label style={{ display: 'block' }}>
-                  <span style={{ display: 'block', fontSize: 12, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.04em' }}>Escola</span>
-                  <input name="school" value={form.school} onChange={handleChange} style={inputStyle} />
-                </label>
-                <label style={{ display: 'block' }}>
-                  <span style={{ display: 'block', fontSize: 12, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.04em' }}>Cidade</span>
-                  <input name="city" value={form.city} onChange={handleChange} style={inputStyle} />
-                </label>
-                <label style={{ display: 'block' }}>
-                  <span style={{ display: 'block', fontSize: 12, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.04em' }}>Estado</span>
-                  <select name="state" value={form.state} onChange={handleChange} style={inputStyle}>
-                    <option value="">Não informado</option>
-                    {BR_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
-                  </select>
-                </label>
-              </div>
-
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20, flexWrap: 'wrap' }}>
-                <button type="button" onClick={() => setIsEditing(false)} style={{ backgroundColor: 'transparent', border: '1.5px solid #e5e7eb', color: '#6b7280', padding: '10px 18px', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>
-                  Cancelar
-                </button>
-                <button type="submit" disabled={updateProfile.isPending} style={{ backgroundColor: '#531A61', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: 10, cursor: updateProfile.isPending ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
-                  {updateProfile.isPending ? 'Salvando...' : 'Salvar alterações'}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="profile-info-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16 }}>
+        {tab === 'geral' ? (
+          <div className="pf-tab">
+            <div className="k-grid" style={{ ['--min' as string]: '180px', gap: 12 }}>
               {[
-                { label: 'Nome', value: user.name },
-                { label: 'E-mail', value: user.email },
-                { label: 'Escola', value: user.school ?? '-' },
-                { label: 'Cidade', value: user.city ?? '-' },
-                { label: 'Estado', value: user.state ?? '-' },
-                { label: 'Membro desde', value: memberSince },
-              ].map(({ label, value }) => (
-                <div key={label} style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4, letterSpacing: '.04em', textTransform: 'uppercase' }}>{label}</p>
-                  <p style={{ fontSize: 15, color: '#1a1a1a', fontWeight: 500, overflowWrap: 'anywhere' }}>{value}</p>
-                </div>
-              ))}
+                [String(summary?.answeredQuestions ?? 0), 'questões respondidas'],
+                [`${summary?.accuracy ?? 0}%`, 'de acerto geral'],
+                [String(user.longestStreak ?? user.streakDays), 'maior sequência (dias)'],
+                [String(summary?.finishedSessions ?? 0), 'sessões concluídas'],
+              ].map(([value, label]) => <div key={label} className="k-card is-sm" style={{ borderRadius: 22 }}><div className="k-num" style={{ fontSize: 28 }}>{value}</div><div className="k-muted" style={{ fontSize: 13, marginTop: 6 }}>{label}</div></div>)}
             </div>
-          )}
-        </section>
-
-        <style>{`
-          .profile-page,
-          .profile-page * { box-sizing: border-box; }
-
-          @media (max-width: 768px) {
-            .profile-page { padding: 20px 16px 140px !important; }
-            .profile-hero-card,
-            .profile-history-card,
-            .profile-info-card { border-radius: 18px !important; padding: 20px !important; }
-            .profile-hero-head,
-            .profile-hero-grid,
-            .profile-info-head { grid-template-columns: 1fr !important; flex-direction: column !important; align-items: flex-start !important; }
-            .profile-score { font-size: 58px !important; letter-spacing: 0 !important; }
-            .profile-gauge { display: none !important; }
-            .profile-subject-grid,
-            .profile-info-grid { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
+            <section className="k-card">
+              <div className="k-card-head"><h3 className="k-h3">Progresso por matéria</h3><span className="k-muted" style={{ fontSize: 13 }}>{summary?.completedTopics ?? 0}/{summary?.totalTopics ?? 0} tópicos concluídos</span></div>
+              {subjects.length ? <div className="pf-subjects">
+                {subjects.map((subject) => (
+                  <button key={subject.id} type="button" onClick={() => navigate(trailHref, { state: { subjectId: subject.id } })}>
+                    <span className="pf-subject-head"><span><span className="pf-dot" style={{ background: subject.color }} />{subject.name}</span><span className="k-mono">{subject.pct}%</span></span>
+                    <span className="k-track"><span style={{ width: `${Math.max(subject.pct, 2)}%`, background: subject.color }} /></span>
+                  </button>
+                ))}
+              </div> : <p className="k-muted" style={{ margin: 0 }}>Escolha um vestibular para acompanhar suas matérias.</p>}
+            </section>
+          </div>
+        ) : (
+          <section className="k-card pf-tab">
+            <div className="k-card-head" style={{ marginBottom: 0 }}>
+              <div>
+                <h3 className="k-h3">Suas informações</h3>
+                {savedMessage && <p style={{ color: 'var(--k-verde)', fontSize: 13, margin: '6px 0 0' }} role="status">{savedMessage}</p>}
+                {updateProfile.isError && <p style={{ color: 'var(--k-vinho)', fontSize: 13, margin: '6px 0 0' }} role="alert">Não foi possível salvar. Confira os campos.</p>}
+              </div>
+              {!isEditing && <button type="button" className="k-btn k-btn-outline is-sm" onClick={startEditing}><i className="bi bi-pencil" aria-hidden="true" />Editar perfil</button>}
+            </div>
+            {isEditing ? (
+              <form onSubmit={(event) => { event.preventDefault(); updateProfile.mutate(form) }}>
+                <div className="pf-form">
+                  <label className="k-field"><span>Nome</span><input className="k-input" name="name" value={form.name} onChange={handleChange} required minLength={2} /></label>
+                  <label className="k-field"><span>Escola</span><input className="k-input" name="school" value={form.school} onChange={handleChange} /></label>
+                  <label className="k-field"><span>Cidade</span><input className="k-input" name="city" value={form.city} onChange={handleChange} /></label>
+                  <label className="k-field"><span>Estado</span>
+                    <select className="k-input" name="state" value={form.state} onChange={handleChange}>
+                      <option value="">Não informado</option>
+                      {BR_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20, flexWrap: 'wrap' }}>
+                  <button type="button" className="k-btn k-btn-outline" onClick={() => setIsEditing(false)}>Cancelar</button>
+                  <button type="submit" className="k-btn k-btn-primary" disabled={updateProfile.isPending}>{updateProfile.isPending ? 'Salvando...' : 'Salvar alterações'}</button>
+                </div>
+              </form>
+            ) : (
+              <dl className="pf-info">
+                {[
+                  ['Nome', user.name], ['E-mail', user.email], ['Escola', user.school || '—'],
+                  ['Cidade', user.city || '—'], ['Estado', user.state || '—'], ['Membro desde', memberSince],
+                ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+              </dl>
+            )}
+          </section>
+        )}
       </div>
     </AppLayout>
   )
-}
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  border: '1.5px solid rgba(26,10,31,.14)',
-  borderRadius: 10,
-  padding: '11px 13px',
-  fontSize: 14,
-  color: '#1a0a1f',
-  backgroundColor: '#fff',
-  outline: 'none',
-  fontFamily: 'Inter, Arial, sans-serif',
 }
