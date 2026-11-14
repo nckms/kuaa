@@ -49,8 +49,11 @@ interface Candidate {
 
 export function getTargetDifficulty(masteryLevel: number, activity?: AdaptiveActivity, diagnosticDifficulty?: number): number {
   if (activity && activity.recentAnswersCount >= 5 && activity.recentAccuracy! < 0.7) {
-    return Math.max(1, Math.min(5, Math.round(activity.recentAverageDifficulty!)
-      - (activity.recentAccuracy! < 0.4 ? 1 : 0)))
+    // Reforço nunca fica acima do alvo normal do nível atual: acertos antigos em
+    // dificuldade maior (ex.: vindos do diagnóstico) não podem empurrar o reforço
+    // para cima de questões em que o aluno acabou de errar.
+    const fromRecent = Math.round(activity.recentAverageDifficulty!) - (activity.recentAccuracy! < 0.4 ? 1 : 0)
+    return Math.max(1, Math.min(5, fromRecent, Math.max(1, masteryLevel + 1)))
   }
   if (masteryLevel === 0 && (activity?.recentAnswersCount ?? 0) < 5 && diagnosticDifficulty != null) {
     return Math.max(1, Math.min(3, diagnosticDifficulty))

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth.store'
+import { useTrail } from '../../hooks/useTrail'
 import QuestionMedia from '../../components/quiz/QuestionMedia'
 import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import type { QuestionMediaData } from '../../types/quiz'
@@ -194,7 +195,11 @@ function Diagnostic({ slug }: { slug: string }) {
   const enrollmentRequired = isAxiosError(query.error) && [403, 404].includes(query.error.response?.status ?? 0)
   const totalCorrect = data?.result?.areas.reduce((sum, area) => sum + area.correct, 0) ?? 0
   const totalAnswered = data?.result?.areas.reduce((sum, area) => sum + area.answered, 0) ?? 0
-  const weakest = data?.result ? [...data.result.areas].filter((area) => area.answered > 0).sort((a, b) => a.correct / a.answered - b.correct / b.answered)[0] : undefined
+  // O diagnóstico só calibra a dificuldade inicial por área; quem escolhe o
+  // primeiro tópico é a trilha. Mostramos exatamente o tópico que ela recomenda.
+  const trail = useTrail(data?.status === 'completed' ? slug : '')
+  const startSubject = trail.data?.subjects.find((subject) => subject.topics.some((topic) => topic.id === trail.data?.recommendation?.topicId))
+  const startTopic = startSubject?.topics.find((topic) => topic.id === trail.data?.recommendation?.topicId)
 
   return <main className="diag-page">
     <header className="diag-top">
@@ -226,7 +231,7 @@ function Diagnostic({ slug }: { slug: string }) {
             <div><p className="k-eyebrow">Seu ponto de partida</p><h1 className="diag-title" style={{ marginTop: 6 }}>{totalAnswered && totalCorrect / totalAnswered >= 0.6 ? 'Base sólida' : 'Construindo base'}</h1></div>
           </div>
           <p className="diag-desc" style={{ margin: 0 }}>
-            Você acertou {totalCorrect} de {totalAnswered}.{weakest ? ` Sua trilha começa reforçando ${weakest.name} e intercala revisões nas áreas onde você já vai bem.` : ''} A redação não foi avaliada aqui.
+            Você acertou {totalCorrect} de {totalAnswered}.{startTopic && startSubject ? ` Sua trilha começa em ${startTopic.name} (${startSubject.name}). O diagnóstico ajustou a dificuldade inicial de cada área; a ordem dos tópicos segue a trilha.` : ' O diagnóstico ajustou a dificuldade inicial de cada área.'} A redação não foi avaliada aqui.
           </p>
           <div className="k-card is-md diag-areas">
             {data.result.areas.map((area) => {

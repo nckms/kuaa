@@ -13,6 +13,20 @@ const envSchema = z.object({
   SABIA_MODEL: z.string().default('gemini-3.5-flash-lite'),
   REDIS_URL: z.string().optional(),
   FRONTEND_URL: z.string().optional(),
+  // URL pública do site (sem barra final), usada nos links enviados por e-mail.
+  APP_URL: z.string().url().optional(),
+  // Entrega de e-mail (recuperação de senha):
+  //   smtp     -> envia via servidor SMTP (produção ou caixa local de desenvolvimento)
+  //   memory   -> guarda em memória (testes automatizados)
+  //   disabled -> não envia; a API registra apenas um aviso sem o token
+  MAIL_TRANSPORT: z.enum(['smtp', 'memory', 'disabled']).default('disabled'),
+  MAIL_FROM: z.string().default('Kuaa <nao-responda@kuaa.local>'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_SECURE: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().min(5).max(120).default(30),
 })
 
 function validateEnv() {

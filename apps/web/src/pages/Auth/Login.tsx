@@ -88,6 +88,7 @@ export default function Login() {
             value={form.password} onChange={handleChange} aria-invalid={!!errors.password} aria-describedby={errors.password ? 'password-error' : undefined} />
           {errors.password && <span id="password-error" className="auth-field-msg">{errors.password}</span>}
         </label>
+        <Link to="/esqueci-senha" className="auth-forgot">Esqueci minha senha</Link>
         {errors.general && <div role="alert" className="k-alert">{errors.general}</div>}
         <button type="submit" disabled={loading} className={`k-btn is-lg is-block ${canSubmit ? 'k-btn-primary' : 'k-btn-outline'}`} style={{ marginTop: 12 }}>
           {loading ? 'Entrando…' : 'Entrar'} <i className="bi bi-arrow-right" aria-hidden="true" />

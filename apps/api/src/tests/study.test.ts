@@ -20,7 +20,10 @@ describe('material de estudo', () => {
     const missing = exams.flatMap((exam) => exam.subjects.flatMap((subject) => subject.topics))
       .filter((topic) => !getStudyGuide(topic.name)).map((topic) => topic.name)
     expect(missing).toEqual([])
-    expect(covered.length).toBe(94)
+    // Todo tópico das três trilhas precisa de guia; o total acompanha o currículo do seed.
+    const totalTopics = exams.reduce((sum, exam) => sum + exam.subjects.reduce((n, s) => n + s.topics.length, 0), 0)
+    expect(totalTopics).toBeGreaterThan(0)
+    expect(covered.length).toBe(totalTopics)
     for (const topic of covered) {
       const guide = getStudyGuide(topic.name)!
       expect(guide.explanation.length, topic.name).toBeGreaterThanOrEqual(5)

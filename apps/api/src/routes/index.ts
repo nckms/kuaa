@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { mailDeliveryConfigured } from '../lib/mailer'
 import { authRouter } from '../modules/auth/auth.routes'
 import { usersRouter } from '../modules/users/users.routes'
 import { vestibularesRouter } from '../modules/vestibulares/vestibulares.routes'
@@ -17,7 +18,9 @@ import { essaysRouter } from '../modules/essays/essays.routes'
 export const router = Router()
 
 router.get('/health', (_req, res) => {
-  res.json({ status: 'ok', project: 'Kuaa API', timestamp: new Date() })
+  res.json({ status: 'ok', project: 'Kuaa API', timestamp: new Date(),
+    // Indica apenas se há transporte de e-mail configurado; não confirma entrega.
+    passwordResetEmail: mailDeliveryConfigured() ? 'configured' : 'not_configured' })
 })
 
 router.get('/ping', (_req, res) => {

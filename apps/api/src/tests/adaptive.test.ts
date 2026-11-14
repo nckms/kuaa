@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { computeNewLevel } from '../services/adaptive/DifficultyEngine'
-import { recommendTopic, summarizeActivity, type LearningAnswer } from '../services/adaptive/RecommendationEngine'
+import { getTargetDifficulty, recommendTopic, summarizeActivity, type LearningAnswer } from '../services/adaptive/RecommendationEngine'
 
 const now = new Date('2026-09-29T12:00:00Z')
 function answers(count: number, correct: boolean, age = 0, difficulty = 2, timeSpentMs = 30000): LearningAnswer[] {
@@ -142,5 +142,14 @@ describe.skipIf(process.env.ADAPTIVE_PURE_ONLY === '1')('adaptive endpoints', ()
       await testPrisma.user.delete({ where: { id: auth.userId } })
       await testPrisma.$disconnect()
     }
+  })
+  it('never raises reinforcement above the regular target of the current level', () => {
+    // 5 recent misses at difficulty 2 mixed with 5 older hits at difficulty 3 (avg 2.5, 50%).
+    const mixed = summarizeActivity([...answers(5, false, 0, 2), ...answers(5, true, 60000, 3)], now)
+    expect(mixed.recentAccuracy).toBe(0.5)
+    expect(getTargetDifficulty(1, mixed)).toBe(2)
+    expect(getTargetDifficulty(4, mixed)).toBe(3)
+    const allWrong = summarizeActivity(answers(5, false, 0, 4), now)
+    expect(getTargetDifficulty(0, allWrong)).toBe(1)
   })
 })

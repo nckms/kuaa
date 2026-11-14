@@ -9,16 +9,16 @@ const EXAMS = [
 ]
 
 const STEPS = [
-  { icon: 'bi-search', t: 'Faça o diagnóstico', d: 'Questões calibradas mostram onde você está em cada área.' },
-  { icon: 'bi-signpost-split', t: 'Siga sua trilha', d: 'Todo dia, o próximo tópico certo. Sem perder tempo com o que você já domina.' },
-  { icon: 'bi-graph-up-arrow', t: 'Veja a nota subir', d: 'Simulados semanais atualizam seu Índice Kuaa de 300 a 1000.' },
+  { icon: 'bi-search', t: 'Faça o diagnóstico', d: 'Questões de vários níveis indicam por onde começar em cada área.' },
+  { icon: 'bi-signpost-split', t: 'Siga sua trilha', d: 'Seus acertos e erros definem o próximo tópico e a dificuldade das questões.' },
+  { icon: 'bi-graph-up-arrow', t: 'Acompanhe seu desempenho', d: 'Trilha e simulados atualizam seu Índice Kuaa, de 300 a 1000.' },
 ]
 
 const FEATURES = [
-  { t: 'Trilha adaptativa', d: 'Reordena os tópicos conforme seus acertos e erros.', icon: 'bi-signpost-split', tone: 'roxo' },
-  { t: 'Sabiá IA', d: 'Tira dúvida a qualquer hora, explica passo a passo e gera questões.', icon: 'bi-stars', tone: 'amarelo' },
+  { t: 'Trilha adaptativa', d: 'Regras de desempenho escolhem o próximo tópico, o reforço e o nível das questões.', icon: 'bi-signpost-split', tone: 'roxo' },
+  { t: 'Sabiá IA', d: 'Tira dúvidas e explica passo a passo, sem entregar a resposta pronta.', icon: 'bi-stars', tone: 'amarelo' },
   { t: 'Simulado semanal', d: 'Cronometrado, com mapa de questões e gabarito comentado.', icon: 'bi-clipboard-check', tone: 'branco' },
-  { t: 'Índice Kuaa', d: 'Uma nota única que mostra o quanto você está perto da aprovação.', icon: 'bi-speedometer2', tone: 'tinta' },
+  { t: 'Índice Kuaa', d: 'Resume seus acertos nas atividades do Kuaa. Não é nota do vestibular nem previsão de aprovação.', icon: 'bi-speedometer2', tone: 'tinta' },
 ]
 
 export default function Home() {

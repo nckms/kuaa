@@ -83,3 +83,30 @@ describe('performance from answers to the next session', () => {
     expect(result.body.performance).toMatchObject({ newLevel: 0, pendingAnswers: 3, evidenceCount: 3 })
   })
 })
+
+describe('respostas registradas vs elegíveis para domínio', () => {
+  it('três respostas distintas (duas rápidas) ficam registradas; só a de tempo plausível entra no domínio; reenvio e recarga não mudam', async () => {
+    const session = await testPrisma.quizSession.create({ data: { userId: auth.userId, topicId } })
+    const times = [300, 500, 30000]
+    const ids: string[] = []
+    for (const [index, timeSpentMs] of times.entries()) {
+      const question = await testPrisma.question.create({ data: {
+        topicId, generatedForSessionId: session.id, difficulty: 1, body: `Rapida ${index}`, explanation: 'x',
+        options: [{ id: 'A', text: 'Correta', isCorrect: true }, { id: 'B', text: 'Errada', isCorrect: false }],
+      } })
+      ids.push(question.id)
+      expect((await api.post(`/api/v1/quiz/${session.id}/answer`).set('Authorization', `Bearer ${auth.token}`)
+        .send({ questionId: question.id, optionId: 'A', timeSpentMs })).status).toBe(200)
+    }
+    const resend = await api.post(`/api/v1/quiz/${session.id}/answer`).set('Authorization', `Bearer ${auth.token}`)
+      .send({ questionId: ids[0], optionId: 'A', timeSpentMs: 300 })
+    expect(resend.status).toBe(400)
+    expect(await testPrisma.userAnswer.count({ where: { sessionId: session.id } })).toBe(3)
+    const done = await finish(session.id)
+    expect(done.body.correct).toBe(3)
+    expect(done.body.performance.evidenceCount).toBe(1)
+    const reload = await api.get(`/api/v1/quiz/${session.id}/summary`).set('Authorization', `Bearer ${auth.token}`)
+    expect(reload.body.correct).toBe(3)
+    expect(reload.body.performance).toEqual(done.body.performance)
+  })
+})

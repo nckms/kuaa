@@ -11,6 +11,12 @@ import { truncateUserData, testPrisma } from './helpers/truncate'
  * - Responder B, C, D → 3 acertos, accuracy = 1.0
  * - XP: Q1=4, Q2=4, Q3=6 (streak perfeito) = 14 + 10 bônus sessão perfeita = 24
  * - Three answers are insufficient evidence to advance mastery.
+ *
+ * Reserva x dificuldade alvo: a reserva curada só entrega itens a no máximo 1
+ * nível do alvo (ver curatedQuestions.ts). Aluno sem diagnóstico e domínio 0
+ * tem alvo 1; "Interpretação de Texto" tem itens de dificuldade 2, 2 e 3, então
+ * apenas 2 entrariam. O teste fixa domínio 1 (alvo 2) para que as 3 questões
+ * distintas sejam elegíveis e o fluxo de XP seja verificável com 3 respostas.
  */
 
 let token: string
@@ -45,6 +51,9 @@ beforeAll(async () => {
   const first = allTopics.find((t) => t.progress.unlocked)
   if (!first) throw new Error('Nenhum tópico desbloqueado')
   firstTopicId = first.id
+  await testPrisma.userTopicProgress.update({
+    where: { userId_topicId: { userId, topicId: firstTopicId } }, data: { masteryLevel: 1 },
+  })
 })
 
 afterAll(async () => {
@@ -152,7 +161,7 @@ describe('POST /api/v1/quiz/:sessionId/finish', () => {
     expect(body.skipped).toBe(0)
     expect(body.isPerfect).toBe(true)
     expect(body.xpEarned).toBe(24)  // 4+4+6=14 respostas + 10 bônus perfeito
-    expect(body.newMasteryLevel).toBe(0)
+    expect(body.newMasteryLevel).toBe(1) // 3 respostas < 5 evidências: nível mantido
     const trail = await api.get('/api/v1/trail/enem').set('Authorization', `Bearer ${token}`)
     expect(trail.body.subjects[0].topics[1].progress.unlocked).toBe(true)
     expect(trail.body.subjects[0].topics[0].progress.completed).toBe(false)

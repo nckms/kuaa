@@ -33,6 +33,8 @@
 .auth-optional { border-top: 1px solid var(--k-line-soft); padding-top: 4px; }
 .auth-optional summary { cursor: pointer; font-size: 14px; color: var(--k-roxo); font-weight: 500; padding: 8px 0; }
 .auth-optional-grid { display: grid; grid-template-columns: 1fr 1fr 96px; gap: 10px; padding-top: 8px; }
+.auth-forgot { align-self: flex-end; margin-top: -8px; font-size: 14px; font-weight: 500; color: var(--k-roxo); }
+.auth-success { background: var(--k-verde-soft); color: var(--k-verde); }
 .auth-foot { text-align: center; font-size: 14px; color: var(--k-muted-2); margin: 18px 0 0; }
 
 @media (max-width: 819px) {

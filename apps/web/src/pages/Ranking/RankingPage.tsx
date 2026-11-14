@@ -77,7 +77,7 @@ export default function RankingPage() {
             )}
           </>
         )}
-        <p className="k-muted" style={{ fontSize: 13, textAlign: 'center', margin: 0 }}>Nomes abreviados pra preservar a privacidade. É uma referência do seu percurso, não uma competição.</p>
+        <p className="k-muted" style={{ fontSize: 13, textAlign: 'center', margin: 0 }}>Outros estudantes aparecem só como “Estudante N”, sem nome nem foto. É uma referência do seu percurso, não uma competição.</p>
       </div>
     </AppLayout>
   )

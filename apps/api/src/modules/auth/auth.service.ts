@@ -4,10 +4,10 @@ import jwt from 'jsonwebtoken'
 import type { User } from '@prisma/client'
 import { prisma } from '../../lib/prisma'
 import { env } from '../../lib/env'
-import { redis } from '../../lib/redis'
 import { makeError } from '../../utils/errors'
 import type { SafeUser } from '../../types/index'
 import type { RegisterInput, LoginInput, ResetPasswordInput } from './auth.schemas'
+import { requestPasswordReset, resetPassword } from './passwordReset'
 
 const ACCESS_TOKEN_EXPIRES = '15m'
 const REFRESH_TOKEN_EXPIRES_MS = 7 * 24 * 60 * 60 * 1000
@@ -103,25 +103,13 @@ class AuthService {
     await prisma.refreshToken.deleteMany({ where: { token: refreshToken } })
   }
 
+  /** Nunca revela se o e-mail existe; veja passwordReset.ts. */
   async forgotPassword(email: string): Promise<void> {
-    const user = await prisma.user.findUnique({ where: { email } })
-    if (!user) return
-
-    const token = crypto.randomUUID()
-    await redis.set(`reset:${token}`, user.id, 'EX', 3600)
-
-    console.log(`[Auth] Link de reset: /redefinir-senha?token=${token}`)
+    await requestPasswordReset(email)
   }
 
   async resetPassword(input: ResetPasswordInput): Promise<void> {
-    const userId = await redis.get(`reset:${input.token}`)
-    if (!userId) throw makeError('Token inválido ou expirado', 400, 'INVALID_RESET_TOKEN')
-
-    const passwordHash = await bcrypt.hash(input.password, 12)
-
-    await prisma.user.update({ where: { id: userId }, data: { passwordHash } })
-    await redis.del(`reset:${input.token}`)
-    await prisma.refreshToken.deleteMany({ where: { userId } })
+    await resetPassword(input.token, input.password)
   }
 
   async me(userId: string): Promise<SafeUser> {

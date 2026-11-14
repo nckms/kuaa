@@ -7,6 +7,8 @@ import { useAuthStore } from './stores/auth.store'
 import Home from './pages/Home'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
+import ForgotPassword from './pages/Auth/ForgotPassword'
+import ResetPassword from './pages/Auth/ResetPassword'
 import SelectVestibular from './pages/Onboarding/SelectVestibular'
 import DiagnosticPage from './pages/Onboarding/DiagnosticPage'
 import TrailPage from './pages/Trail/TrailPage'
@@ -77,6 +79,8 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/entrar" element={<Login />} />
       <Route path="/cadastro" element={<Register />} />
+      <Route path="/esqueci-senha" element={<ForgotPassword />} />
+      <Route path="/redefinir-senha" element={<ResetPassword />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/onboarding" element={<SelectVestibular />} />

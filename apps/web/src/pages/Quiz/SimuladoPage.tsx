@@ -100,6 +100,7 @@ function SimuladoResults({ attempt, result }: { attempt: SimuladoAttempt; result
             <details key={question.id} className="sim-review">
               <summary><span className="sim-review-bar" style={{ background: color }} /><span className="k-mono">{String(index + 1).padStart(2, '0')}</span><span className="sim-review-subj">{question.subjectName}</span><span style={{ color, fontWeight: 600, fontSize: 13 }}>{status}</span></summary>
               <div className="sim-review-body">
+                <p className="k-mono" style={{ fontSize: 12, color: 'var(--k-faint)', margin: 0 }}>Origem: {simuladoSourceLabel(question.source)}</p>
                 <p className="sim-review-q">{question.body}</p>
                 <QuestionMedia {...question} />
                 <p>Sua resposta: {selected ? `${selected.id}) ${selected.text}` : 'Em branco'}</p>
@@ -357,4 +358,12 @@ export default function SimuladoPage() {
   }
 
   return <AppLayout>{errorMessage}{content}</AppLayout>
+}
+
+/** Origem por questão; metadado ausente nunca vira "acervo" nem "oficial". */
+export function simuladoSourceLabel(source?: string): string {
+  if (source === 'OFFICIAL') return 'questão de prova cadastrada no banco'
+  if (source === 'CURATED') return 'acervo curado do Kuaa'
+  if (source === 'AI_GENERATED') return 'gerada por IA'
+  return 'não registrada nesta tentativa'
 }

@@ -5,6 +5,8 @@ import { useAuthStore } from '../../stores/auth.store'
 import { useTrail } from '../../hooks/useTrail'
 import { useIndex } from '../../hooks/useIndex'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
+import { useCurrentSimulado } from '../../hooks/useSimulado'
+import { simuladoCardState } from './simuladoCard'
 import { subjectTheme, subjectThemeByName } from '../../utils/subjectTheme'
 import { formatStudyTime, indexBand, sparkPoints, topicProgressScore } from '../../utils/kuaaIndex'
 import './DashboardPage.css'
@@ -21,6 +23,8 @@ export default function DashboardPage() {
   const { user, firstVestibularSlug, enrollments } = useAuthStore()
   const { data: trail, isLoading, isError, refetch } = useTrail(firstVestibularSlug ?? '')
   const { data: indexData } = useIndex(firstVestibularSlug ?? '')
+  const simulado = useCurrentSimulado(firstVestibularSlug ?? '')
+  const simCard = simuladoCardState(simulado)
   const generateQuiz = useGenerateQuiz()
   const navigate = useNavigate()
   const trailHref = firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'
@@ -164,10 +168,13 @@ export default function DashboardPage() {
             </button>
           )) : <p className="k-muted" style={{ fontSize: 14, margin: '8px 0 0' }}>Nenhum ponto de atenção ainda. Eles aparecem depois de algumas questões.</p>}
         </section>
-        <section className="dash-simulado" aria-labelledby="simulado-title">
-          <div><span>Simulado semanal</span><span className="k-badge">Disponível</span></div>
-          <strong id="simulado-title">Até 45 questões · 90 min</strong>
-          <Link to="/simulado" className="k-btn is-sm" style={{ background: '#fff', color: 'var(--k-ink)', alignSelf: 'flex-start' }}>Fazer agora<i className="bi bi-arrow-right" aria-hidden="true" /></Link>
+        <section className="dash-simulado" aria-labelledby="simulado-title" aria-busy={simCard.kind === 'loading'}>
+          <div><span>Simulado semanal</span><span className="k-badge">{simCard.badge}</span></div>
+          <strong id="simulado-title">{simCard.title}</strong>
+          {simCard.detail && <span style={{ fontSize: 14, color: '#E8DFEA' }}>{simCard.detail}</span>}
+          {simCard.kind === 'error'
+            ? <button type="button" onClick={() => simulado.refetch()} className="k-btn is-sm" style={{ background: '#fff', color: 'var(--k-ink)', alignSelf: 'flex-start' }}>Tentar de novo</button>
+            : simCard.cta && <Link to="/simulado" className="k-btn is-sm" style={{ background: '#fff', color: 'var(--k-ink)', alignSelf: 'flex-start' }}>{simCard.cta}<i className="bi bi-arrow-right" aria-hidden="true" /></Link>}
         </section>
       </div>
     </div>

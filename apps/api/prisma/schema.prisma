@@ -50,6 +50,7 @@ model User {
   achievements      UserAchievement[]
   topicProgress     UserTopicProgress[]
   refreshTokens     RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
   indexSnapshots    IndexSnapshot[]
   simuladoAttempts  SimuladoAttempt[]
   usabilityEvaluation UsabilityEvaluation?
@@ -64,6 +65,20 @@ model RefreshToken {
   userId    String
   expiresAt DateTime
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Token de redefinicao de senha. Somente o hash SHA-256 e armazenado;
+/// o valor bruto existe apenas no link enviado por e-mail.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model Vestibular {

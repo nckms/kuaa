@@ -41,11 +41,11 @@ export default function IndicePage() {
   const subjects = [...data.subjectBreakdown].sort((a, b) => b.score - a.score)
 
   return <AppLayout><div className="k-page">
-    <header><p className="k-eyebrow">Seu perfil de aprovação{vestibularName ? ` · ${vestibularName}` : ''}</p><h1 className="k-h1">Índice Kuaa</h1></header>
+    <header><p className="k-eyebrow">Seu desempenho nas atividades{vestibularName ? ` · ${vestibularName}` : ''}</p><h1 className="k-h1">Índice Kuaa</h1></header>
 
     <section className="ix-hero" aria-label="Seu índice atual">
       <div className="ix-hero-main">
-        {data.percentile != null && hasActivity && <span className="ix-pill">Top {Math.max(1, 100 - Math.round(data.percentile))}%{vestibularName ? ` · ${vestibularName}` : ''}</span>}
+        {data.percentile != null && hasActivity && <span className="ix-pill">Top {Math.max(1, 100 - Math.round(data.percentile))}% entre alunos do Kuaa{vestibularName ? ` · ${vestibularName}` : ''}</span>}
         <div className="ix-score">{hasActivity ? data.score : '—'}</div>
         <div className="ix-score-sub">{hasActivity ? <>de 1000 · faixa <strong>{band.name}</strong></> : 'Responda questões para ver seu índice.'}</div>
         {hasActivity && data.delta7d !== 0 && (

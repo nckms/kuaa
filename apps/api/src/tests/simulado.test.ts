@@ -225,3 +225,46 @@ describe('Simulado da Semana', () => {
     expect(current.body).toMatchObject({ correct: 0, wrong: 0, answers: {} })
   })
 })
+
+describe('Simulado da Semana: dados do cartão do painel', () => {
+  it('após entregar, /current devolve nota e contagens (inclusive após recarga)', async () => {
+    const first = await api.get('/api/v1/simulado/enem/current').set('Authorization', `Bearer ${token}`)
+    const second = await api.get('/api/v1/simulado/enem/current').set('Authorization', `Bearer ${token}`)
+    for (const res of [first, second]) {
+      expect(res.status).toBe(200)
+      expect(res.body.finishedAt).toBeTruthy()
+      expect(typeof res.body.score).toBe('number')
+      const blank = res.body.questions.length - res.body.correct - res.body.wrong
+      expect(blank).toBeGreaterThanOrEqual(0)
+    }
+    expect(second.body.score).toBe(first.body.score)
+  })
+
+  it('usa só acervo (CURATED/OFFICIAL), nunca IA, e informa a origem por questão', async () => {
+    const res = await api.get('/api/v1/simulado/enem/current').set('Authorization', `Bearer ${token}`)
+    const sources = new Set(res.body.questions.map((q: { source: string }) => q.source))
+    for (const s of sources) expect(['CURATED', 'OFFICIAL']).toContain(s)
+    expect(sources.has('AI_GENERATED')).toBe(false)
+  })
+
+  it('a tentativa de um vestibular não aparece no cartão de outro', async () => {
+    const vest = await api.get('/api/v1/vestibulares').set('Authorization', `Bearer ${token}`)
+    const fuvest = (vest.body as Array<{ slug: string; id: string }>).find((v) => v.slug === 'fuvest')!
+    await api.post('/api/v1/enrollments').set('Authorization', `Bearer ${token}`).send({ vestibularId: fuvest.id })
+    const res = await api.get('/api/v1/simulado/fuvest/current').set('Authorization', `Bearer ${token}`)
+    expect(res.status).toBe(200)
+    expect(res.body).toBeNull()
+  })
+
+  it('na virada da semana o cartão volta a disponível e a nota anterior é preservada', async () => {
+    const attempt = await testPrisma.simuladoAttempt.findFirstOrThrow({ where: { userId, vestibularId } })
+    const lastWeek = new Date(attempt.weekStart.getTime() - 7 * 24 * 3600 * 1000)
+    await testPrisma.simuladoAttempt.update({ where: { id: attempt.id }, data: { weekStart: lastWeek } })
+    const res = await api.get('/api/v1/simulado/enem/current').set('Authorization', `Bearer ${token}`)
+    expect(res.body).toBeNull()
+    const old = await testPrisma.simuladoAttempt.findUniqueOrThrow({ where: { id: attempt.id } })
+    expect(old.score).toBe(attempt.score)
+    const start = await api.post('/api/v1/simulado/enem/start').set('Authorization', `Bearer ${token}`)
+    expect(start.status).toBe(200)
+  })
+})

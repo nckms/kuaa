@@ -48,6 +48,9 @@ export async function logout(req: Request, res: Response, next: NextFunction): P
   }
 }
 
+export const FORGOT_PASSWORD_MESSAGE =
+  'Se houver uma conta com este e-mail, enviaremos um link para redefinir a senha. Confira também a caixa de spam.'
+
 export async function forgotPassword(
   req: Request,
   res: Response,
@@ -55,8 +58,12 @@ export async function forgotPassword(
 ): Promise<void> {
   try {
     const { email } = ForgotPasswordSchema.parse(req.body)
-    await authService.forgotPassword(email)
-    res.status(200).json({ message: 'Se o e-mail existir, enviaremos instruções' })
+    // Resposta imediata e idêntica para qualquer e-mail: o tempo de envio do
+    // e-mail não pode revelar se a conta existe.
+    void authService.forgotPassword(email).catch((error: unknown) => {
+      console.error('[Auth] Falha ao processar pedido de redefinição:', error instanceof Error ? error.message : 'erro')
+    })
+    res.status(202).json({ message: FORGOT_PASSWORD_MESSAGE })
   } catch (err) {
     next(err)
   }
@@ -70,7 +77,7 @@ export async function resetPassword(
   try {
     const input = ResetPasswordSchema.parse(req.body)
     await authService.resetPassword(input)
-    res.status(200).json({ message: 'Senha redefinida com sucesso' })
+    res.status(200).json({ message: 'Senha redefinida. Entre com a nova senha.' })
   } catch (err) {
     next(err)
   }
