@@ -1,0 +1,47 @@
+name: E-mail semanal
+
+# Segunda-feira, 10h17 de Brasília (13h17 UTC). Também pode ser disparado à mão.
+# Idempotente por semana: uma segunda execução na mesma semana não reenvia.
+on:
+  schedule:
+    - cron: '17 13 * * 1'
+  workflow_dispatch:
+    inputs:
+      send:
+        description: 'Enviar de verdade (false = só contar)'
+        type: boolean
+        default: false
+
+jobs:
+  weekly-email:
+    runs-on: ubuntu-latest
+    # Só roda quando os segredos de produção existem neste repositório.
+    if: ${{ vars.WEEKLY_EMAIL_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx prisma generate
+        working-directory: apps/api
+      - name: Enviar
+        working-directory: apps/api
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          APP_URL: https://kuaa-web.vercel.app
+          MAIL_TRANSPORT: smtp
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.send }}" = "true" ]; then
+            npm run weekly-email -- --send
+          else
+            npm run weekly-email
+          fi
