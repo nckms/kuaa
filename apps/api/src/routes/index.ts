@@ -14,8 +14,24 @@ import { evaluationRouter } from '../modules/evaluation/evaluation.routes'
 import { diagnosticRouter } from '../modules/diagnostic/diagnostic.routes'
 import { studyRouter } from '../modules/study/study.routes'
 import { essaysRouter } from '../modules/essays/essays.routes'
+import { prisma } from '../lib/prisma'
+import { billingRouter } from '../modules/billing/billing.routes'
+import { redis } from '../lib/redis'
 
 export const router = Router()
+
+router.get('/ready', async (req, res) => {
+  if (req.app.locals.shuttingDown) { res.status(503).json({ status: 'unavailable' }); return }
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SET LOCAL statement_timeout = '2000ms'`
+      await tx.$queryRaw`SELECT 1`
+    }, { maxWait: 2000, timeout: 3000 })
+    res.json({ status: 'ready', database: 'ready', cache: redis.status === 'ready' ? 'ready' : 'degraded' })
+  } catch {
+    res.status(503).json({ status: 'unavailable', database: 'unavailable' })
+  }
+})
 
 router.get('/health', (_req, res) => {
   res.json({ status: 'ok', project: 'Kuaa API', timestamp: new Date(),
@@ -29,6 +45,7 @@ router.get('/ping', (_req, res) => {
 
 router.use('/auth', authRouter)
 router.use('/users', usersRouter)
+router.use('/billing', billingRouter)
 router.use('/vestibulares', vestibularesRouter)
 router.use('/enrollments', enrollmentsRouter)
 router.use('/trail', trailRouter)

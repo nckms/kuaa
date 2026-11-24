@@ -90,6 +90,8 @@ beforeAll(async () => {
   env.GEMINI_API_KEY = 'mock-only-not-a-real-key'
   fakeProvider()
   const account = await registerAndLogin('adaptive_journey')
+  // Jornada longa (muitas práticas no mesmo dia): conta Plus para não esbarrar na cota diária do gratuito.
+  await testPrisma.user.update({ where: { id: account.userId }, data: { plan: 'PLUS', planExpiresAt: null } })
   token = account.token
   email = account.email
   password = account.password

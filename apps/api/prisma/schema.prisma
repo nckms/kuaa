@@ -9,6 +9,7 @@ datasource db {
 
 enum Plan {
   FREE
+  PLUS
 }
 
 enum QuestionSource {
@@ -32,6 +33,7 @@ model User {
   state          String?
   avatarUrl      String?
   plan           Plan      @default(FREE)
+  planExpiresAt  DateTime?
   xp             Int       @default(0)
   level          Int       @default(1)
   streakDays     Int       @default(0)
@@ -57,6 +59,8 @@ model User {
   sabiaMessages SabiaMessage[]
   sabiaConversations SabiaConversation[]
   essays EssayDraft[]
+  planGrants PlanGrant[]
+  emailLogs EmailLog[]
 }
 
 model RefreshToken {
@@ -321,4 +325,29 @@ model SabiaConversation {
   messages SabiaMessage[]
 
   @@index([userId, updatedAt])
+}
+
+model PlanGrant {
+  id        String   @id @default(cuid())
+  userId    String
+  plan      Plan
+  expiresAt DateTime
+  source    String
+  reference String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([source, reference])
+  @@index([userId, createdAt])
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String
+  kind      String
+  periodKey String
+  sentAt    DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, periodKey])
 }

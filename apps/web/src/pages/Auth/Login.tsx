@@ -48,7 +48,7 @@ export default function Login() {
 
     try {
       const res = await api.post<AuthResponse>('/auth/login', form)
-      setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
+      setAuth(res.data.user, res.data.accessToken)
       try {
         await loadEnrollments()
         const firstSlug = useAuthStore.getState().firstVestibularSlug

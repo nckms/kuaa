@@ -9,7 +9,11 @@
     "test": "vitest run",
     "lint": "eslint . --ext .ts --report-unused-disable-directives --max-warnings 0",
     "mail:dev": "ts-node --transpile-only scripts/dev-mailbox.ts",
-    "test:local": "node scripts/test-local.mjs"
+    "test:local": "node scripts/test-local.mjs",
+    "test:backup": "node scripts/verify-backup.mjs",
+    "metrics": "node scripts/metrics.mjs",
+    "grant-plus": "node scripts/grant-plus.mjs",
+    "weekly-email": "ts-node --transpile-only scripts/weekly-email.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
@@ -28,6 +32,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "nodemailer": "^6.10.1",
+    "stripe": "^23.2.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

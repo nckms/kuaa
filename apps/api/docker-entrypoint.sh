@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-npx prisma db push
-npx prisma db seed
+npx prisma migrate deploy
 
 exec "$@"

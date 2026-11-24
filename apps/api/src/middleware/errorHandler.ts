@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { ZodError } from 'zod'
+import { AppError } from '../utils/errors'
 
 interface ApiError extends Error {
   statusCode?: number
@@ -11,6 +12,7 @@ interface ErrorResponse {
   code: string
   statusCode: number
   details?: unknown
+  requestId?: string
 }
 
 export function errorHandler(
@@ -30,14 +32,19 @@ export function errorHandler(
     return
   }
 
-  const statusCode = err.statusCode ?? 500
+  const suppliedStatus = err.statusCode
+  const statusCode = suppliedStatus && suppliedStatus >= 400 && suppliedStatus <= 599 ? suppliedStatus : 500
+  const internal = statusCode >= 500
+  const expected = err instanceof AppError
   const response: ErrorResponse = {
-    error: err.message || 'Erro interno do servidor',
-    code: err.code ?? 'INTERNAL_ERROR',
+    error: expected ? err.message : (internal ? 'Erro interno do servidor. Tente novamente.' : 'Requisicao invalida'),
+    code: expected ? err.code : (internal ? 'INTERNAL_ERROR' : 'INVALID_REQUEST'),
     statusCode,
+    requestId: res.locals.requestId,
   }
 
-  console.error('[Error]', err.message, err.stack)
+  // Do not log exception messages/stacks: database/provider errors may contain user data.
+  console.error(JSON.stringify({ event: 'request_error', requestId: res.locals.requestId, statusCode }))
 
   res.status(statusCode).json(response)
 }

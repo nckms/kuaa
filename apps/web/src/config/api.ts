@@ -1,19 +1,2 @@
-const LOCAL_API_URL = '/api/v1'
-const PRODUCTION_API_URL = 'https://kuaa-tcc-api-production-01b2.up.railway.app/api/v1'
-
-function normalizeBaseUrl(value: string | undefined): string | null {
-  const trimmed = value?.trim()
-  if (!trimmed || trimmed === 'undefined' || trimmed === 'null') return null
-  return trimmed.replace(/\/+$/, '')
-}
-
-function inferDefaultApiUrl(): string {
-  if (typeof window === 'undefined') return LOCAL_API_URL
-
-  const hostname = window.location.hostname
-  if (hostname === 'localhost' || hostname === '127.0.0.1') return LOCAL_API_URL
-
-  return PRODUCTION_API_URL
-}
-
-export const API_BASE_URL = normalizeBaseUrl(import.meta.env.VITE_API_URL) ?? inferDefaultApiUrl()
+// Same-origin proxy: no third-party cookies. Native apps use the public API URL.
+export const API_BASE_URL = '/api/v1'

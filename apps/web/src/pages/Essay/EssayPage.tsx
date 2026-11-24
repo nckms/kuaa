@@ -7,6 +7,7 @@ import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth.store'
 import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import './EssayPage.css'
+import { QuotaNotice, quotaInfo } from '../../components/QuotaNotice'
 
 type ReviewKey = 'respondsToPrompt' | 'argumentSupported' | 'coherenceReviewed' | 'finalReview'
 type Review = Record<ReviewKey, boolean>
@@ -199,7 +200,7 @@ function EssayEditor({ essayId, slug, onLeave }: { essayId: string; slug: string
               <i className="bi bi-stars" aria-hidden="true" />{feedbackMutation.isPending ? 'Analisando texto...' : 'Solicitar análise por IA'}</button>
           </>}
           {feedbackMutation.isError && <div className="essay-feedback-alert" role="alert">
-            {axios.isAxiosError(feedbackMutation.error) && feedbackMutation.error.response?.status === 503
+            {quotaInfo(feedbackMutation.error) ? <QuotaNotice error={feedbackMutation.error} className="" fallback="" /> : axios.isAxiosError(feedbackMutation.error) && feedbackMutation.error.response?.status === 503
               ? 'A análise por IA está indisponível no momento. Seu texto permanece salvo; tente novamente mais tarde.'
               : axios.isAxiosError(feedbackMutation.error) && feedbackMutation.error.response?.status === 409
                 ? 'A análise já está em andamento. Aguarde e atualize o resultado.'

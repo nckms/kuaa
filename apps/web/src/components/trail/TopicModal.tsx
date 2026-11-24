@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import type { TrailSubject, TrailTopic } from '../../types/trail'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
 import { subjectTheme } from '../../utils/subjectTheme'
+import { QuotaNotice } from '../QuotaNotice'
 
 interface TopicModalProps {
   topic: TrailTopic | null
@@ -70,7 +71,7 @@ export default function TopicModal({ topic, subject, subjectIndex = 0, onClose }
                   : <><i className="bi bi-play-fill" aria-hidden="true" />{practiceLabel}</>}
               </button>
             </div>
-            {generateMutation.isError && <p role="alert" className="k-alert" style={{ margin: 0 }}>Não foi possível preparar a sessão. Tente novamente.</p>}
+            {generateMutation.isError && <QuotaNotice error={generateMutation.error} fallback="Não foi possível preparar a sessão. Tente novamente." />}
           </>
         )}
       </div>
