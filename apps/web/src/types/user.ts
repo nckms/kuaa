@@ -3,6 +3,7 @@ export interface UserPreferences {
   reducedMotion: boolean
   highContrast: boolean
   enemLanguage?: 'ingles' | 'espanhol'
+  weeklyEmail?: boolean
 }
 
 export interface User {
@@ -15,7 +16,8 @@ export interface User {
   city?: string
   state?: string
   avatarUrl?: string
-  plan: 'FREE'
+  plan: 'FREE' | 'PLUS'
+  planExpiresAt?: string | null
   xp: number
   level: number
   streakDays: number
@@ -28,5 +30,4 @@ export interface User {
 export interface AuthResponse {
   user: User
   accessToken: string
-  refreshToken: string
 }

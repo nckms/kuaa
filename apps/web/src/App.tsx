@@ -5,6 +5,8 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './lib/queryClient'
 import { useAuthStore } from './stores/auth.store'
 import Home from './pages/Home'
+import PlansPage from './pages/Plans/PlansPage'
+import Unsubscribe from './pages/Auth/Unsubscribe'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import ForgotPassword from './pages/Auth/ForgotPassword'
@@ -80,6 +82,8 @@ function AppRoutes() {
       <Route path="/entrar" element={<Login />} />
       <Route path="/cadastro" element={<Register />} />
       <Route path="/esqueci-senha" element={<ForgotPassword />} />
+      <Route path="/planos" element={<PlansPage />} />
+      <Route path="/descadastrar" element={<Unsubscribe />} />
       <Route path="/redefinir-senha" element={<ResetPassword />} />
 
       <Route element={<ProtectedRoute />}>

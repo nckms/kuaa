@@ -2,81 +2,32 @@ import axios from 'axios'
 import type { InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '../stores/auth.store'
 import { API_BASE_URL } from '../config/api'
+import { NoBrowserSession, refreshAccessToken } from './browserAuth'
 
-export const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-})
-
+export const api = axios.create({ baseURL: API_BASE_URL, withCredentials: true,
+  headers: { 'Content-Type': 'application/json', 'X-Kuaa-Client': 'web' } })
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = useAuthStore.getState().accessToken
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
-
-let isRefreshing = false
-let failedQueue: Array<{
-  resolve: (token: string) => void
-  reject: (err: unknown) => void
-}> = []
-
-function processQueue(err: unknown, token: string | null): void {
-  failedQueue.forEach((p) => (err ? p.reject(err) : p.resolve(token!)))
-  failedQueue = []
-}
-
-api.interceptors.response.use(
-  (response) => response,
-  async (error: unknown) => {
-    if (!axios.isAxiosError(error)) return Promise.reject(error)
-
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
-    const isAuthRoute = originalRequest.url?.includes('/auth')
-
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject })
-        }).then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`
-          return api(originalRequest)
-        })
-      }
-
-      originalRequest._retry = true
-      isRefreshing = true
-
-      const { refreshToken, setAuth, logout, user } = useAuthStore.getState()
-
-      if (!refreshToken) {
-        isRefreshing = false
-        await logout()
-        window.location.href = '/entrar'
-        return Promise.reject(error)
-      }
-
-      try {
-        const res = await axios.post<{ accessToken: string }>(
-          `${API_BASE_URL}/auth/refresh`,
-          { refreshToken },
-        )
-        const { accessToken } = res.data
-        if (user) setAuth(user, accessToken, refreshToken, { preserveEnrollments: true })
-        processQueue(null, accessToken)
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`
-        return api(originalRequest)
-      } catch (refreshErr) {
-        processQueue(refreshErr, null)
-        await logout()
-        window.location.href = '/entrar'
-        return Promise.reject(refreshErr)
-      } finally {
-        isRefreshing = false
-      }
+api.interceptors.response.use((response) => response, async (error: unknown) => {
+  if (!axios.isAxiosError(error) || !error.config) return Promise.reject(error)
+  const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
+  if (error.response?.status !== 401 || original._retry || original.url?.includes('/auth')) return Promise.reject(error)
+  original._retry = true
+  const userId = useAuthStore.getState().user?.id
+  try {
+    const accessToken = await refreshAccessToken()
+    if (useAuthStore.getState().user?.id !== userId || !useAuthStore.getState().isAuthenticated) return Promise.reject(error)
+    useAuthStore.setState({ accessToken })
+    original.headers.Authorization = `Bearer ${accessToken}`
+    return api(original)
+  } catch (refreshError) {
+    if (refreshError instanceof NoBrowserSession || (axios.isAxiosError(refreshError) && [400, 401].includes(refreshError.response?.status ?? 0))) {
+      await useAuthStore.getState().logout()
+      window.location.assign('/entrar')
     }
-
-    return Promise.reject(error)
-  },
-)
+    return Promise.reject(refreshError)
+  }
+})

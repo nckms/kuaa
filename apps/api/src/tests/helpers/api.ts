@@ -1,9 +1,12 @@
 import request from 'supertest'
 import { app } from '../../app'
+import { authLimitStores } from '../../middleware/authRateLimit'
 
 export const api = request(app)
 
 export async function registerAndLogin(suffix: string = String(Date.now())) {
+  // Account fixture setup must not consume the shared IP's authentication budget.
+  for (const store of authLimitStores) await store.resetAll()
   const email = `test_${suffix}@kuaa-test.com`
   const password = 'Senha123!'
 

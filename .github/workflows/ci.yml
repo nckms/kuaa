@@ -2,13 +2,27 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test_only_password
+          POSTGRES_DB: kuaa_test
+        ports:
+          - 55433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d kuaa_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:test_only_password@127.0.0.1:55433/kuaa_test
 
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +33,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build all workspaces
-        run: npm run build
+        run: npm run build:all
+
+      - name: Test API against disposable database
+        run: npm run test:local --workspace=apps/api

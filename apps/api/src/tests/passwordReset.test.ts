@@ -105,8 +105,10 @@ describe('recuperação de senha', () => {
     expect(results.map((res) => res.status).sort()).toEqual([200, 400])
   })
 
-  it('limita pedidos repetidos sem depender do Redis', async () => {
-    const res = await forgot(account.email)
+  it('limita pedidos repetidos sem depender do Redis (por conta, não pelo IP do proxy)', async () => {
+    const email = 'limite_reset@kuaa-test.com'
+    for (let i = 0; i < 5; i++) await forgot(email)
+    const res = await forgot(email)
     expect(res.status).toBe(429)
     expect(res.body.code).toBe('RATE_LIMIT_EXCEEDED')
   })

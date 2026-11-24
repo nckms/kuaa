@@ -10,6 +10,7 @@ import { simuladoCardState } from './simuladoCard'
 import { subjectTheme, subjectThemeByName } from '../../utils/subjectTheme'
 import { formatStudyTime, indexBand, sparkPoints, topicProgressScore } from '../../utils/kuaaIndex'
 import './DashboardPage.css'
+import { QuotaNotice } from '../../components/QuotaNotice'
 
 const DAYS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
 const WEEK_TARGET = 5
@@ -84,7 +85,7 @@ export default function DashboardPage() {
           </button>
           <Link to={trailHref} className="k-btn k-btn-ghost-light">Ver trilha</Link>
         </div>
-        {generateQuiz.isError && <p role="alert" className="dash-hero-error">Não foi possível preparar a sessão. Tente novamente.</p>}
+        {generateQuiz.isError && <QuotaNotice error={generateQuiz.error} className="dash-hero-error" fallback="Não foi possível preparar a sessão. Tente novamente." />}
       </section>
 
       <section className="k-card dash-week" aria-labelledby="week-goal">

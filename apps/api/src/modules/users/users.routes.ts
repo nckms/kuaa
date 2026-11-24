@@ -1,3 +1,5 @@
+import { verifyUnsubscribeToken } from '../engagement/weeklyEmail'
+import { planSummary } from '../plans/entitlements'
 import { Router } from 'express'
 import type { Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
@@ -12,6 +14,7 @@ const PreferencesSchema = z.object({
   reducedMotion: z.boolean().default(false),
   highContrast: z.boolean().default(false),
   enemLanguage: z.enum(['ingles', 'espanhol']).default('ingles'),
+  weeklyEmail: z.boolean().default(true),
 })
 
 function preferencesWithDefaults(value: unknown) {
@@ -38,6 +41,7 @@ const safeSelect = {
   state: true,
   avatarUrl: true,
   plan: true,
+  planExpiresAt: true,
   xp: true,
   level: true,
   streakDays: true,
@@ -50,6 +54,25 @@ const safeSelect = {
   preferences: true,
   activeVestibularId: true,
 } as const
+
+// Descadastro do e-mail semanal pelo link do próprio e-mail (sem login).
+usersRouter.post('/unsubscribe', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { token } = z.object({ token: z.string().min(10).max(300) }).parse(req.body)
+    const userId = verifyUnsubscribeToken(token)
+    if (!userId) throw makeError('Link de descadastro inválido.', 400, 'INVALID_TOKEN')
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { preferences: true } })
+    if (user) {
+      await prisma.user.update({ where: { id: userId },
+        data: { preferences: { ...preferencesWithDefaults(user.preferences), weeklyEmail: false } } })
+    }
+    res.json({ ok: true })
+  } catch (err) { next(err) }
+})
+
+usersRouter.get('/me/plan', requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try { res.json(await planSummary(req.userId!)) } catch (err) { next(err) }
+})
 
 usersRouter.get('/me', requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

@@ -5,6 +5,8 @@ import { isAxiosError } from 'axios'
 import { useAuthStore } from '../../stores/auth.store'
 import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import './SabiaPage.css'
+import { Link } from 'react-router-dom'
+import { quotaInfo } from '../../components/QuotaNotice'
 
 const CHIPS = ['Explica concessão vs. adversativa', 'Me dá 3 questões de porcentagem', 'Como estruturar uma redação?', 'Resumo de Era Vargas']
 
@@ -33,7 +35,8 @@ function SabiaConversation() {
   const messages = history.data ?? []
   const blocked = isPending || (!history.data && !history.isSuccess)
   const sendingRef = useRef(false)
-  const errorText = isAxiosError(error) && error.response?.status === 503
+  const quota = quotaInfo(error)
+  const errorText = quota ? quota.message : isAxiosError(error) && error.response?.status === 503
     ? 'A Sabiá está indisponível no momento. Sua mensagem foi mantida; tente novamente em instantes.'
     : isAxiosError(error) && error.response?.status === 429
       ? 'Muitas mensagens em pouco tempo. Aguarde um minuto e tente novamente.'
@@ -153,7 +156,7 @@ function SabiaConversation() {
                 </>
               )}
               {error && <div role="alert" className="k-alert">
-                <p style={{ margin: '0 0 10px' }}>{errorText}</p>
+                <p style={{ margin: '0 0 10px' }}>{errorText}{quota?.upgrade && <> <Link to={quota.upgrade} style={{ fontWeight: 600, textDecoration: 'underline' }}>Conhecer o Kuaa Plus</Link></>}</p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button type="button" className="k-btn k-btn-primary is-sm" onClick={() => send()} disabled={blocked || !input.trim()}>Tentar novamente</button>
                   <button type="button" className="k-btn k-btn-outline is-sm" onClick={() => void history.refetch()} disabled={isPending || history.isFetching}>Recarregar histórico</button>

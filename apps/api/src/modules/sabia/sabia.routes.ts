@@ -1,3 +1,4 @@
+import { requireQuota } from '../plans/entitlements'
 import { Router } from 'express'
 import { requireAuth } from '../../middleware/requireAuth'
 import { sabiaRateLimit } from '../../middleware/sabiaRateLimit'
@@ -8,4 +9,4 @@ export const sabiaRouter = Router()
 sabiaRouter.use(requireAuth)
 sabiaRouter.get('/history', history)
 sabiaRouter.get('/conversations', conversations)
-sabiaRouter.post('/ask', sabiaRateLimit, ask)
+sabiaRouter.post('/ask', sabiaRateLimit, requireQuota('sabia'), ask)

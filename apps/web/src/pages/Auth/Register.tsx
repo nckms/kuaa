@@ -80,7 +80,7 @@ export default function Register() {
 
     try {
       const res = await api.post<AuthResponse>('/auth/register', payload)
-      setAuth(res.data.user, res.data.accessToken, res.data.refreshToken)
+      setAuth(res.data.user, res.data.accessToken)
       try {
         const enrollments = await loadEnrollments()
         const firstSlug = enrollments[0]?.vestibular.slug

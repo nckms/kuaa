@@ -5,6 +5,7 @@ import AppLayout from '../../components/layout/AppLayout'
 import { useGenerateQuiz } from '../../hooks/useQuiz'
 import { api } from '../../services/api'
 import './StudyPage.css'
+import { QuotaNotice } from '../../components/QuotaNotice'
 
 interface Guide {
   objective: string
@@ -118,7 +119,7 @@ export default function StudyPage() {
               : <p><strong>Tente outra vez.</strong> {guide.commonMistake}</p>}
           </div>}
         </section>
-        {generate.isError && <p role="alert" className="k-alert">Não foi possível preparar as questões. Tente novamente.</p>}
+        {generate.isError && <QuotaNotice error={generate.error} fallback="Não foi possível preparar as questões. Tente novamente." />}
       </article>
 
       <div className="study-float">

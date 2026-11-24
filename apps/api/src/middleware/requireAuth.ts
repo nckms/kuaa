@@ -24,7 +24,10 @@ export async function requireAuth(
 
     let payload: AccessTokenPayload
     try {
-      payload = jwt.verify(token, env.JWT_SECRET) as AccessTokenPayload
+      payload = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] }) as AccessTokenPayload
+      if (!payload || typeof payload.userId !== 'string' || !payload.userId) {
+        throw new Error('Invalid payload')
+      }
     } catch {
       throw makeError('Token inválido ou expirado', 401, 'INVALID_TOKEN')
     }

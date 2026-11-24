@@ -8,6 +8,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 COPY prisma ./prisma
+COPY scripts ./scripts
 COPY src ./src
 COPY tsconfig.json ./tsconfig.json
 COPY docker-entrypoint.sh ./docker-entrypoint.sh

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { authLimitStores } from '../../middleware/authRateLimit'
 
 const prisma = new PrismaClient()
 
@@ -7,6 +8,7 @@ const prisma = new PrismaClient()
  * Preserva Vestibular, Subject, Topic e Achievement (dados do seed).
  */
 export async function truncateUserData(): Promise<void> {
+  for (const store of authLimitStores) await store.resetAll()
   // Ordem respeita FK constraints
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE

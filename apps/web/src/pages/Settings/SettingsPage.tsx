@@ -62,9 +62,10 @@ export default function SettingsPage() {
     navigate('/')
   }
 
-  const toggles: { key: 'reducedMotion' | 'highContrast'; label: string; desc: string }[] = [
+  const toggles: { key: 'reducedMotion' | 'highContrast' | 'weeklyEmail'; label: string; desc: string }[] = [
     { key: 'reducedMotion', label: 'Reduzir movimento', desc: 'Desliga confetes, contagens e animações de pulso' },
     { key: 'highContrast', label: 'Alto contraste', desc: 'Fundo escuro com bordas e textos mais fortes' },
+    { key: 'weeklyEmail', label: 'E-mail semanal', desc: 'Um e-mail por semana com o próximo tópico da sua trilha' },
   ]
 
   return (

@@ -13,6 +13,8 @@ const envSchema = z.object({
   SABIA_MODEL: z.string().default('gemini-3.5-flash-lite'),
   REDIS_URL: z.string().optional(),
   FRONTEND_URL: z.string().optional(),
+  // Explicit proxy IPs/CIDRs, never blindly trust all forwarded headers.
+  TRUST_PROXY: z.string().default(''),
   // URL pública do site (sem barra final), usada nos links enviados por e-mail.
   APP_URL: z.string().url().optional(),
   // Entrega de e-mail (recuperação de senha):
@@ -26,6 +28,12 @@ const envSchema = z.object({
   SMTP_SECURE: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
+  // Pagamentos (Stripe). Sem STRIPE_SECRET_KEY a venda fica desligada.
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PLUS_LOOKUP_KEY: z.string().default('kuaa_plus_enem_2027'),
+  // Fim do acesso do Plus vendido agora (data no horário de Brasília).
+  PLUS_EXPIRES_AT: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).default('2027-12-31'),
   PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().min(5).max(120).default(30),
 })
 

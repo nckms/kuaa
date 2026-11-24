@@ -3,6 +3,6 @@
     "cmd": "npx prisma generate && npm run build"
   },
   "deploy": {
-    "cmd": "npx prisma db push --accept-data-loss && npx prisma db seed && node dist/index.js"
+    "cmd": "node scripts/reconcile-migrations.mjs && npx prisma migrate deploy && node dist/index.js"
   }
 }

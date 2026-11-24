@@ -15,7 +15,8 @@ export const LoginSchema = z.object({
 })
 
 export const RefreshSchema = z.object({
-  refreshToken: z.string().min(1),
+  refreshToken: z.string().min(1).max(200).refine((value) => !value.startsWith('sha256:'), 'Token invalido'),
+  rotate: z.boolean().optional(),
 })
 
 export const ForgotPasswordSchema = z.object({

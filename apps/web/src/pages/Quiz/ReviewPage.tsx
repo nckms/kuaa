@@ -4,6 +4,7 @@ import QuestionMedia from '../../components/quiz/QuestionMedia'
 import type { ReviewQuestion } from '../../types/quiz'
 import { useGenerateQuiz, useSessionSummary } from '../../hooks/useQuiz'
 import './ReviewPage.css'
+import { QuotaNotice } from '../../components/QuotaNotice'
 
 interface LocationState {
   questions: ReviewQuestion[]
@@ -102,7 +103,7 @@ export default function ReviewPage() {
                     onClick={() => { if (topicId) generateQuiz.mutate({ topicId, sourceQuestionId: q.id, count: 3 }) }}>
                     <i className="bi bi-play-fill" aria-hidden="true" />{generateQuiz.isPending && generateQuiz.variables?.sourceQuestionId === q.id ? 'Preparando questões...' : 'Praticar este erro'}
                   </button>
-                  {generateQuiz.isError && generateQuiz.variables?.sourceQuestionId === q.id && <p role="alert">Não foi possível preparar a prática. Tente novamente.</p>}
+                  {generateQuiz.isError && generateQuiz.variables?.sourceQuestionId === q.id && <QuotaNotice error={generateQuiz.error} className="" fallback="Não foi possível preparar a prática. Tente novamente." />}
                 </div>
               )}
             </article>

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
 import { authService } from './auth.service'
+import { assertBrowserOrigin, browserToken, clearBrowserSession, isBrowserSession, setBrowserSession } from './browserSession'
 import {
   RegisterSchema,
   LoginSchema,
@@ -10,9 +11,13 @@ import {
 
 export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (isBrowserSession(req)) assertBrowserOrigin(req)
     const input = RegisterSchema.parse(req.body)
     const result = await authService.register(input)
-    res.status(201).json(result)
+    if (isBrowserSession(req)) {
+      setBrowserSession(res, result.refreshToken)
+      res.status(201).json({ user: result.user, accessToken: result.accessToken })
+    } else res.status(201).json(result)
   } catch (err) {
     next(err)
   }
@@ -20,9 +25,13 @@ export async function register(req: Request, res: Response, next: NextFunction):
 
 export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (isBrowserSession(req)) assertBrowserOrigin(req)
     const input = LoginSchema.parse(req.body)
     const result = await authService.login(input)
-    res.status(200).json(result)
+    if (isBrowserSession(req)) {
+      setBrowserSession(res, result.refreshToken)
+      res.status(200).json({ user: result.user, accessToken: result.accessToken })
+    } else res.status(200).json(result)
   } catch (err) {
     next(err)
   }
@@ -30,8 +39,16 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
 
 export async function refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { refreshToken } = RefreshSchema.parse(req.body)
-    const result = await authService.refresh(refreshToken)
+    if (isBrowserSession(req)) {
+      assertBrowserOrigin(req)
+      const { refreshToken } = RefreshSchema.parse({ refreshToken: browserToken(req) ?? req.body?.refreshToken })
+      const result = await authService.refresh(refreshToken, true)
+      setBrowserSession(res, result.refreshToken!)
+      res.status(200).json({ accessToken: result.accessToken })
+      return
+    }
+    const { refreshToken, rotate } = RefreshSchema.parse(req.body)
+    const result = await authService.refresh(refreshToken, rotate)
     res.status(200).json(result)
   } catch (err) {
     next(err)
@@ -40,6 +57,14 @@ export async function refresh(req: Request, res: Response, next: NextFunction): 
 
 export async function logout(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
+    if (isBrowserSession(req)) {
+      assertBrowserOrigin(req)
+      const token = browserToken(req)
+      if (token) await authService.logout(RefreshSchema.parse({ refreshToken: token }).refreshToken)
+      clearBrowserSession(res)
+      res.status(204).end()
+      return
+    }
     const { refreshToken } = RefreshSchema.parse(req.body)
     await authService.logout(refreshToken)
     res.status(204).end()

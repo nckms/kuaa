@@ -1,3 +1,4 @@
+import { requireQuota } from '../plans/entitlements'
 import { Router } from 'express'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma'
@@ -95,7 +96,7 @@ essaysRouter.post('/:id/submit', async (req, res, next) => {
   } catch (error) { next(error) }
 })
 
-essaysRouter.post('/:id/feedback', async (req, res, next) => {
+essaysRouter.post('/:id/feedback', requireQuota('essayFeedback'), async (req, res, next) => {
   try {
     z.object({ aiConsent: z.literal(true) }).strict().parse(req.body)
     const essay = await ownEssay(req.userId!, String(req.params.id))

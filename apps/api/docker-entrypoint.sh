@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-npx prisma db push
-npx prisma db seed
+node scripts/reconcile-migrations.mjs
+npx prisma migrate deploy
 
 exec "$@"

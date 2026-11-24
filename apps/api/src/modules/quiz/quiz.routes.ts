@@ -1,3 +1,4 @@
+import { requireQuota } from '../plans/entitlements'
 import { Router } from 'express'
 import { requireAuth } from '../../middleware/requireAuth'
 import { quizGenerateRateLimit } from '../../middleware/quizGenerateRateLimit'
@@ -5,7 +6,7 @@ import * as quizController from './quiz.controller'
 
 export const quizRouter = Router()
 
-quizRouter.post('/generate', requireAuth, quizGenerateRateLimit, quizController.generate)
+quizRouter.post('/generate', requireAuth, quizGenerateRateLimit, requireQuota('practice'), quizController.generate)
 quizRouter.get('/job/:jobId', requireAuth, quizController.getJobStatus)
 quizRouter.get('/topic/:topicId/resume', requireAuth, quizController.resume)
 quizRouter.get('/:sessionId/summary', requireAuth, quizController.getSummary)
