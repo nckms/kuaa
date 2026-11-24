@@ -13,7 +13,8 @@
     "test:backup": "node scripts/verify-backup.mjs",
     "metrics": "node scripts/metrics.mjs",
     "grant-plus": "node scripts/grant-plus.mjs",
-    "weekly-email": "ts-node --transpile-only scripts/weekly-email.ts"
+    "weekly-email": "ts-node --transpile-only scripts/weekly-email.ts",
+    "db:migrate": "node scripts/reconcile-migrations.mjs && prisma migrate deploy"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

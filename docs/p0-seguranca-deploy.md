@@ -99,7 +99,11 @@ npx prisma migrate diff --from-url "$env:DATABASE_URL" --to-schema-datamodel pri
 # recontar as tabelas sensiveis e comparar com os numeros acima
 ```
 
-### Producao (passo irreversivel; executar so depois do clone ok e com backup recente)
+### Automatizado no deploy (adotado)
+
+`scripts/reconcile-migrations.mjs` roda no pre-deploy do Railway (`npm run db:migrate` = reconcile + `prisma migrate deploy`). Ele registra uma migration da lista so quando TODA a estrutura dela ja existe no banco, deixa para o migrate deploy as ausentes e aborta (exit 1, deploy falha e a versao anterior segue no ar) se encontrar estrutura parcial. Nunca cria nem apaga tabelas/dados. Ensaiado em 24/11/2026 num fork do ambiente de producao no Railway (copia copy-on-write do banco real): 5 migrations registradas, 3 aplicadas, schema sem diferenca, contagens iguais (42 usuarios, 118 respostas, 55 sessoes, 3.013 progressos, 122 mensagens e 23 conversas do Sabia, 6 redacoes, 56 matriculas, 18 simulados). Cenarios testados localmente: estado da producao, segundo boot, estrutura parcial, banco novo.
+
+### Producao manual (alternativa; executar so com backup recente)
 
 ```powershell
 # 1. Backup novo imediatamente antes (pg_dump -Fc, credenciais por variavel/arquivo protegido).
