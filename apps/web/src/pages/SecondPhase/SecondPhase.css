@@ -1,0 +1,26 @@
+.sp2-subject { margin: 16px 0; }
+.sp2-subject h2 { margin: 0 0 8px; }
+.sp2-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }
+.sp2-list a { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; row-gap: 2px; text-decoration: none; color: inherit; }
+.sp2-list a .k-mono { grid-row: span 2; color: var(--k-roxo, #531A61); font-weight: 700; }
+.sp2-list small { color: var(--k-muted); font-size: 12px; }
+.sp2-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; font-weight: 600; }
+.sp2-answer { display: grid; gap: 6px; margin: 16px 0 10px; font-weight: 600; font-size: 14px; }
+.sp2-answer textarea { font: inherit; font-weight: 400; font-size: 16px; line-height: 1.5; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--k-line, #ddd); resize: vertical; }
+.sp2-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.sp2-upsell { display: grid; gap: 10px; justify-items: start; margin-bottom: 12px; }
+.sp2-upsell p { margin: 0; }
+.sp2-result { background: #fff; border: 1px solid var(--k-line, #eee); border-radius: 18px; padding: 16px; margin: 12px 0; }
+.sp2-score { display: flex; align-items: baseline; gap: 8px; }
+.sp2-score strong { font-size: 36px; color: var(--k-roxo, #531A61); }
+.sp2-score span { color: var(--k-muted); font-size: 14px; }
+.sp2-result ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.sp2-result li { padding: 10px 12px; border-radius: 12px; background: var(--k-bg, #f6f3f7); border-left: 4px solid #C9A227; font-size: 14px; }
+.sp2-result li.is-correta { border-left-color: var(--k-verde, #1f7a52); }
+.sp2-result li.is-incorreta, .sp2-result li.is-em-branco { border-left-color: var(--k-vinho, #840033); }
+.sp2-result li p { margin: 4px 0 0; }
+.sp2-expected { margin: 12px 0; }
+.sp2-expected h2 { margin: 0 0 8px; }
+.sp2-expected h3 { font-size: 14px; margin: 12px 0 4px; }
+.sp2-pre { white-space: pre-wrap; font-size: 14px; line-height: 1.55; margin: 0; }
+.sp2-history details { margin: 8px 0; }

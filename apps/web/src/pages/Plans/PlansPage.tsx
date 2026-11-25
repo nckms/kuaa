@@ -28,6 +28,8 @@ const ROWS: Array<[string, string, string]> = [
   ['Resumo mensal para o responsável', 'Incluído', 'Incluído'],
   ['Raio-X dos erros: por que você erra e plano da semana', '—', 'Incluído'],
   ['Plano diário até a prova, com meta de nota por área', '—', 'Incluído'],
+  ['2ª fase da Fuvest: questões reais e resposta esperada', 'Incluído', 'Incluído'],
+  ['2ª fase da Fuvest: correção da sua resposta pelo critério da banca', '—', '20 por dia'],
   ['Nota TRI estimada nas provas anteriores', 'Incluído', 'Incluído'],
   ['Simulado semanal', 'Incluído', 'Incluído'],
   ['Sessões de prática', '5 por dia', '40 por dia'],

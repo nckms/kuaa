@@ -77,6 +77,7 @@ model User {
   studentVerifications StudentVerification[]
   Guardian             Guardian?
   EssayCorrection      EssayCorrection[]
+  SecondPhaseAnswer    SecondPhaseAnswer[]
 }
 
 model RefreshToken {
@@ -522,4 +523,20 @@ model EssayCorrection {
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+/// Resposta do aluno a uma questão dissertativa da 2ª fase (Fuvest/Unicamp), corrigida pela IA (Plus).
+model SecondPhaseAnswer {
+  id         String   @id @default(cuid())
+  userId     String
+  /// Id da questão em prisma/official/segunda-fase.json (ex.: fuvest2025-biol-01).
+  questionId String
+  answer     String   @db.Text
+  result     Json
+  score      Float
+  maxScore   Float
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, questionId, createdAt])
 }
