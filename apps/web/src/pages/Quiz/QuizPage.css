@@ -97,3 +97,7 @@
 .qz-level-dots { display: inline-flex; gap: 3px; }
 .qz-level-dots i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .25; }
 .qz-level-dots i.is-on { opacity: 1; }
+.qz-reason { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; }
+.qz-reason > span { opacity: .8; margin-right: 2px; }
+.qz-reason button { border: 1px solid rgba(255,255,255,.35); background: transparent; color: inherit; border-radius: 999px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
+.qz-reason button[aria-pressed="true"] { background: #fff; color: #840033; border-color: #fff; font-weight: 600; }

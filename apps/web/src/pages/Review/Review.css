@@ -15,3 +15,13 @@
 .rv-next { justify-self: start; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--k-roxo-soft, #f3e8f6); color: var(--k-roxo, #531A61); }
 .rv-next.is-due { background: #FFF4D6; color: #7A5A00; }
 @media (max-width: 420px) { .rv-stats strong { font-size: 22px; } }
+.rv-upsell { display: grid; gap: 12px; justify-items: start; }
+.rv-upsell p { margin: 0; }
+.rv-dominant { margin-bottom: 16px; background: #FFF4D6; border-color: #F2D27A; }
+.rv-dominant p { margin: 4px 0 0; }
+.rx-bars { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
+.rx-bars li { display: grid; grid-template-columns: minmax(120px, 1fr) 2fr auto; align-items: center; gap: 10px; font-size: 14px; }
+.rx-bar { height: 8px; background: var(--k-line-soft, #eee); border-radius: 999px; overflow: hidden; }
+.rx-bar > span { display: block; height: 100%; background: var(--k-roxo, #531A61); border-radius: inherit; }
+.rx-actions { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 15px; line-height: 1.5; }
+.rv-link-plus { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; margin: 0 0 16px; }
