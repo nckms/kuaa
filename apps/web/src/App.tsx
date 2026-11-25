@@ -36,6 +36,8 @@ import ExamsPage from './pages/Exams/ExamsPage'
 import ErrorNotebookPage from './pages/Review/ErrorNotebookPage'
 import MistakeInsightsPage from './pages/Review/MistakeInsightsPage'
 import StudyPlanPage from './pages/Plan/StudyPlanPage'
+import SecondPhaseListPage from './pages/SecondPhase/SecondPhaseListPage'
+import SecondPhaseQuestionPage from './pages/SecondPhase/SecondPhaseQuestionPage'
 import ExamAttemptPage from './pages/Exams/ExamAttemptPage'
 import EssayPage from './pages/Essay/EssayPage'
 
@@ -122,6 +124,8 @@ function AppRoutes() {
         <Route path="/erros" element={<ErrorNotebookPage />} />
         <Route path="/raio-x" element={<MistakeInsightsPage />} />
         <Route path="/plano" element={<StudyPlanPage />} />
+        <Route path="/segunda-fase" element={<SecondPhaseListPage />} />
+        <Route path="/segunda-fase/:id" element={<SecondPhaseQuestionPage />} />
         <Route path="/provas/:id" element={<ExamAttemptPage />} />
         <Route path="/sabia" element={<SabiaPage />} />
       </Route>

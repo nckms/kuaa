@@ -22,6 +22,7 @@ import { examsRouter } from '../modules/exams/exams'
 import { reviewRouter } from '../modules/review/review'
 import { insightsRouter } from '../modules/review/insights'
 import { planRouter } from '../modules/plan/studyPlan'
+import { secondPhaseRouter } from '../modules/secondPhase/secondPhase'
 import { guardianRouter } from '../modules/engagement/guardian'
 import { redis } from '../lib/redis'
 
@@ -72,4 +73,5 @@ router.use('/exams', examsRouter)
 router.use('/review', reviewRouter)
 router.use('/insights', insightsRouter)
 router.use('/plan', planRouter)
+router.use('/second-phase', secondPhaseRouter)
 router.use('/guardian', guardianRouter)
