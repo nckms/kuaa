@@ -76,24 +76,39 @@ ${options.map((o) => `${o.id}) ${o.text}`).join('\n').slice(0, 1500)}`
     }
     await prisma.question.updateMany({ where: { id: q.id, topicSource: null }, data: { topicId: chosen.id, topicSource: 'ai' } })
     return 'classified'
-  } catch {
+  } catch (error) {
+    lastError = error instanceof Error ? error.message.slice(0, 160) : String(error)
     return 'error'
   }
 }
 
-/** Uma questão a cada 4 s; após erro do provedor, espera 2 min. Para sozinho quando acaba. */
+let lastError = ''
+
+/**
+ * Ritmo baixo de propósito: o Gemini tem limite de requisições por minuto
+ * compartilhado com o Sabiá e as explicações dos alunos. 1 questão a cada 12 s
+ * (5/min); após erro, espera 2, 4, 8… até 30 min. Para sozinho quando acaba.
+ */
+export const CLASSIFY_INTERVAL_MS = 12_000
 export function startOfficialClassifier(): void {
   if (!env.GEMINI_API_KEY?.trim() || env.NODE_ENV === 'test') return
   let classified = 0
+  let failures = 0
   const loop = async () => {
     const result = await classifyNextOfficial().catch(() => 'error' as const)
-    if (result === 'classified') classified++
     if (result === 'done') {
-      if (classified) console.log(`[Official] classificação por IA concluída (${classified} nesta execução)`)
+      console.log(`[Official] classificação por IA concluída (${classified} nesta execução)`)
       return
     }
-    if (classified && classified % 200 === 0 && result === 'classified') console.log(`[Official] ${classified} questões classificadas pela IA`)
-    setTimeout(() => void loop(), result === 'error' ? 120_000 : 4_000).unref()
+    if (result === 'error') {
+      failures++
+      if (failures <= 3 || failures % 10 === 0) console.warn(`[Official] classificação falhou (${failures}x seguidas): ${lastError}`)
+    } else {
+      failures = 0
+      if (result === 'classified' && ++classified % 100 === 0) console.log(`[Official] ${classified} questões classificadas pela IA nesta execução`)
+    }
+    const wait = result === 'error' ? Math.min(30 * 60_000, 120_000 * 2 ** Math.min(failures - 1, 4)) : CLASSIFY_INTERVAL_MS
+    setTimeout(() => void loop(), wait).unref()
   }
   setTimeout(() => void loop(), 30_000).unref()
 }
