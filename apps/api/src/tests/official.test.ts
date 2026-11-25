@@ -57,6 +57,20 @@ describe('banco de questões oficiais', () => {
     expect(copies.every((q) => q.source === 'OFFICIAL' && q.officialRefId?.startsWith('cofenem2020q'))).toBe(true)
   })
 
+  it('questão com enunciado inconsistente fica fora da prática', async () => {
+    const topic = await seedOfficial('Interpretação de Texto', 3, 'cofenem2021q')
+    await testPrisma.question.create({ data: {
+      id: 'cofenem2021q165', topicId: topic.id, source: 'OFFICIAL', year: 2021, origin: 'ENEM 2021 · questão 165',
+      body: 'Questão inconsistente.', explanation: '', difficulty: 3,
+      options: ['A', 'B', 'C', 'D', 'E'].map((id) => ({ id, text: `Alt ${id}`, isCorrect: id === 'D' })),
+    } })
+    const s = await student('off_inconsistent', topic.id)
+    const session = await practise(s.token, topic.id, 4)
+    const copies = await testPrisma.question.findMany({ where: { generatedForSessionId: session.sessionId } })
+    expect(copies.filter((q) => q.officialRefId).length).toBe(3)
+    expect(copies.some((q) => q.officialRefId === 'cofenem2021q165')).toBe(false)
+  })
+
   it('erro em questão oficial traz explicação escrita por IA uma vez, guardada para o próximo aluno', async () => {
     generateContent.mockResolvedValue({ text: EXPLANATION } as GenResponse)
     const topic = await seedOfficial('Interpretação de Texto', 3)

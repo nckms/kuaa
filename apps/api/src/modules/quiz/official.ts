@@ -43,6 +43,14 @@ export const OFFICIAL_SIBLINGS: Record<string, string[]> = {
   'Argumentação e Refutação': ['Comunicação Digital e Argumentação'],
 }
 
+/**
+ * Questões oficiais com enunciado inconsistente com o gabarito do INEP (a conta pelo texto não
+ * chega em nenhuma alternativa). Ficam nas provas anteriores, como caíram, mas saem da prática
+ * e do diagnóstico, onde confundiriam o aluno.
+ * - cofenem2021q165: "0,1 L a cada 10 km" dá 19,0 km/L; o gabarito (17,4) só fecha com 0,1 L a cada 20 km.
+ */
+export const INCONSISTENT_OFFICIAL = ['cofenem2021q165']
+
 export interface OfficialPick extends GeneratedQuestion { officialRefId: string; origin: string | null; year: number | null; difficultySource: string | null }
 
 const shuffle = <T>(items: T[]) => items.map((item) => ({ item, r: Math.random() })).sort((a, b) => a.r - b.r).map(({ item }) => item)
@@ -55,7 +63,7 @@ export async function pickOfficial(userId: string, topicName: string, count: num
   })
   const seenIds = seen.map((s) => s.officialRefId!).filter(Boolean)
   const pool = await prisma.question.findMany({
-    where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, topic: { name: { in: names } }, ...(seenIds.length ? { id: { notIn: seenIds } } : {}) },
+    where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, topic: { name: { in: names } }, id: { notIn: [...INCONSISTENT_OFFICIAL, ...seenIds] } },
     select: { id: true, body: true, options: true, explanation: true, explanationByAi: true, difficulty: true, difficultySource: true, origin: true, year: true, imageUrl: true, media: true },
     take: 400,
   })
