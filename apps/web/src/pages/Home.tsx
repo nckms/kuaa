@@ -12,7 +12,7 @@ const EXAMPLE = [
 const STEPS = [
   { t: 'Diagnóstico', d: '12 questões de níveis diferentes mostram por onde começar em cada área.' },
   { t: 'Trilha', d: 'Regras simples olham seus acertos recentes: abaixo do esperado, o tópico volta para revisão; acima, você avança e a dificuldade sobe.' },
-  { t: 'Prática e simulado', d: 'A prática da trilha usa questões geradas por IA a partir de exemplos ou, se ela falhar, do acervo do Kuaa. O simulado semanal usa só o acervo.' },
+  { t: 'Questões reais', d: 'A prática usa questões oficiais do ENEM de 2009 a 2023, com ano e número da prova. Cada erro vem com explicação (escrita com apoio de IA, sempre com o gabarito oficial).' },
 ]
 
 export default function Home() {
@@ -38,7 +38,7 @@ export default function Home() {
               <span>ENEM</span><span>FUVEST</span><span>UNICAMP</span>
             </p>
             <h1 id="kl-title">Descubra o que <mark>revisar</mark> para o seu vestibular.</h1>
-            <p className="kl-lead">Você responde a um diagnóstico curto. O Kuaa usa seus acertos e erros para indicar o próximo tópico e o nível das questões. Começar é gratuito.</p>
+            <p className="kl-lead">Você responde a um diagnóstico curto. O Kuaa usa seus acertos e erros para indicar o próximo tópico e pratica com <strong>mais de 2.700 questões reais do ENEM</strong>, com explicação em cada erro. Começar é gratuito.</p>
             <div className="kl-actions">
               <Link to={startHref} className="kl-cta">{startLabel}<i className="bi bi-arrow-right" aria-hidden="true" /></Link>
               {!isAuthenticated && <p className="kl-has-account">Já tem conta? <Link to="/entrar">Entrar</Link></p>}
