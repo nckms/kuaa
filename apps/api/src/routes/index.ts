@@ -17,6 +17,7 @@ import { essaysRouter } from '../modules/essays/essays.routes'
 import { prisma } from '../lib/prisma'
 import { billingRouter } from '../modules/billing/billing.routes'
 import { adminStudentsRouter, studentsRouter } from '../modules/students/students'
+import { pushRouter } from '../modules/engagement/push.routes'
 import { redis } from '../lib/redis'
 
 export const router = Router()
@@ -61,3 +62,4 @@ router.use('/evaluation', evaluationRouter)
 router.use('/diagnostic', diagnosticRouter)
 router.use('/study', studyRouter)
 router.use('/essays', essaysRouter)
+router.use('/push', pushRouter)

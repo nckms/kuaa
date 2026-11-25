@@ -10,6 +10,7 @@ import { api } from '../../services/api'
 import type { User, UserPreferences } from '../../types/user'
 import './SettingsPage.css'
 import AccountDataSection from '../../components/AccountDataSection'
+import { ReminderSetting } from '../../components/ReminderCard'
 import InstallAppCard, { useInstallAvailable } from '../../components/InstallAppCard'
 
 function goalHint(minutes: number) {
@@ -143,6 +144,8 @@ export default function SettingsPage() {
           <div><h2 className="st-h2">Sua experiência</h2><div className="k-muted" style={{ fontSize: 13, marginTop: 4 }}>Questionário rápido de usabilidade (TCC)</div></div>
           <Link to="/avaliacao" className="k-btn k-btn-outline is-sm"><i className="bi bi-chat-square-text" aria-hidden="true" />Avaliar a plataforma</Link>
         </section>
+
+        <ReminderSetting />
 
         <AccountDataSection />
 

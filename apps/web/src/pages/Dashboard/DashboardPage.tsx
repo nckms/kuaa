@@ -14,6 +14,7 @@ import { formatStudyTime, indexBand, sparkPoints, topicProgressScore } from '../
 import './DashboardPage.css'
 import { QuotaNotice } from '../../components/QuotaNotice'
 import InstallAppCard from '../../components/InstallAppCard'
+import ReminderCard from '../../components/ReminderCard'
 
 const DAYS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
 const WEEK_TARGET = 5
@@ -83,6 +84,7 @@ export default function DashboardPage() {
     </header>
 
     <InstallAppCard />
+    <ReminderCard />
 
     {diagnostic.data && diagnostic.data.status !== 'completed' && (
       <section className="k-card dash-diag" aria-labelledby="diag-reminder">

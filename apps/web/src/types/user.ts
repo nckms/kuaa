@@ -4,6 +4,7 @@ export interface UserPreferences {
   highContrast: boolean
   enemLanguage?: 'ingles' | 'espanhol'
   weeklyEmail?: boolean
+  pushReminders?: boolean
 }
 
 export interface User {

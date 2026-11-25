@@ -4,6 +4,7 @@ import { env } from './lib/env'
 import { mailDeliveryConfigured } from './lib/mailer'
 import { prisma } from './lib/prisma'
 import { redis } from './lib/redis'
+import { startReminderScheduler } from './modules/engagement/push'
 
 const PORT = env.PORT ?? 3333
 
@@ -15,6 +16,7 @@ if (!mailDeliveryConfigured()) {
 const server = app.listen(PORT, () => {
   console.log(`🦅 Kuaa API rodando na porta ${PORT}`)
 })
+startReminderScheduler()
 
 let stopping = false
 function shutdown() {
