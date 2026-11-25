@@ -21,6 +21,10 @@ Regras que não mudam com a pressa:
 
 Formato: tela do celular gravada + voz, 20–40 s, legenda com o link do site.
 
+Roteiros completos das 2 primeiras semanas (8 posts com questões reais e gabarito conferido) estão no
+documento "Kuaa — primeiros posts (Instagram e TikTok)", de 25/11. Telas das questões e vídeo do
+diagnóstico foram gerados em produção com conta descartável. Links da bio: `?ref=instagram` e `?ref=tiktok`.
+
 Roteiros prontos:
 1. **"Errei essa no ENEM simulado — veja o porquê"**: mostra uma questão do acervo, a alternativa errada mais comum e a explicação do Kuaa. Final: "Faça o diagnóstico grátis, 5 minutos".
 2. **"5 minutos para saber o que estudar"**: grava o diagnóstico inteiro acelerado e o resultado com o tópico recomendado.

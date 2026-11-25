@@ -33,5 +33,7 @@ Estado em 25/11/2026: código em produção; venda **desligada** (sem chaves Str
 - **Provas anteriores no Plus?** Hoje estão liberadas para todos. Proposta para quando a venda abrir:
   gratuito = 1 prova completa por mês; Plus = ilimitado. Só ligar junto com a abertura da venda
   (antes disso o aluno não teria como desbloquear).
-- **Faturamento da chave do Gemini.** Em 25/11 a chave começou a devolver 429 (cota esgotada). Sem
-  faturamento ativo, Sabiá, explicações e correção de redação podem falhar em horário de pico.
+- **Faturamento da chave do Gemini.** Em 25/11 o modelo principal (`gemini-3.5-flash-lite`) esgotou a
+  cota gratuita (429). Os modelos reserva (`GEMINI_FALLBACK_MODELS`) seguraram as explicações dos
+  alunos, mas também têm cota gratuita: sem faturamento, Sabiá, explicações e correção de redação
+  podem falhar em horário de pico.
