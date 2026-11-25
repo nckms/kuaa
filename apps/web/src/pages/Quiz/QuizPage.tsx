@@ -168,10 +168,10 @@ export default function QuizPage() {
               <span className="qz-feedback-icon"><i className={`bi ${ok ? 'bi-check-lg' : 'bi-x-lg'}`} aria-hidden="true" /></span>
               <div>
                 <div className="qz-feedback-title">{ok ? 'Mandou bem!' : `Quase. A correta é ${correctLetter}.`}{displayResult.xpDelta > 0 && <span className="qz-xp">+{displayResult.xpDelta} XP</span>}</div>
+                {!ok && sessionId && <MistakeReason key={currentQ.id} sessionId={sessionId} questionId={currentQ.id} />}
                 <div className="qz-feedback-exp">{displayResult.explanation}</div>
                 {currentQ.difficulty != null && <DifficultyLevel value={currentQ.difficulty} />}
                 {displayResult.explanationByAi && <div className="qz-feedback-ai"><i className="bi bi-stars" aria-hidden="true" /> Explicação escrita com apoio de IA · gabarito oficial</div>}
-                {!ok && sessionId && <MistakeReason key={currentQ.id} sessionId={sessionId} questionId={currentQ.id} />}
               </div>
             </div>
           ) : <div className="qz-feedback-hint">Escolha uma alternativa e confirme</div>}
