@@ -6,6 +6,7 @@ import { useAuthStore } from '../../stores/auth.store'
 import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import './SabiaPage.css'
 import { QuotaActions, quotaInfo } from '../../components/QuotaNotice'
+import PhotoButton from './PhotoButton'
 
 const CHIPS = ['Explica concessão vs. adversativa', 'Me dá 3 questões de porcentagem', 'Como estruturar uma redação?', 'Resumo de Era Vargas']
 
@@ -27,12 +28,13 @@ function SabiaConversation() {
   const [input, setInput] = useState('')
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [photoPending, setPhotoPending] = useState(false)
   const drafts = useRef<Record<string, string>>({})
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { mutate, isPending, error, reset, history, conversations } = useSabia(conversationId)
   const messages = history.data ?? []
-  const blocked = isPending || (!history.data && !history.isSuccess)
+  const blocked = isPending || photoPending || (!history.data && !history.isSuccess)
   const sendingRef = useRef(false)
   const quota = quotaInfo(error)
   const errorText = quota ? quota.message : isAxiosError(error) && error.response?.status === 503
@@ -170,11 +172,12 @@ function SabiaConversation() {
             <div className="sabia-compose-inner">
               {messages.length === 0 && <div className="sabia-chips">{CHIPS.map((chip) => <button key={chip} type="button" disabled={blocked} onClick={() => send(chip)}>{chip}</button>)}</div>}
               <div className="sabia-input">
+                <PhotoButton conversationId={conversationId} disabled={blocked} onPending={setPhotoPending} onDone={(id) => setConversationId(id)} />
                 <textarea ref={textareaRef} value={input} onChange={handleInput} onKeyDown={handleKeyDown} rows={1} maxLength={2000} disabled={blocked}
                   placeholder="Pergunte à Sabiá…" aria-label="Mensagem para a Sabiá" />
                 <button type="button" onClick={() => send()} disabled={!input.trim() || blocked} aria-label="Enviar mensagem" className={input.trim() && !blocked ? 'is-ready' : ''}><i className="bi bi-arrow-up" aria-hidden="true" /></button>
               </div>
-              <div className="sabia-foot"><span>Enter envia · Shift+Enter quebra linha</span><span className="k-mono">{input.length}/2000</span></div>
+              <div className="sabia-foot"><span>Enter envia · Shift+Enter quebra linha · <i className="bi bi-camera" aria-hidden="true" /> foto de questão (Plus)</span><span className="k-mono">{input.length}/2000</span></div>
             </div>
           </div>
         </div>

@@ -53,3 +53,8 @@
   .sabia-head, .sabia-scroll, .sabia-compose { padding-left: 16px; padding-right: 16px; }
   .sabia-foot > span:first-child { display: none; }
 }
+.sabia-input { flex-wrap: wrap; padding-left: 8px; }
+.sabia-input button.sabia-photo { background: var(--k-roxo-soft, #f3e8f6); color: var(--k-roxo); }
+.sabia-input button.sabia-photo:disabled { opacity: .5; }
+.sabia-photo-status { flex-basis: 100%; order: 3; margin: 2px 8px 4px; font-size: 13px; color: var(--k-roxo); }
+.sabia-photo-status.is-error { color: var(--k-vinho); }

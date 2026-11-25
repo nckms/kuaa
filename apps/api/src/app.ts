@@ -9,6 +9,7 @@ import { env } from './lib/env'
 import crypto from 'node:crypto'
 import { stripeWebhook } from './modules/billing/billing'
 import { studentUploadHandlers } from './modules/students/students'
+import { sabiaPhotoHandlers } from './modules/sabia/sabia.photo'
 
 const app = express()
 app.disable('x-powered-by')
@@ -69,6 +70,8 @@ if (env.NODE_ENV !== 'test') {
 app.post('/api/v1/billing/webhook', express.raw({ type: 'application/json', limit: '1mb' }), stripeWebhook)
 // Envio de documento de estudante: corpo maior só nesta rota.
 app.post('/api/v1/students/verification', ...studentUploadHandlers)
+// Foto de questão para o Sabiá (Plus): também precisa de corpo maior.
+app.post('/api/v1/sabia/photo', ...sabiaPhotoHandlers)
 app.use(express.json())
 app.use('/api/v1', router)
 app.use(errorHandler)

@@ -7,7 +7,7 @@ export interface ChatMessage {
   content: string
 }
 
-const SYSTEM_PROMPT = `Você é o Sabiá, tutor de IA da plataforma Kuaa para estudantes brasileiros de escolas públicas que se preparam para vestibulares (ENEM, FUVEST, UNICAMP).
+export const SYSTEM_PROMPT = `Você é o Sabiá, tutor de IA da plataforma Kuaa para estudantes brasileiros de escolas públicas que se preparam para vestibulares (ENEM, FUVEST, UNICAMP).
 
 MISSÃO: Guiar o estudante pelo raciocínio até que ele chegue sozinho à resposta correta — usando o método socrático.
 

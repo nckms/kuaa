@@ -335,6 +335,8 @@ model SabiaMessage {
   userId         String
   role           String
   content        String
+  /// text ou photo (pergunta feita por foto; a imagem não é guardada, só a transcrição).
+  kind           String             @default("text")
   createdAt      DateTime           @default(now())
   user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   conversationId String?

@@ -29,6 +29,7 @@ const ROWS: Array<[string, string, string]> = [
   ['Simulado semanal', 'Incluído', 'Incluído'],
   ['Sessões de prática', '5 por dia', '40 por dia'],
   ['Perguntas ao Sabiá', '15 por dia', '100 por dia'],
+  ['Foto de qualquer questão para o Sabiá explicar', '—', '30 por dia'],
   ['Análise formativa de redação por IA', '2 por mês', '15 por mês'],
   ['Correção da redação do ENEM por competência, com nota estimada e reescrita guiada', '—', '15 por mês'],
 ]
