@@ -2,11 +2,12 @@
 // com as questões na ordem original, tempo oficial e correção comentada.
 // Independe do simulado semanal e não altera o Índice Kuaa.
 import { Router, type Request, type Response, type NextFunction } from 'express'
-import type { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../middleware/requireAuth'
 import { recordExamMistakes } from '../review/review'
+import { scoreAreas, triData } from './tri'
 import { makeError } from '../../utils/errors'
 import { readQuestionMedia } from '../quiz/questionMedia'
 import { ensureOfficialExplanation, withTimeout } from '../quiz/official'
@@ -37,7 +38,9 @@ async function officialIdsByYear() {
     where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, id: { startsWith: 'cofenem' } },
     select: { id: true },
   })
-  return rows.map((r) => ({ id: r.id, ...parseOfficialId(r.id)! })).filter((r) => r.year)
+  // Questões anuladas pelo INEP não entram na prova (não valem ponto no ENEM).
+  const annulled = new Set(triData().annulled)
+  return rows.filter((r) => !annulled.has(r.id)).map((r) => ({ id: r.id, ...parseOfficialId(r.id)! })).filter((r) => r.year)
 }
 
 async function listExams(req: Request, res: Response, next: NextFunction) {
@@ -120,7 +123,9 @@ async function finish(id: string, userId: string) {
       else wrong++
     }
     const finishedAt = new Date(Math.min(Date.now(), attempt.startedAt.getTime() + attempt.durationSeconds * 1000))
-    return tx.examAttempt.update({ where: { id }, data: { finishedAt, correct, wrong } })
+    const optionsById = new Map(questions.map((q) => [q.id, q.options as unknown as QuestionOption[]]))
+    const scores = scoreAreas(ids, answers, (qid, chosen) => Boolean(chosen && acceptedOptionIds(optionsById.get(qid) ?? []).includes(chosen)))
+    return tx.examAttempt.update({ where: { id }, data: { finishedAt, correct, wrong, scores: scores.length ? JSON.parse(JSON.stringify(scores)) : undefined } })
   })
   // Erros da prova entram no caderno de erros (fora da transação: falha aqui não desfaz a entrega).
   if (mistakes.value) {
@@ -137,6 +142,21 @@ export function acceptedOptionIds(options: QuestionOption[]): string[] {
   const norm = (t: string) => t.replace(/\s+/g, ' ').trim().toLowerCase()
   const right = options.find((o) => o.isCorrect)
   return right ? options.filter((o) => o.id === right.id || norm(o.text) === norm(right.text)).map((o) => o.id) : []
+}
+
+/** Última nota TRI estimada de cada área, das provas anteriores entregues (para o Índice Kuaa). */
+async function latestScores(req: Request, res: Response, next: NextFunction) {
+  try {
+    const attempts = await prisma.examAttempt.findMany({ where: { userId: req.userId!, finishedAt: { not: null }, NOT: { scores: { equals: Prisma.DbNull } } },
+      orderBy: { finishedAt: 'desc' }, take: 20, select: { id: true, year: true, day: true, finishedAt: true, scores: true } })
+    const latest = new Map<string, { area: string; label: string; score: number; year: number; attemptId: string; finishedAt: Date | null }>()
+    for (const a of attempts) {
+      for (const s of (a.scores as Array<{ area: string; label: string; score: number }> | null) ?? []) {
+        if (!latest.has(s.area)) latest.set(s.area, { area: s.area, label: s.label, score: s.score, year: a.year, attemptId: a.id, finishedAt: a.finishedAt })
+      }
+    }
+    res.json({ scores: ['LC', 'CH', 'CN', 'MT'].flatMap((k) => latest.get(k) ?? []) })
+  } catch (err) { next(err) }
 }
 
 async function getAttempt(req: Request, res: Response, next: NextFunction) {
@@ -172,7 +192,7 @@ async function getAttempt(req: Request, res: Response, next: NextFunction) {
       id: attempt.id, exam: 'enem', year: attempt.year, day: attempt.day, area: enemArea(attempt.year, attempt.day), language: attempt.language,
       vestibularName: `ENEM ${attempt.year} · dia ${attempt.day}`,
       startedAt: attempt.startedAt, finishedAt: attempt.finishedAt, totalSeconds: attempt.durationSeconds,
-      answers: attempt.answers, flagged: attempt.flagged, correct: attempt.correct, wrong: attempt.wrong, questions,
+      answers: attempt.answers, flagged: attempt.flagged, correct: attempt.correct, wrong: attempt.wrong, scores: attempt.scores ?? null, questions,
     })
   } catch (err) { next(err) }
 }
@@ -235,6 +255,7 @@ async function explanation(req: Request, res: Response, next: NextFunction) {
 
 export const examsRouter = Router()
 examsRouter.get('/enem', requireAuth, listExams)
+examsRouter.get('/scores/latest', requireAuth, latestScores)
 examsRouter.post('/enem/:year/:day/start', requireAuth, startExam)
 examsRouter.get('/attempts/:id', requireAuth, getAttempt)
 examsRouter.patch('/attempts/:id/answer', requireAuth, answer)

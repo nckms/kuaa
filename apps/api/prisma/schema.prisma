@@ -461,6 +461,8 @@ model ExamAttempt {
   finishedAt      DateTime?
   correct         Int?
   wrong           Int?
+  /// Nota TRI estimada por área (parâmetros oficiais do INEP), calculada na entrega.
+  scores          Json?
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, exam, year, day])

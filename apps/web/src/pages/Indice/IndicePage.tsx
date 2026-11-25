@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/auth.store'
 import { INDEX_BANDS, indexBand, sparkPoints } from '../../utils/kuaaIndex'
 import { subjectThemeByName } from '../../utils/subjectTheme'
 import './IndicePage.css'
+import TriScoresCard from '../../components/TriScoresCard'
 
 function Gauge({ score }: { score: number }) {
   const frac = Math.max(0, Math.min(1, (score - 300) / 700))
@@ -42,6 +43,8 @@ export default function IndicePage() {
 
   return <AppLayout><div className="k-page">
     <header><p className="k-eyebrow">Seu desempenho nas atividades{vestibularName ? ` · ${vestibularName}` : ''}</p><h1 className="k-h1">Índice Kuaa</h1></header>
+
+    <TriScoresCard />
 
     <section className="ix-hero" aria-label="Seu índice atual">
       <div className="ix-hero-main">
