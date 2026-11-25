@@ -52,6 +52,14 @@ como origem `convite` em `npm run metrics`.
 - Em sala (piloto, Canal 3): pedir para cada aluno convidar um colega de outra turma.
 - Nos posts: "Chama um amigo e ganhem 7 dias do Plus" no fim do vídeo.
 
+## Canal 5 — Busca orgânica (proposta, não implementado)
+
+Com 2.742 questões oficiais e explicações, dá para publicar uma página por questão
+("ENEM 2022 questão 92 — resolução comentada"), que é exatamente o que estudantes buscam no
+Google. Pré-requisitos: faturamento do Gemini (gerar as explicações de todas as questões),
+revisão jurídica do uso das provas e páginas renderizadas no servidor (o site hoje é SPA).
+Custo estimado da geração: poucos reais (2.742 chamadas de modelo flash-lite).
+
 ## Kit para micro-influenciadores (5 a 50 mil seguidores de estudo/ENEM)
 
 **Proposta:** pagamento fixo pequeno ou Plus grátis + comissão por assinatura, com link rastreável `kuaa-web.vercel.app/?ref=<nome>` (o `ref` fica salvo no cadastro por 30 dias após o clique e aparece em `npm run metrics`, tabela "Cadastros por origem"). Para posts próprios use `?utm_source=instagram&utm_campaign=<roteiro>`.

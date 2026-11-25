@@ -27,3 +27,11 @@ Estado em 25/11/2026: código em produção; venda **desligada** (sem chaves Str
 - [x] Exportar dados e excluir conta em Configurações (LGPD art. 18).
 - [ ] Revisão jurídica do uso das provas do ENEM com textos de terceiros (ver `docs/banco-enem.md`).
 - [ ] `npm run metrics` como linha de base.
+
+## Decisões pendentes (Nicolas)
+
+- **Provas anteriores no Plus?** Hoje estão liberadas para todos. Proposta para quando a venda abrir:
+  gratuito = 1 prova completa por mês; Plus = ilimitado. Só ligar junto com a abertura da venda
+  (antes disso o aluno não teria como desbloquear).
+- **Faturamento da chave do Gemini.** Em 25/11 a chave começou a devolver 429 (cota esgotada). Sem
+  faturamento ativo, Sabiá, explicações e correção de redação podem falhar em horário de pico.
