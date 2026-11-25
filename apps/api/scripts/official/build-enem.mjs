@@ -8,7 +8,10 @@ import { classify } from './enem-topics.mjs'
 
 const root = process.argv[2]
 if (!root) { console.error('Informe o caminho do repositório enem-api'); process.exit(1) }
-const out = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../prisma/official/enem.json')
+const here = path.dirname(new URL(import.meta.url).pathname)
+const out = path.resolve(here, '../../prisma/official/enem.json')
+// Imagens já convertidas por convert-images.py (questões com uma imagem e alternativas em texto).
+const mediaDir = path.resolve(here, '../../../web/public/question-media/enem')
 
 const files = []
 for (const year of fs.readdirSync(path.join(root, 'public')).filter((y) => /^\d{4}$/.test(y))) {
@@ -30,18 +33,23 @@ const items = []
 let skippedImages = 0
 for (const file of files) {
   const q = JSON.parse(fs.readFileSync(file, 'utf8'))
+  const lang = q.language === 'ingles' ? 'ing' : q.language === 'espanhol' ? 'esp' : ''
+  const id = `cofenem${q.year}q${String(q.index).padStart(3, '0')}${lang}`
   const hasImage = (q.files?.length ?? 0) > 0 || /!\[/.test(q.context ?? '') || q.alternatives.some((a) => a.file)
-  if (hasImage) { skippedImages++; continue }
+  const imageUrl = hasImage && fs.existsSync(path.join(mediaDir, `${id}.webp`)) ? `/question-media/enem/${id}.webp` : null
+  if (hasImage && !imageUrl) { skippedImages++; continue }
   const options = q.alternatives.map((a) => ({ id: a.letter, text: clean(a.text), isCorrect: a.letter === q.correctAlternative }))
   if (options.length !== 5 || options.filter((o) => o.isCorrect).length !== 1 || options.some((o) => !o.text)) continue
-  const body = [clean(q.context), clean(q.alternativesIntroduction)].filter(Boolean).join('\n\n')
+  // A imagem é exibida pelo app abaixo do texto; a marcação dela sai do enunciado.
+  const context = (q.context ?? '').replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+  const body = [clean(context), clean(q.alternativesIntroduction)].filter(Boolean).join('\n\n')
   if (body.length < 20) continue
-  const lang = q.language === 'ingles' ? 'ing' : q.language === 'espanhol' ? 'esp' : ''
   const topic = classify({ discipline: q.discipline, language: q.language, text: `${body}\n${options.map((o) => o.text).join('\n')}` })
   if (!topic) continue
   items.push({
     // Id compatível com a validação cuid das rotas (começa com "c", sem hífen) e estável entre importações.
-    id: `cofenem${q.year}q${String(q.index).padStart(3, '0')}${lang}`,
+    id,
+    ...(imageUrl ? { imageUrl } : {}),
     year: q.year, number: q.index, language: q.language ?? null, discipline: q.discipline,
     topic: topic.topic, confidence: topic.confidence,
     body, options,
@@ -52,6 +60,6 @@ fs.mkdirSync(path.dirname(out), { recursive: true })
 fs.writeFileSync(out, JSON.stringify({ source: 'ENEM/INEP 2009–2023 · transcrição enem.dev (github.com/yunger7/enem-api)', generatedAt: new Date().toISOString().slice(0, 10), questions: items }))
 const byTopic = {}
 for (const i of items) byTopic[i.topic] = (byTopic[i.topic] ?? 0) + 1
-console.log(`${items.length} questões gravadas (${skippedImages} com imagem ficaram para a fase 2) em ${out}`)
+console.log(`${items.length} questões gravadas (${items.filter((i) => i.imageUrl).length} com imagem; ${skippedImages} com imagem não suportada ficaram de fora) em ${out}`)
 console.log('confiança alta:', items.filter((i) => i.confidence === 'alta').length)
 console.log(Object.entries(byTopic).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${String(n).padStart(4)} ${t}`).join('\n'))

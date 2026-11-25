@@ -128,3 +128,31 @@ describe('tom da explicação', () => {
     expect(stripGreeting('O fator decisivo é a densidade.')).toBe('O fator decisivo é a densidade.')
   })
 })
+
+describe('questões oficiais com figura', () => {
+  it('a cópia da sessão leva a figura e a IA recebe a imagem para explicar; sem imagem, não explica às cegas', async () => {
+    const topic = await seedOfficial('Probabilidade e Estatística', 3, 'cofenem2019q')
+    await testPrisma.question.updateMany({ where: { source: 'OFFICIAL' }, data: { imageUrl: '/question-media/enem/teste.webp', media: { imageAlt: 'Figura da questão' } } })
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64')
+    let imageOk = true
+    const realFetch = globalThis.fetch
+    globalThis.fetch = (async () => (imageOk ? new Response(png, { headers: { 'content-type': 'image/webp' } }) : new Response('nope', { status: 404 }))) as typeof fetch
+    generateContent.mockResolvedValue({ text: EXPLANATION } as GenResponse)
+    try {
+      const s = await student('off_image', topic.id)
+      const session = await practise(s.token, topic.id)
+      expect(session.questions[0].imageUrl).toBe('/question-media/enem/teste.webp')
+      expect(session.questions[0].imageAlt).toBe('Figura da questão')
+      await new Promise((r) => setTimeout(r, 300))
+      const call = generateContent.mock.calls[0][0] as { contents: Array<{ parts: Array<{ inlineData?: { mimeType: string } }> }> }
+      expect(call.contents[0].parts[0].inlineData?.mimeType).toBe('image/webp')
+      imageOk = false
+      generateContent.mockClear()
+      await testPrisma.question.updateMany({ data: { explanation: '', explanationByAi: false } })
+      const res = await api.post(`/api/v1/quiz/${session.sessionId}/answer`).set('Authorization', `Bearer ${s.token}`).send({ questionId: session.questions[0].id, optionId: 'A', timeSpentMs: 1000 })
+      expect(res.body.explanation).toMatch(/^Gabarito oficial: alternativa C\./)
+      expect(res.body.explanationByAi).toBe(false)
+      expect(generateContent).not.toHaveBeenCalled()
+    } finally { globalThis.fetch = realFetch }
+  })
+})

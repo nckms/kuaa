@@ -5,6 +5,7 @@ import { ai } from '../../lib/gemini'
 import { env } from '../../lib/env'
 import { prisma } from '../../lib/prisma'
 import type { GeneratedQuestion, QuestionOption } from './quiz.types'
+import { readQuestionMedia } from './questionMedia'
 
 /** Tópicos "integradores" do ENEM puxam questões dos tópicos específicos equivalentes. */
 export const OFFICIAL_SIBLINGS: Record<string, string[]> = {
@@ -50,12 +51,13 @@ export async function pickOfficial(userId: string, topicName: string, count: num
   const seenIds = seen.map((s) => s.officialRefId!).filter(Boolean)
   const pool = await prisma.question.findMany({
     where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, topic: { name: { in: names } }, ...(seenIds.length ? { id: { notIn: seenIds } } : {}) },
-    select: { id: true, body: true, options: true, explanation: true, explanationByAi: true, difficulty: true, origin: true, year: true },
+    select: { id: true, body: true, options: true, explanation: true, explanationByAi: true, difficulty: true, origin: true, year: true, imageUrl: true, media: true },
     take: 400,
   })
   return shuffle(pool).slice(0, count).map((q) => ({
     officialRefId: q.id, origin: q.origin, year: q.year, body: q.body, explanation: q.explanation,
     options: q.options as unknown as QuestionOption[], difficulty: q.difficulty,
+    ...readQuestionMedia(q.imageUrl, q.media),
   }))
 }
 
@@ -88,11 +90,18 @@ export function ensureOfficialExplanation(officialId: string): Promise<string> {
   const running = inFlight.get(officialId)
   if (running) return running
   const task = (async () => {
-    const q = await prisma.question.findUnique({ where: { id: officialId }, select: { body: true, options: true, explanation: true } })
+    const q = await prisma.question.findUnique({ where: { id: officialId }, select: { body: true, options: true, explanation: true, imageUrl: true } })
     if (!q) return ''
     if (q.explanation.trim()) return q.explanation
     if (!env.GEMINI_API_KEY?.trim()) return ''
-    const response = await ai.models.generateContent({ model: env.GEMINI_MODEL, contents: explanationPrompt(q.body, q.options as unknown as QuestionOption[]) })
+    const prompt = explanationPrompt(q.body, q.options as unknown as QuestionOption[])
+    // Questão com figura: a IA precisa ver a imagem; sem ela, não arrisca explicação.
+    const image = q.imageUrl ? await loadImage(q.imageUrl) : null
+    if (q.imageUrl && !image) return ''
+    const response = await ai.models.generateContent({
+      model: env.GEMINI_MODEL,
+      contents: image ? [{ role: 'user', parts: [{ inlineData: image }, { text: `${prompt}\n\nA figura da questao esta anexada.` }] }] : prompt,
+    })
     const text = stripGreeting((response.text ?? '').replace(/\*\*/g, '').trim())
     if (text.length < 40) return ''
     await prisma.question.updateMany({ where: { OR: [{ id: officialId }, { officialRefId: officialId }], explanation: '' }, data: { explanation: text, explanationByAi: true } })
@@ -100,6 +109,21 @@ export function ensureOfficialExplanation(officialId: string): Promise<string> {
   })().finally(() => inFlight.delete(officialId))
   inFlight.set(officialId, task)
   return task
+}
+
+/** Lê a figura servida pelo site (as imagens ficam em apps/web/public/question-media). */
+export async function loadImage(imageUrl: string): Promise<{ mimeType: string; data: string } | null> {
+  try {
+    const base = (env.APP_URL ?? 'https://kuaa-web.vercel.app').replace(/\/$/, '')
+    const url = imageUrl.startsWith('/') ? `${base}${imageUrl}` : imageUrl
+    if (!/^https:\/\//.test(url) && !url.startsWith('http://localhost')) return null
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
+    const mimeType = res.headers.get('content-type')?.split(';')[0] ?? ''
+    if (!res.ok || !mimeType.startsWith('image/')) return null
+    const buffer = Buffer.from(await res.arrayBuffer())
+    if (buffer.length > 2_000_000) return null
+    return { mimeType, data: buffer.toString('base64') }
+  } catch { return null }
 }
 
 /** Gera em segundo plano as explicações que faltam (2 por vez) enquanto o aluno resolve. */
