@@ -35,6 +35,8 @@ model User {
   plan           Plan      @default(FREE)
   planExpiresAt  DateTime?
   stripeCustomerId String? @unique
+  /// Origem do cadastro (primeiro toque): ref, utm_*, domínio de referência. Sem dados pessoais.
+  signupSource   Json?
   xp             Int       @default(0)
   level          Int       @default(1)
   streakDays     Int       @default(0)

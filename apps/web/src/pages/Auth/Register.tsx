@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { getAttribution } from '../../lib/attribution'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuthStore } from '../../stores/auth.store'
@@ -69,6 +70,7 @@ export default function Register() {
     setErrors({})
     setLoading(true)
 
+    const attribution = getAttribution()
     const payload = {
       name: form.name.trim(),
       email: form.email.trim(),
@@ -76,6 +78,7 @@ export default function Register() {
       ...(form.school && { school: form.school }),
       ...(form.city && { city: form.city }),
       ...(form.state && { state: form.state }),
+      ...(attribution && { attribution }),
     }
 
     try {
