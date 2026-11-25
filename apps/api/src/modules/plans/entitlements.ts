@@ -33,7 +33,7 @@ export function effectivePlan(user: { plan: string; planExpiresAt: Date | null }
 
 export async function usage(userId: string, quota: QuotaName, now = new Date()): Promise<number> {
   const since = periodStart(QUOTA_PERIOD[quota], now)
-  if (quota === 'practice') return prisma.quizSession.count({ where: { userId, startedAt: { gte: since } } })
+  if (quota === 'practice') return prisma.quizSession.count({ where: { userId, isReview: false, startedAt: { gte: since } } })
   if (quota === 'sabia') return prisma.sabiaMessage.count({ where: { userId, role: 'user', createdAt: { gte: since } } })
   // Conta análises entregues ou em andamento; falhas da IA não consomem cota.
   const rows = await prisma.$queryRaw<Array<{ n: number }>>`

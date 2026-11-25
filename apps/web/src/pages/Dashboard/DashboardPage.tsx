@@ -16,6 +16,7 @@ import { QuotaNotice } from '../../components/QuotaNotice'
 import InstallAppCard from '../../components/InstallAppCard'
 import ReminderCard from '../../components/ReminderCard'
 import InviteCard from '../../components/InviteCard'
+import { useReviewOverview } from '../../hooks/useReview'
 
 const DAYS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
 const WEEK_TARGET = 5
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const { data: trail, isLoading, isError, refetch } = useTrail(firstVestibularSlug ?? '')
   const { data: indexData } = useIndex(firstVestibularSlug ?? '')
   const simulado = useCurrentSimulado(firstVestibularSlug ?? '')
+  const review = useReviewOverview()
   // Muitos alunos escolhiam a prova e nunca faziam o diagnóstico. Enquanto
   // ele não estiver concluído, o painel lembra e leva direto para ele.
   const diagnostic = useQuery({
@@ -185,6 +187,14 @@ export default function DashboardPage() {
         </div>
       </section>
       <div className="dash-side">
+        {(review.data?.open ?? 0) > 0 && (
+          <Link to="/erros" className={`k-card is-md dash-review${review.data!.due ? ' is-due' : ''}`}>
+            <i className="bi bi-arrow-repeat" aria-hidden="true" />
+            <span><strong>{review.data!.due ? `${review.data!.due} ${review.data!.due === 1 ? 'questão' : 'questões'} para revisar hoje` : 'Caderno de erros em dia'}</strong>
+              <small>{review.data!.open} no caderno · revisar não gasta suas práticas</small></span>
+            <i className="bi bi-chevron-right" aria-hidden="true" />
+          </Link>
+        )}
         <section className="k-card is-md dash-gaps" aria-labelledby="attention-title">
           <h3 id="attention-title" className="k-h3" style={{ marginBottom: 8 }}>Pontos de atenção</h3>
           {gaps.length ? gaps.slice(0, 3).map((gap, index) => (
