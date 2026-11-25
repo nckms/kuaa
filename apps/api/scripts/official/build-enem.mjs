@@ -40,7 +40,7 @@ export function officialArea(year, number) {
 const clean = (text) => (text ?? '').replace(/\r/g, '')
   .replace(/\*\*([^*]+?)\*\*/g, '$1').replace(/__([^_]+?)__/g, '$1')
   .replace(/(^|[\s(])\*([^*\n]+?)\*(?=[\s).,;:!?]|$)/g, '$1$2').replace(/(^|[\s(])_([^_\n]+?)_(?=[\s).,;:!?]|$)/g, '$1$2')
-  .replace(/^#{1,6}\s+/gm, '').replace(/\\([*_[\]()#.-])/g, '$1')
+  .replace(/\[([^\]\n]+)\]\((?:https?:)?[^)\s]+\)/g, '$1').replace(/^#{1,6}\s+/gm, '').replace(/\\([*_[\]()#.-])/g, '$1')
   .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
 const items = []
 let skippedImages = 0

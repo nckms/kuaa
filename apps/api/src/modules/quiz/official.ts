@@ -44,12 +44,14 @@ export const OFFICIAL_SIBLINGS: Record<string, string[]> = {
 }
 
 /**
- * Questões oficiais com enunciado inconsistente com o gabarito do INEP (a conta pelo texto não
- * chega em nenhuma alternativa). Ficam nas provas anteriores, como caíram, mas saem da prática
- * e do diagnóstico, onde confundiriam o aluno.
+ * Questões oficiais que não dá para resolver como estão no banco. Ficam nas provas anteriores,
+ * como caíram, mas saem da prática, do diagnóstico e do simulado, onde confundiriam o aluno.
  * - cofenem2021q165: "0,1 L a cada 10 km" dá 19,0 km/L; o gabarito (17,4) só fecha com 0,1 L a cada 20 km.
+ * - cofenem2019q146: depende de um gráfico que a transcrição não tem.
+ * - cofenem2021q107: depende de um quadro que a transcrição não tem.
+ * - cofenem2021q147 (B = C) e cofenem2023q114 (A = C): a transcrição repete a alternativa correta.
  */
-export const INCONSISTENT_OFFICIAL = ['cofenem2021q165']
+export const INCONSISTENT_OFFICIAL = ['cofenem2021q165', 'cofenem2019q146', 'cofenem2021q107', 'cofenem2021q147', 'cofenem2023q114']
 
 export interface OfficialPick extends GeneratedQuestion { officialRefId: string; origin: string | null; year: number | null; difficultySource: string | null }
 
