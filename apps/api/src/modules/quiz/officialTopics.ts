@@ -86,10 +86,13 @@ let lastError = ''
 
 /**
  * Ritmo baixo de propósito: o Gemini tem limite de requisições por minuto
- * compartilhado com o Sabiá e as explicações dos alunos. 1 questão a cada 12 s
- * (5/min); após erro, espera 2, 4, 8… até 30 min. Para sozinho quando acaba.
+ * compartilhado com o Sabiá e as explicações dos alunos. 1 questão a cada 30 s
+ * (2/min); cota esgotada (429) pausa 1 h; outros erros esperam 2, 4, 8… até
+ * 30 min. Para sozinho quando acaba.
  */
-export const CLASSIFY_INTERVAL_MS = 12_000
+export const CLASSIFY_INTERVAL_MS = 30_000
+/** Cota da conta esgotada (429): para por 1 hora para não tirar cota do Sabiá e das explicações dos alunos. */
+export const QUOTA_PAUSE_MS = 60 * 60_000
 export function startOfficialClassifier(): void {
   if (!env.GEMINI_API_KEY?.trim() || env.NODE_ENV === 'test') return
   let classified = 0
@@ -107,7 +110,9 @@ export function startOfficialClassifier(): void {
       failures = 0
       if (result === 'classified' && ++classified % 100 === 0) console.log(`[Official] ${classified} questões classificadas pela IA nesta execução`)
     }
-    const wait = result === 'error' ? Math.min(30 * 60_000, 120_000 * 2 ** Math.min(failures - 1, 4)) : CLASSIFY_INTERVAL_MS
+    const quotaExhausted = result === 'error' && /\b429\b|RESOURCE_EXHAUSTED|quota/i.test(lastError)
+    const wait = quotaExhausted ? QUOTA_PAUSE_MS
+      : result === 'error' ? Math.min(30 * 60_000, 120_000 * 2 ** Math.min(failures - 1, 4)) : CLASSIFY_INTERVAL_MS
     setTimeout(() => void loop(), wait).unref()
   }
   setTimeout(() => void loop(), 30_000).unref()
