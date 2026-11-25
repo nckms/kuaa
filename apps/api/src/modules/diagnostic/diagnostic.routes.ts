@@ -62,7 +62,9 @@ async function officialPool(record: Enrollment, areas: DiagnosticArea[]): Promis
       const options = q.options as unknown as QuestionOption[]
       return { id: randomUUID(), body: q.body, explanation: '', origin: q.origin, ...where,
         difficulty: toDiagnosticDifficulty(q.difficulty, q.difficultySource),
-        options: record.vestibular.slug === 'unicamp' ? options.filter((o, index) => o.isCorrect || index !== options.findIndex((x) => !x.isCorrect)) : options,
+        // Questão do ENEM fica com as 5 alternativas originais, também na Unicamp: tirar uma
+        // deixava buraco nas letras e a correta na primeira posição em 40% das vezes.
+        options,
         ...readQuestionMedia(q.imageUrl, q.media) }
     })
   })
