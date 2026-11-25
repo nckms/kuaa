@@ -26,7 +26,7 @@ interface DiagnosticState {
   total: 12
   answered: number
   question: (QuestionMediaData & {
-    id: string; body: string; options: { id: string; text: string }[]; subjectName: string
+    id: string; body: string; options: { id: string; text: string }[]; subjectName: string; origin?: string | null
   }) | null
   result: {
     areas: { key: string; name: string; answered: number; correct: number; skipped: number; targetDifficulty: number; confidence: 'initial' }[]
@@ -120,7 +120,8 @@ function QuestionForm({ question, counter, busy, onAnswer }: {
 }) {
   const [selected, setSelected] = useState<string | null>(null)
   return <form className="diag-screen" onSubmit={(event) => { event.preventDefault(); if (selected !== null) onAnswer(selected) }}>
-    <div className="diag-q-head"><p className="k-eyebrow">{counter}</p><span className="k-tag" style={{ background: 'var(--k-roxo-soft)', color: 'var(--k-roxo)' }}>{question.subjectName}</span></div>
+    <div className="diag-q-head"><p className="k-eyebrow">{counter}</p><span className="diag-q-tags"><span className="k-tag" style={{ background: 'var(--k-roxo-soft)', color: 'var(--k-roxo)' }}>{question.subjectName}</span>
+      {question.origin && <span className="k-tag" style={{ background: 'var(--k-ouro-soft, #FFF4D6)', color: '#7A5A00' }}>{question.origin.split(' · ')[0]}</span>}</span></div>
     <p className="diag-q-body">{question.body}</p>
     <QuestionMedia {...question} />
     <fieldset disabled={busy} className="diag-options">

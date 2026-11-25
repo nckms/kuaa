@@ -9,7 +9,7 @@ export const profileSchema = z.object({
 }).strict()
 export type StudyProfile = z.infer<typeof profileSchema>
 export interface DiagnosticItem extends GeneratedQuestion {
-  id: string; topicId: string; subjectId: string; subjectName: string; area: string
+  id: string; topicId: string; subjectId: string; subjectName: string; area: string; origin?: string | null
 }
 export interface DiagnosticAnswer { questionId: string; optionId: string | null }
 export interface DiagnosticArea { key: string; name: string; subjectIds: string[] }
