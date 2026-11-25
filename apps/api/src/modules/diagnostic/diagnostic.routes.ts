@@ -6,10 +6,12 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../middleware/requireAuth'
 import { makeError } from '../../utils/errors'
 import { getCuratedQuestions } from '../quiz/curatedQuestions'
-import { getQuestionMedia } from '../quiz/questionMedia'
+import { getQuestionMedia, readQuestionMedia } from '../quiz/questionMedia'
+import { OFFICIAL_SIBLINGS } from '../quiz/official'
+import type { QuestionOption } from '../quiz/quiz.types'
 import { invalidateTrailCache } from '../trail/trail.service'
 import { rewardReferral } from '../engagement/referrals'
-import { nextDiagnosticItem, profileSchema, readDiagnostic, summarizeDiagnostic, type DiagnosticState } from './diagnostic.engine'
+import { nextDiagnosticItem, profileSchema, readDiagnostic, summarizeDiagnostic, type DiagnosticArea, type DiagnosticItem, type DiagnosticState } from './diagnostic.engine'
 
 export const diagnosticRouter = Router()
 diagnosticRouter.use(requireAuth)
@@ -21,6 +23,50 @@ async function enrollment(userId: string, slug: string, db = prisma) {
   return record
 }
 type Enrollment = Awaited<ReturnType<typeof enrollment>>
+
+/** Questões oficiais por área no diagnóstico (escala 1–5 do banco → 1–3 do diagnóstico). */
+export const OFFICIAL_PER_AREA = 8
+const toDiagnosticDifficulty = (difficulty: number, source: string | null) => (!source ? 2 : difficulty <= 2 ? 1 : difficulty >= 4 ? 3 : 2)
+const shuffle = <T>(items: T[]) => items.map((item) => ({ item, r: Math.random() })).sort((a, b) => a.r - b.r).map(({ item }) => item)
+
+async function officialPool(record: Enrollment, areas: DiagnosticArea[]): Promise<DiagnosticItem[]> {
+  const owner = new Map<string, { topicId: string; subjectId: string; subjectName: string; area: string }>()
+  for (const area of areas) {
+    for (const subject of record.vestibular.subjects.filter((s) => area.subjectIds.includes(s.id))) {
+      for (const topic of subject.topics) {
+        for (const name of [topic.name, ...(OFFICIAL_SIBLINGS[topic.name] ?? [])]) {
+          if (!owner.has(name)) owner.set(name, { topicId: topic.id, subjectId: subject.id, subjectName: subject.name, area: area.key })
+        }
+      }
+    }
+  }
+  if (!owner.size) return []
+  const rows = await prisma.question.findMany({
+    where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, topic: { name: { in: [...owner.keys()] } } },
+    select: { body: true, options: true, difficulty: true, difficultySource: true, origin: true, imageUrl: true, media: true, topic: { select: { name: true } } },
+  })
+  // Diagnóstico curto: prefere enunciados de leitura rápida e com dificuldade já estimada.
+  const ranked = shuffle(rows).sort((a, b) => Number(a.body.length > 1400) - Number(b.body.length > 1400)
+    || Number(!a.difficultySource) - Number(!b.difficultySource))
+  return areas.flatMap((area) => {
+    const inArea = ranked.filter((q) => owner.get(q.topic.name)?.area === area.key)
+    const picked: typeof inArea = []
+    const bySubject = new Map<string, typeof inArea>()
+    for (const q of inArea) bySubject.set(owner.get(q.topic.name)!.subjectId, [...(bySubject.get(owner.get(q.topic.name)!.subjectId) ?? []), q])
+    // Alterna as matérias da área para o diagnóstico não ficar só em uma.
+    while (picked.length < OFFICIAL_PER_AREA && [...bySubject.values()].some((list) => list.length)) {
+      for (const list of bySubject.values()) if (list.length && picked.length < OFFICIAL_PER_AREA) picked.push(list.shift()!)
+    }
+    return picked.map((q) => {
+      const where = owner.get(q.topic.name)!
+      const options = q.options as unknown as QuestionOption[]
+      return { id: randomUUID(), body: q.body, explanation: '', origin: q.origin, ...where,
+        difficulty: toDiagnosticDifficulty(q.difficulty, q.difficultySource),
+        options: record.vestibular.slug === 'unicamp' ? options.filter((o, index) => o.isCorrect || index !== options.findIndex((x) => !x.isCorrect)) : options,
+        ...readQuestionMedia(q.imageUrl, q.media) }
+    })
+  })
+}
 function publicState(record: Enrollment, state = readDiagnostic(record.diagnostic)) {
   const question = state?.pool.find((item) => item.id === state.currentId)
   return {
@@ -28,7 +74,7 @@ function publicState(record: Enrollment, state = readDiagnostic(record.diagnosti
     profile: state?.profile ?? null,
     subjects: record.vestibular.subjects.map(({ id, name }) => ({ id, name })),
     total: 12, answered: state?.answers.length ?? 0,
-    question: question ? { id: question.id, body: question.body, subjectName: question.subjectName,
+    question: question ? { id: question.id, body: question.body, subjectName: question.subjectName, origin: question.origin ?? null,
       options: question.options.map(({ id, text }) => ({ id, text })), ...getQuestionMedia(question) } : null,
     result: state?.finishedAt ? { areas: summarizeDiagnostic(state), recommendedMinutes: Math.round(state.profile.weeklyMinutes / 5), finishedAt: state.finishedAt } : null,
   }
@@ -57,8 +103,9 @@ diagnosticRouter.post('/:slug/profile', async (req, res, next) => {
     const areas = groups
       .map((group) => ({ key: group.key, name: group.name,
         subjectIds: record.vestibular.subjects.filter((s) => group.slugs.includes(s.slug)).map((s) => s.id) }))
+    const official = await officialPool(record, areas)
     const seen = new Set<string>()
-    const pool = areas.flatMap((area) => record.vestibular.subjects.filter((s) => area.subjectIds.includes(s.id))
+    const curated = areas.flatMap((area) => record.vestibular.subjects.filter((s) => area.subjectIds.includes(s.id))
       .flatMap((subject) => subject.topics.flatMap((topic) => getCuratedQuestions(topic.name).filter((q) => {
         if (seen.has(q.body)) return false
         seen.add(q.body)
@@ -66,6 +113,8 @@ diagnosticRouter.post('/:slug/profile', async (req, res, next) => {
       }).map((q) => ({ ...q, id: randomUUID(), topicId: topic.id, subjectId: subject.id, subjectName: subject.name, area: area.key,
         options: record.vestibular.slug === 'unicamp' ? q.options.filter((o, index) => o.isCorrect || index !== q.options.findIndex((x) => !x.isCorrect)) : q.options,
       })))))
+    // Questões reais primeiro; as autorais só completam áreas com poucas questões oficiais.
+    const pool = [...official, ...curated.filter((q) => official.filter((o) => o.area === q.area).length < 6)]
     if (areas.some((area) => pool.filter((q) => q.area === area.key).length < Math.ceil(12 / areas.length))) {
       throw makeError('Diagnostico ainda nao disponivel para este vestibular.', 503, 'DIAGNOSTIC_UNAVAILABLE')
     }

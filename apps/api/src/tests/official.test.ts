@@ -202,3 +202,25 @@ describe('classificação de tópico e dificuldade pela IA', () => {
     expect(after.body.questions.every((q: { difficulty: number | null }) => typeof q.difficulty === 'number')).toBe(true)
   })
 })
+
+describe('diagnóstico com questões oficiais', () => {
+  it('usa questões reais na área que tem banco e completa as outras com autorais', async () => {
+    const topic = await seedOfficial('Funções e Gráficos', 10, 'cofenem2021q')
+    const s = await student('official_diag', topic.id)
+    const path = '/api/v1/diagnostic/enem'
+    const started = await api.post(`${path}/profile`).set('Authorization', `Bearer ${s.token}`)
+      .send({ schoolStage: 'medio', examHorizon: 'este-ano', weeklyMinutes: 180, difficultSubjects: [] })
+    expect(started.status).toBe(200)
+    const exam = await testPrisma.vestibular.findUniqueOrThrow({ where: { slug: 'enem' } })
+    const record = await testPrisma.enrollment.findUniqueOrThrow({ where: { userId_vestibularId: { userId: s.userId, vestibularId: exam.id } } })
+    const pool = (record.diagnostic as { pool: { area: string; origin?: string | null; difficulty: number }[] }).pool
+    const math = pool.filter((q) => q.area === 'matematica')
+    expect(math).toHaveLength(8)
+    expect(math.every((q) => q.origin?.startsWith('ENEM 2020') && q.difficulty === 2)).toBe(true)
+    expect(pool.filter((q) => q.area === 'humanas').length).toBeGreaterThan(0)
+    // Segunda pergunta é de Matemática e mostra a origem, sem gabarito.
+    const second = await api.post(`${path}/answer`).set('Authorization', `Bearer ${s.token}`).send({ questionId: started.body.question.id, optionId: null })
+    expect(second.body.question.origin).toMatch(/^ENEM 2020/)
+    expect(second.body.question.options.every((o: object) => !('isCorrect' in o))).toBe(true)
+  })
+})
