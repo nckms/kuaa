@@ -55,6 +55,9 @@ entre os tópicos da área. Resultado em `Question.topicSource` (`ai` ou
 
 ## Próximas fases
 
+- **Diagnóstico com questões oficiais:** hoje o diagnóstico (adaptativo) usa o acervo autoral.
+  Trocar quando a dificuldade estimada das oficiais estiver completa (`difficultySource`).
+
 - Ficaram de fora 7 questões cuja figura não existe na base de origem.
 - **Fase 3:** Fuvest/Unicamp — não há base aberta estruturada; exigiria extrair
   dos PDFs das bancas.

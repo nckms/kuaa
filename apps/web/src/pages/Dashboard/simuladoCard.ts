@@ -22,7 +22,7 @@ export function simuladoCardState(query: {
   if (query.isLoading) return { kind: 'loading', badge: 'Carregando', title: 'Verificando seu simulado da semana…' }
   if (query.isError) return { kind: 'error', badge: 'Indisponível', title: 'Não foi possível consultar o simulado.' }
   const attempt = query.data
-  if (!attempt) return { kind: 'available', badge: 'Disponível', title: 'Até 45 questões · 90 min', cta: 'Fazer agora' }
+  if (!attempt) return { kind: 'available', badge: 'Disponível', title: 'Até 30 questões · 90 min', cta: 'Fazer agora' }
   if (!attempt.finishedAt) {
     const answered = Object.keys(attempt.answers ?? {}).length
     return {

@@ -9,7 +9,8 @@ import { captureSnapshot } from '../index/index.service'
 import { SIMULADO_DURATION_SECONDS, scoreAttempt, type StoredQuestion } from './simulado.results'
 import { getQuestionMedia, readQuestionMedia } from '../quiz/questionMedia'
 
-const TOTAL_QUESTIONS = 45
+// 3 min por questão, o ritmo do ENEM (as questões oficiais são longas).
+const TOTAL_QUESTIONS = 30
 export { SIMULADO_DURATION_SECONDS } from './simulado.results'
 
 /** Returns the Sunday 00:00 UTC that starts the current week */
@@ -84,7 +85,12 @@ async function buildQuestions(vestibularId: string, vestibularName: string, lang
 
   // Proportional allocation: floor each share, then distribute the remainder
   // to the subjects that have the most available questions (minimise fallback use).
-  const allocated = perSubject.map((s) => Math.floor((s.weight / totalWeight) * TOTAL_QUESTIONS))
+  // Toda matéria com peso entra com pelo menos 1 questão (ex.: o idioma estrangeiro do ENEM).
+  const allocated = perSubject.map((s) => Math.max(1, Math.floor((s.weight / totalWeight) * TOTAL_QUESTIONS)))
+  while (allocated.reduce((a, b) => a + b, 0) > TOTAL_QUESTIONS) {
+    const largest = allocated.indexOf(Math.max(...allocated))
+    allocated[largest]!--
+  }
   let remainder = TOTAL_QUESTIONS - allocated.reduce((a, b) => a + b, 0)
   const sortedByAvail = [...perSubject.keys()].sort(
     (a, b) => perSubject[b]!.questions.length - perSubject[a]!.questions.length,
