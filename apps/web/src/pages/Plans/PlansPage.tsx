@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth.store'
+import InterestButton from '../../components/InterestButton'
 import './PlansPage.css'
 
 const SUPPORT_EMAIL = (import.meta.env.VITE_SUPPORT_EMAIL as string | undefined)?.trim() || ''
@@ -145,7 +146,10 @@ export default function PlansPage() {
               Paga com Pix Automático, sem cartão. Cancele quando quiser.
             </p>
             {isPlus && hasSubscription ? <p className="kp-ok">Sua assinatura está ativa.</p>
-              : !config.data?.enabled ? <p className="kp-soon">As assinaturas abrem em breve.</p>
+              : !config.data?.enabled ? <div className="kp-soon" style={{ display: 'grid', gap: 10, justifyItems: 'start' }}>
+                <p style={{ margin: 0 }}>As assinaturas abrem em breve.</p>
+                {isAuthenticated ? <InterestButton source="planos" /> : <Link to="/cadastro" className="kp-btn">Criar conta grátis<i className="bi bi-arrow-right" aria-hidden="true" /></Link>}
+              </div>
                 : !isAuthenticated ? <Link to="/cadastro" className="kp-btn">Criar conta para assinar<i className="bi bi-arrow-right" aria-hidden="true" /></Link>
                   : <form className="kp-buy" onSubmit={(event) => { event.preventDefault(); if (adult) checkout.mutate() }}>
                     <label className="kp-check">

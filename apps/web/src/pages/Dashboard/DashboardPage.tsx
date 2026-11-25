@@ -205,6 +205,6 @@ export default function DashboardPage() {
         </section>
       </div>
     </div>
-    {diagnostic.data?.status === 'completed' && <div style={{ marginTop: 16 }}><InviteCard /></div>}
+    <div style={{ marginTop: 16 }}><InviteCard /></div>
   </div></AppLayout>
 }

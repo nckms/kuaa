@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
+import { recordQuotaHit } from './signals'
 import { prisma } from '../../lib/prisma'
 
 export type PlanName = 'FREE' | 'PLUS'
@@ -66,6 +67,7 @@ export function requireQuota(quota: QuotaName): RequestHandler {
       const plan = effectivePlan(user)
       const limit = PLAN_LIMITS[plan][quota]
       if (await usage(req.userId!, quota) >= limit) {
+        if (plan === 'FREE') recordQuotaHit(req.userId!, quota)
         res.status(429).json({ error: MESSAGES[quota](limit, plan), code: 'QUOTA_EXCEEDED', quota, plan, limit,
           upgrade: plan === 'FREE' ? '/planos' : undefined })
         return

@@ -87,14 +87,27 @@ GROUP BY 1
 ORDER BY 2 DESC
 `
 
+// Intenção de compra: pediu aviso do Plus e bateu em cota do gratuito (alunos distintos).
+const SIGNAL_SQL = `
+WITH params AS (SELECT date_trunc('week', now()) - ($1::int - 1) * interval '1 week' AS since)
+SELECT s.kind AS sinal, count(DISTINCT s."userId")::int AS alunos, count(*)::int AS registros
+FROM "ProductSignal" s JOIN "User" u ON u.id = s."userId", params
+WHERE s."createdAt" >= params.since
+  AND NOT (lower(split_part(u.email, '@', 2)) = ANY($2::text[]))
+  AND NOT (lower(u.email) ~ $3)
+GROUP BY 1 ORDER BY 2 DESC
+`
+
 const pct = (part, whole) => (whole ? `${Math.round((100 * part) / whole)}%` : '—')
 
 let bySource = []
+let signals = []
 try {
   const rows = await prisma.$transaction(async (tx) => {
     await tx.$executeRawUnsafe('SET TRANSACTION READ ONLY')
-    return [await tx.$queryRawUnsafe(SQL, weeks, excluded, TEST_PATTERN), await tx.$queryRawUnsafe(SOURCE_SQL, weeks, excluded, TEST_PATTERN)]
-  }).then(([funnel, sources]) => { bySource = sources; return funnel })
+    return [await tx.$queryRawUnsafe(SQL, weeks, excluded, TEST_PATTERN), await tx.$queryRawUnsafe(SOURCE_SQL, weeks, excluded, TEST_PATTERN),
+      await tx.$queryRawUnsafe(SIGNAL_SQL, weeks, excluded, TEST_PATTERN)]
+  }).then(([funnel, sources, sig]) => { bySource = sources; signals = sig; return funnel })
   const total = rows.reduce((acc, r) => {
     for (const key of Object.keys(r)) if (key !== 'semana') acc[key] = (acc[key] ?? 0) + r[key]
     return acc
@@ -120,6 +133,8 @@ try {
   console.table(bySource.map((r) => ({ origem: r.origem, cadastros: r.cadastros,
     'diagnóstico': `${r.diagnostico_ok} (${pct(r.diagnostico_ok, r.cadastros)})`,
     praticou: `${r.praticaram} (${pct(r.praticaram, r.cadastros)})`, plus: r.plus })))
+  console.log('Intenção de compra (plus-interest = pediu aviso; quota-hit:* = bateu na cota do gratuito):')
+  console.table(signals)
 } finally {
   await prisma.$disconnect()
 }

@@ -5,8 +5,7 @@ import { isAxiosError } from 'axios'
 import { useAuthStore } from '../../stores/auth.store'
 import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import './SabiaPage.css'
-import { Link } from 'react-router-dom'
-import { quotaInfo } from '../../components/QuotaNotice'
+import { QuotaActions, quotaInfo } from '../../components/QuotaNotice'
 
 const CHIPS = ['Explica concessão vs. adversativa', 'Me dá 3 questões de porcentagem', 'Como estruturar uma redação?', 'Resumo de Era Vargas']
 
@@ -156,7 +155,8 @@ function SabiaConversation() {
                 </>
               )}
               {error && <div role="alert" className="k-alert">
-                <p style={{ margin: '0 0 10px' }}>{errorText}{quota?.upgrade && <> <Link to={quota.upgrade} style={{ fontWeight: 600, textDecoration: 'underline' }}>Conhecer o Kuaa Plus</Link></>}</p>
+                <p style={{ margin: '0 0 10px' }}>{errorText}</p>
+                {quota?.upgrade && <div style={{ margin: '0 0 12px' }}><QuotaActions quota={quota} /></div>}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button type="button" className="k-btn k-btn-primary is-sm" onClick={() => send()} disabled={blocked || !input.trim()}>Tentar novamente</button>
                   <button type="button" className="k-btn k-btn-outline is-sm" onClick={() => void history.refetch()} disabled={isPending || history.isFetching}>Recarregar histórico</button>
