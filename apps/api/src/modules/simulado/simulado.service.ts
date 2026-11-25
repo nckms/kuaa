@@ -8,6 +8,7 @@ import { invalidateTrailCache } from '../trail/trail.service'
 import { captureSnapshot } from '../index/index.service'
 import { SIMULADO_DURATION_SECONDS, scoreAttempt, type StoredQuestion } from './simulado.results'
 import { getQuestionMedia, readQuestionMedia } from '../quiz/questionMedia'
+import { INCONSISTENT_OFFICIAL } from '../quiz/official'
 
 // 3 min por questão, o ritmo do ENEM (as questões oficiais são longas).
 const TOTAL_QUESTIONS = 30
@@ -50,7 +51,7 @@ async function buildQuestions(vestibularId: string, vestibularName: string, lang
           id: true,
           name: true,
           questions: {
-            where: { active: true, generatedForSessionId: null, officialRefId: null, source: { in: ['CURATED', 'OFFICIAL'] } },
+            where: { active: true, generatedForSessionId: null, officialRefId: null, id: { notIn: INCONSISTENT_OFFICIAL }, source: { in: ['CURATED', 'OFFICIAL'] } },
             select: { id: true, topicId: true, body: true, options: true, difficulty: true, source: true, explanation: true, imageUrl: true, media: true },
           },
         },

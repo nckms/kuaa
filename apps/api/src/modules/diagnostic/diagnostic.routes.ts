@@ -7,7 +7,7 @@ import { requireAuth } from '../../middleware/requireAuth'
 import { makeError } from '../../utils/errors'
 import { getCuratedQuestions } from '../quiz/curatedQuestions'
 import { getQuestionMedia, readQuestionMedia } from '../quiz/questionMedia'
-import { OFFICIAL_SIBLINGS } from '../quiz/official'
+import { INCONSISTENT_OFFICIAL, OFFICIAL_SIBLINGS } from '../quiz/official'
 import type { QuestionOption } from '../quiz/quiz.types'
 import { invalidateTrailCache } from '../trail/trail.service'
 import { rewardReferral } from '../engagement/referrals'
@@ -42,7 +42,7 @@ async function officialPool(record: Enrollment, areas: DiagnosticArea[]): Promis
   }
   if (!owner.size) return []
   const rows = await prisma.question.findMany({
-    where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, topic: { name: { in: [...owner.keys()] } } },
+    where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, id: { notIn: INCONSISTENT_OFFICIAL }, topic: { name: { in: [...owner.keys()] } } },
     select: { body: true, options: true, difficulty: true, difficultySource: true, origin: true, imageUrl: true, media: true, topic: { select: { name: true } } },
   })
   // Diagnóstico curto: prefere enunciados de leitura rápida. Não prioriza as já classificadas
