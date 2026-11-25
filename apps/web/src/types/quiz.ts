@@ -22,7 +22,8 @@ export interface QuizQuestion extends QuestionMediaData {
   id: string
   body: string
   options: QuizOption[]
-  difficulty: number
+  /** 1 a 5; null = questão oficial ainda sem estimativa de dificuldade. */
+  difficulty: number | null
   /** Questão real de prova, ex.: "ENEM 2019 · questão 45". */
   origin?: string | null
 }

@@ -30,7 +30,7 @@ export function shuffleOptions<T extends { id: string; isCorrect: boolean }>(opt
   return arr.map((opt, i) => ({ ...opt, id: letters[i] ?? opt.id }))
 }
 
-type ServedQuestion = ReturnType<typeof generateFallbackQuestions>[number] & { officialRefId?: string; origin?: string | null; year?: number | null }
+type ServedQuestion = ReturnType<typeof generateFallbackQuestions>[number] & { officialRefId?: string; origin?: string | null; year?: number | null; difficultySource?: string | null }
 interface GenerationResult {
   questions: ServedQuestion[]
   source: 'AI_GENERATED' | 'CURATED' | 'OFFICIAL'
@@ -218,6 +218,7 @@ async function persistGeneratedQuestions(
       difficulty: q.difficulty,
       source,
       officialRefId: q.officialRefId ?? null,
+      difficultySource: q.difficultySource ?? null,
       origin: q.origin ?? null,
       year: q.year ?? null,
     })),
@@ -412,7 +413,8 @@ class QuizService {
         body: q.body,
         ...readQuestionMedia(q.imageUrl, q.media),
         options: opts.map(({ id, text }) => ({ id, text })),
-        difficulty: q.difficulty,
+        // Questão oficial sem estimativa ainda: não mostra um nível inventado.
+        difficulty: q.source === 'OFFICIAL' && !q.difficultySource ? null : q.difficulty,
         origin: q.source === 'OFFICIAL' ? q.origin : null,
       }
     })

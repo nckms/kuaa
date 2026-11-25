@@ -38,7 +38,7 @@ export const OFFICIAL_SIBLINGS: Record<string, string[]> = {
   'Cultura e Sociedade': ['Cultura, Identidade e Socialização'],
 }
 
-export interface OfficialPick extends GeneratedQuestion { officialRefId: string; origin: string | null; year: number | null }
+export interface OfficialPick extends GeneratedQuestion { officialRefId: string; origin: string | null; year: number | null; difficultySource: string | null }
 
 const shuffle = <T>(items: T[]) => items.map((item) => ({ item, r: Math.random() })).sort((a, b) => a.r - b.r).map(({ item }) => item)
 
@@ -51,12 +51,12 @@ export async function pickOfficial(userId: string, topicName: string, count: num
   const seenIds = seen.map((s) => s.officialRefId!).filter(Boolean)
   const pool = await prisma.question.findMany({
     where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, topic: { name: { in: names } }, ...(seenIds.length ? { id: { notIn: seenIds } } : {}) },
-    select: { id: true, body: true, options: true, explanation: true, explanationByAi: true, difficulty: true, origin: true, year: true, imageUrl: true, media: true },
+    select: { id: true, body: true, options: true, explanation: true, explanationByAi: true, difficulty: true, difficultySource: true, origin: true, year: true, imageUrl: true, media: true },
     take: 400,
   })
   return shuffle(pool).slice(0, count).map((q) => ({
     officialRefId: q.id, origin: q.origin, year: q.year, body: q.body, explanation: q.explanation,
-    options: q.options as unknown as QuestionOption[], difficulty: q.difficulty,
+    options: q.options as unknown as QuestionOption[], difficulty: q.difficulty, difficultySource: q.difficultySource,
     ...readQuestionMedia(q.imageUrl, q.media),
   }))
 }

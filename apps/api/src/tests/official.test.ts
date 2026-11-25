@@ -160,20 +160,37 @@ describe('questões oficiais com figura', () => {
   })
 })
 
-describe('classificação de tópico pela IA', () => {
-  it('escolhe só entre os tópicos da área, grava uma vez e a reimportação não desfaz', async () => {
+describe('classificação de tópico e dificuldade pela IA', () => {
+  it('escolhe só entre os tópicos da área, estima a dificuldade e grava uma vez; sem estimativa, o nível não aparece', async () => {
     const { classifyNextOfficial } = await import('../modules/quiz/officialTopics')
-    await seedOfficial('Razões, Porcentagens e Matemática Financeira', 2, 'cofenem2018q')
-    generateContent.mockResolvedValueOnce({ text: '{"topic":"Funções e Gráficos"}' } as GenResponse)
-    generateContent.mockResolvedValueOnce({ text: '{"topic":"Revolução Francesa"}' } as GenResponse) // fora da lista
+    const topic = await seedOfficial('Razões, Porcentagens e Matemática Financeira', 3, 'cofenem2018q')
+    const s = await student('off_level', topic.id)
+    generateContent.mockResolvedValue({ text: EXPLANATION } as GenResponse)
+    const before = await practise(s.token, topic.id)
+    expect(before.questions.every((q: { difficulty: number | null }) => q.difficulty === null)).toBe(true)
+    await new Promise((r) => setTimeout(r, 300)) // explicações em segundo plano terminam antes
+    generateContent.mockReset()
+    generateContent.mockResolvedValueOnce({ text: '{"topic":"Funções e Gráficos","difficulty":4}' } as GenResponse)
+    generateContent.mockResolvedValueOnce({ text: '{"topic":"Revolução Francesa","difficulty":9}' } as GenResponse) // fora da lista e da escala
+    generateContent.mockResolvedValueOnce({ text: '{"difficulty":3}' } as GenResponse) // volta na 2ª só pela dificuldade que faltou
+    generateContent.mockResolvedValueOnce({ text: '{"topic":"Grandezas, Medidas e Escalas","difficulty":2}' } as GenResponse)
     expect(await classifyNextOfficial()).toBe('classified')
     expect(await classifyNextOfficial()).toBe('kept')
+    expect(await classifyNextOfficial()).toBe('classified')
+    expect(await classifyNextOfficial()).toBe('classified')
     expect(await classifyNextOfficial()).toBe('done')
     const prompt = String(generateContent.mock.calls[0][0].contents)
     expect(prompt).toContain('- Funções e Gráficos:')
     expect(prompt).not.toContain('Cultura, Identidade e Socialização')
-    const [first, second] = await testPrisma.question.findMany({ where: { source: 'OFFICIAL' }, orderBy: { id: 'asc' }, include: { topic: true } })
-    expect(first).toMatchObject({ topicSource: 'ai', topic: { name: 'Funções e Gráficos' } })
-    expect(second).toMatchObject({ topicSource: 'keyword', topic: { name: 'Razões, Porcentagens e Matemática Financeira' } })
+    expect(String(generateContent.mock.calls[2][0].contents)).not.toContain('Topicos (nome')
+    const rows = await testPrisma.question.findMany({ where: { source: 'OFFICIAL', generatedForSessionId: null }, orderBy: { id: 'asc' }, include: { topic: true } })
+    expect(rows.map((r) => [r.topic.name, r.topicSource, r.difficulty, r.difficultySource])).toEqual([
+      ['Funções e Gráficos', 'ai', 4, 'ai'],
+      ['Razões, Porcentagens e Matemática Financeira', 'keyword', 3, 'ai'],
+      ['Grandezas, Medidas e Escalas', 'ai', 2, 'ai'],
+    ])
+    // As cópias da sessão já criada passam a mostrar o nível.
+    const after = await api.get(`/api/v1/quiz/${before.sessionId}`).set('Authorization', `Bearer ${s.token}`)
+    expect(after.body.questions.every((q: { difficulty: number | null }) => typeof q.difficulty === 'number')).toBe(true)
   })
 })
