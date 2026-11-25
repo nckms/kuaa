@@ -177,7 +177,9 @@ export function SimuladoExam({
     <div className="sim-exam">
       <div className="sim-exam-main">
         <div className="sim-bar">
-          <span className="k-mono">Questão {currentIdx + 1} de {questions.length}</span>
+          <span className="k-mono">{q.order !== currentIdx + 1
+            ? <>Questão {q.order} · {currentIdx + 1} de {questions.length}</>
+            : <>Questão {currentIdx + 1} de {questions.length}</>}</span>
           <div className="sim-bar-track"><span style={{ width: `${(answeredCount / questions.length) * 100}%` }} /></div>
           <span className={`sim-timer${timeLeft < 600 ? ' is-low' : ''}`} role="timer" aria-label="Tempo restante"><i className="bi bi-stopwatch" aria-hidden="true" />{formatTime(timeLeft)}</span>
         </div>
