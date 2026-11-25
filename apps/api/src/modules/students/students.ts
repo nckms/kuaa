@@ -51,7 +51,7 @@ export const studentUploadHandlers = [
   requireAuth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { fileBase64, consent } = z.object({ fileBase64: z.string().min(100).max(6_000_000), consent: z.literal(true) }).strict().parse(req.body)
+      const { fileBase64 } = z.object({ fileBase64: z.string().min(100).max(6_000_000), consent: z.literal(true) }).strict().parse(req.body)
       const data = Buffer.from(fileBase64.replace(/^data:[^;]+;base64,/, ''), 'base64')
       if (data.length > MAX_BYTES) throw makeError('Arquivo maior que 4 MB.', 413, 'FILE_TOO_LARGE')
       const mime = sniffMime(data)
