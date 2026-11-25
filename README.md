@@ -100,6 +100,15 @@ npm run build --workspace=apps/api
 - Meia estudantil em `modules/students`: aluno envia carteirinha/declaração, admin (`ADMIN_USER_IDS`) aprova em `/admin/estudantes`; a imagem é apagada na análise ou após 30 dias; a aprovação vale 12 meses.
 - Passo a passo de lançamento: [`docs/lancamento.md`](docs/lancamento.md).
 
+## App, retenção e medição
+
+- **App instalável (PWA):** `apps/web/public/manifest.webmanifest` e `sw.js` (o SW nunca intercepta `/api`). Caminho para Google Play/App Store em [`docs/app-lojas.md`](docs/app-lojas.md).
+- **Lembrete diário (Web Push):** `modules/engagement/push.ts`. Opt-in no painel/Configurações; às 19h de Brasília, uma vez por dia, só para quem não estudou no dia e esteve ativo nos últimos 21 dias. Exige `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY` (gere com `npx web-push generate-vapid-keys`); sem elas o recurso fica desligado.
+- **Primeira prática instantânea:** a 1ª prática do aluno sai do acervo; com acervo disponível a IA tem 8 s, e após 503/timeout o acervo é usado direto por 2 min.
+- **Origem do cadastro:** `?ref=` / `utm_*` gravados em `User.signupSource`; `npm run metrics` mostra o funil por origem.
+- **LGPD:** `/termos`, `/privacidade` (versão preliminar), exportar dados e excluir conta em Configurações.
+- **Acervo a revisar:** `apps/api/src/data/curated-review.ts` (questões autorais `kuaa-rev-*`, aguardando revisão de professor).
+
 ### Scripts de operação (`apps/api`)
 
 | Comando | O que faz |
