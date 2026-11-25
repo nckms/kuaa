@@ -105,7 +105,7 @@ afterAll(async () => {
 })
 
 describe('jornada adaptativa (provedor de IA simulado)', () => {
-  it('1. diagnóstico inicial forte define a dificuldade da primeira prática e ela chega ao prompt', async () => {
+  it('1. diagnóstico inicial forte define a dificuldade da primeira prática (instantânea, do acervo)', async () => {
     const path = '/api/v1/diagnostic/enem'
     let state = (await api.post(`${path}/profile`).set(auth()).send({
       schoolStage: 'medio', examHorizon: 'este-ano', weeklyMinutes: 180, difficultSubjects: [] })).body
@@ -124,11 +124,12 @@ describe('jornada adaptativa (provedor de IA simulado)', () => {
     expect(diagnosticTarget).toBeGreaterThanOrEqual(2)
     expect(before.recommendation.reason).toContain('diagnostico')
 
+    const calls = generateContent.mock.calls.length
     const first = await practise(3, 0)
-    // A mesma dificuldade: recomendação da trilha -> prompt da IA -> metadados -> questões entregues.
-    expect(lastPromptTarget()).toBe(diagnosticTarget)
-    expect(first.generation).toMatchObject({ source: 'AI_GENERATED', targetDifficulty: diagnosticTarget, targetSatisfied: true })
-    expect(first.stored.every((q) => q.source === 'AI_GENERATED' && q.difficulty === diagnosticTarget)).toBe(true)
+    // A primeira prática sai do acervo na hora, já na dificuldade definida pelo diagnóstico.
+    expect(generateContent.mock.calls.length).toBe(calls)
+    expect(first.generation).toMatchObject({ source: 'CURATED', fallbackReason: 'INSTANT_FIRST_PRACTICE', targetDifficulty: diagnosticTarget, targetSatisfied: true })
+    expect(first.stored.every((q) => q.source === 'CURATED' && Math.abs(q.difficulty - diagnosticTarget) <= 1)).toBe(true)
 
     // 2. Poucas respostas: nada de domínio declarado, mas a evidência fica guardada.
     expect(first.finished.performance).toMatchObject({ previousLevel: 0, newLevel: 0, decision: 'collect', pendingAnswers: 3 })

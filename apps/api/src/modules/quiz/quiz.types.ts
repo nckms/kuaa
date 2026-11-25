@@ -16,6 +16,8 @@ export interface GeneratedQuestion extends QuestionMediaData {
 }
 
 export interface GenerationJobData {
+  /** Primeira prática do aluno: serve do acervo na hora, sem esperar a IA. */
+  preferCurated?: boolean
   sessionId: string
   userId: string
   topicId: string
