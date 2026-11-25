@@ -38,7 +38,7 @@ function Results({ attempt }: { attempt: ExamAttempt }) {
   for (const q of attempt.questions) {
     const row = bySubject.get(q.subjectName) ?? { ok: 0, total: 0 }
     row.total++
-    if (attempt.answers[q.id] && attempt.answers[q.id] === q.correctOptionId) row.ok++
+    if (isRight(q, attempt.answers[q.id])) row.ok++
     bySubject.set(q.subjectName, row)
   }
   return (
@@ -63,7 +63,7 @@ function Results({ attempt }: { attempt: ExamAttempt }) {
         <h2 className="k-h3" style={{ padding: '22px 24px 8px' }}>Correção</h2>
         {attempt.questions.map((q) => {
           const answer = attempt.answers[q.id]
-          const status = !answer ? 'Em branco' : answer === q.correctOptionId ? 'Correta' : 'Errada'
+          const status = !answer ? 'Em branco' : isRight(q, answer) ? 'Correta' : 'Errada'
           const color = status === 'Correta' ? 'var(--k-verde)' : status === 'Errada' ? 'var(--k-vinho)' : 'var(--k-faint)'
           const correctOption = q.options.find((o) => o.id === q.correctOptionId)
           const selected = q.options.find((o) => o.id === answer)
@@ -89,6 +89,10 @@ function Results({ attempt }: { attempt: ExamAttempt }) {
     </div>
   )
 }
+
+
+const isRight = (q: ExamQuestion, answer: string | undefined) =>
+  Boolean(answer) && (q.acceptedOptionIds ?? [q.correctOptionId]).includes(answer)
 
 export default function ExamAttemptPage() {
   const { id = '' } = useParams()
