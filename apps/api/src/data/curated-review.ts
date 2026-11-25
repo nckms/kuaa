@@ -179,7 +179,7 @@ export const reviewQuestions: CuratedQuestion[] = [
   q('mecanica-1', MECANICA, 1,
     'Um corpo de 2 kg move-se a 3 m/s. Sua energia cinética é',
     ['9 J', '6 J', '18 J', '3 J', '12 J'],
-    'Ec = m·v²/2 = 2·9/2 = 9 J.'),
+    'A energia cinética é Ec = m·v²/2 = 2·3²/2 = 2·9/2 = 9 J.'),
   q('mecanica-2', MECANICA, 2,
     'Uma pessoa de 60 kg sobe uma escada de 5 m de altura (g = 10 m/s²). O ganho de energia potencial gravitacional é',
     ['3 000 J', '300 J', '600 J', '30 000 J', '1 200 J'],

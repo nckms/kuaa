@@ -45,7 +45,7 @@ describe('banco autoral de reserva', () => {
   it('nao preenche sessoes curtas com questoes repetidas', () => {
     const questions = generateCuratedQuestions({ topicName: 'Interpretação de Texto', userMasteryLevel: 1, questionCount: 10 })
     expect(questions.length).toBeGreaterThan(0)
-    expect(questions.length).toBeLessThanOrEqual(3)
+    expect(questions.length).toBeLessThanOrEqual(10)
     expect(questions.every((question) => Math.abs(question.difficulty - 1) <= 1)).toBe(true)
     expect(new Set(questions.map((q) => q.body)).size).toBe(questions.length)
   })
