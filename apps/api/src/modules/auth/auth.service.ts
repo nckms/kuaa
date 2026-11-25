@@ -5,7 +5,7 @@ import type { User } from '@prisma/client'
 import { prisma } from '../../lib/prisma'
 import { env } from '../../lib/env'
 import { makeError } from '../../utils/errors'
-import type { SafeUser } from '../../types/index'
+import type { PublicUser } from '../../types/index'
 import type { RegisterInput, LoginInput, ResetPasswordInput } from './auth.schemas'
 import { requestPasswordReset, resetPassword } from './passwordReset'
 
@@ -20,11 +20,12 @@ interface AuthTokens {
 }
 
 interface AuthResult extends AuthTokens {
-  user: SafeUser
+  user: PublicUser
 }
 
-function toSafeUser(user: User): SafeUser {
-  const { passwordHash: _, ...safe } = user
+// O que volta ao cliente: sem senha, sem ids internos de pagamento e sem a origem do cadastro.
+function toSafeUser(user: User): PublicUser {
+  const { passwordHash: _, stripeCustomerId: _stripe, signupSource: _source, ...safe } = user
   return safe
 }
 
@@ -62,6 +63,9 @@ class AuthService {
         city: input.city,
         state: input.state,
         plan: 'FREE',
+        ...(input.attribution && Object.keys(input.attribution).length
+          ? { signupSource: Object.fromEntries(Object.entries(input.attribution).map(([k, v]) => [k, v.toLowerCase()])) }
+          : {}),
       },
     })
 
@@ -134,7 +138,7 @@ class AuthService {
     await resetPassword(input.token, input.password)
   }
 
-  async me(userId: string): Promise<SafeUser> {
+  async me(userId: string): Promise<PublicUser> {
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user) throw makeError('Usuário não encontrado', 404, 'NOT_FOUND')
     return toSafeUser(user)

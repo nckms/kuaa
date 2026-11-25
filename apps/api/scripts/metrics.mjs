@@ -70,13 +70,31 @@ GROUP BY cohort
 ORDER BY cohort
 `
 
+// Cadastros por origem (ref > utm_source > domínio de referência > direto).
+const SOURCE_SQL = `
+WITH params AS (SELECT date_trunc('week', now()) - ($1::int - 1) * interval '1 week' AS since)
+SELECT
+  coalesce(u."signupSource" ->> 'ref', u."signupSource" ->> 'utmSource', u."signupSource" ->> 'referrer', 'direto/desconhecido') AS origem,
+  count(*)::int AS cadastros,
+  count(*) FILTER (WHERE EXISTS (SELECT 1 FROM "Enrollment" e WHERE e."userId" = u.id AND e.diagnostic ->> 'finishedAt' IS NOT NULL))::int AS diagnostico_ok,
+  count(*) FILTER (WHERE EXISTS (SELECT 1 FROM "UserAnswer" a WHERE a."userId" = u.id))::int AS praticaram,
+  count(*) FILTER (WHERE u.plan = 'PLUS')::int AS plus
+FROM "User" u, params
+WHERE u."createdAt" >= params.since
+  AND NOT (lower(split_part(u.email, '@', 2)) = ANY($2::text[]))
+  AND NOT (lower(u.email) ~ $3)
+GROUP BY 1
+ORDER BY 2 DESC
+`
+
 const pct = (part, whole) => (whole ? `${Math.round((100 * part) / whole)}%` : '—')
 
+let bySource = []
 try {
   const rows = await prisma.$transaction(async (tx) => {
     await tx.$executeRawUnsafe('SET TRANSACTION READ ONLY')
-    return tx.$queryRawUnsafe(SQL, weeks, excluded, TEST_PATTERN)
-  })
+    return [await tx.$queryRawUnsafe(SQL, weeks, excluded, TEST_PATTERN), await tx.$queryRawUnsafe(SOURCE_SQL, weeks, excluded, TEST_PATTERN)]
+  }).then(([funnel, sources]) => { bySource = sources; return funnel })
   const total = rows.reduce((acc, r) => {
     for (const key of Object.keys(r)) if (key !== 'semana') acc[key] = (acc[key] ?? 0) + r[key]
     return acc
@@ -98,6 +116,10 @@ try {
       `praticou ${pct(total.praticaram, total.cadastros)} · voltou na S2 ${pct(total.voltaram_s2, total.janela_s2_fechada)} ` +
       `(${total.voltaram_s2}/${total.janela_s2_fechada}) · ativos 7d ${total.ativos_7d}`)
   }
+  console.log('Cadastros por origem (?ref, utm_source ou site de referência):')
+  console.table(bySource.map((r) => ({ origem: r.origem, cadastros: r.cadastros,
+    'diagnóstico': `${r.diagnostico_ok} (${pct(r.diagnostico_ok, r.cadastros)})`,
+    praticou: `${r.praticaram} (${pct(r.praticaram, r.cadastros)})`, plus: r.plus })))
 } finally {
   await prisma.$disconnect()
 }

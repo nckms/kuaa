@@ -45,7 +45,7 @@ Tom: bastidores honestos, números reais.
 
 ## Kit para micro-influenciadores (5 a 50 mil seguidores de estudo/ENEM)
 
-**Proposta:** pagamento fixo pequeno ou Plus grátis + comissão por assinatura, com link rastreável (`kuaa-web.vercel.app/?ref=<nome>` — registrar o `ref` no cadastro antes de começar).
+**Proposta:** pagamento fixo pequeno ou Plus grátis + comissão por assinatura, com link rastreável `kuaa-web.vercel.app/?ref=<nome>` (o `ref` fica salvo no cadastro por 30 dias após o clique e aparece em `npm run metrics`, tabela "Cadastros por origem"). Para posts próprios use `?utm_source=instagram&utm_campaign=<roteiro>`.
 
 **Briefing:**
 - Use o Kuaa de verdade por pelo menos 3 dias antes de gravar.

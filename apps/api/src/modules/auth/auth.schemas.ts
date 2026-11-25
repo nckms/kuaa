@@ -7,6 +7,14 @@ export const RegisterSchema = z.object({
   school: z.string().optional(),
   city: z.string().optional(),
   state: z.string().length(2).optional(),
+  // Origem do cadastro. Valores curtos e sem espaços; nada pessoal.
+  attribution: z.object({
+    ref: z.string().regex(/^[a-z0-9_.-]{1,40}$/i),
+    utmSource: z.string().regex(/^[a-z0-9_.-]{1,40}$/i),
+    utmMedium: z.string().regex(/^[a-z0-9_.-]{1,40}$/i),
+    utmCampaign: z.string().regex(/^[a-z0-9_.-]{1,60}$/i),
+    referrer: z.string().regex(/^[a-z0-9.-]{1,80}$/i),
+  }).partial().strict().optional().catch(undefined),
 })
 
 export const LoginSchema = z.object({
