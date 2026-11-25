@@ -4,6 +4,7 @@ import { ai } from '../lib/gemini'
 import { env } from '../lib/env'
 import { api, registerAndLogin } from './helpers/api'
 import { testPrisma, truncateUserData } from './helpers/truncate'
+import { acceptedOptionIds } from '../modules/exams/exams'
 
 const generateContent = vi.mocked(ai.models.generateContent)
 type GenResponse = Awaited<ReturnType<typeof ai.models.generateContent>>
@@ -86,5 +87,17 @@ describe('provas anteriores (ENEM completo)', () => {
     expect(res.finishedAt).not.toBeNull()
     expect(res.correct).toBe(0)
     expect((await api.post('/api/v1/exams/enem/2019/1/start').set('Authorization', `Bearer ${s.token}`)).status).toBe(404)
+  })
+})
+
+describe('alternativa correta repetida na transcrição', () => {
+  it('aceita qualquer alternativa com o mesmo texto do gabarito', () => {
+    const options = [
+      { id: 'A', text: 'A,E,O e S.', isCorrect: false }, { id: 'B', text: 'D, E, F e G.', isCorrect: false },
+      { id: 'C', text: 'D, E, F  e G.', isCorrect: true }, { id: 'D', text: 'D,H,R e V.', isCorrect: false },
+      { id: 'E', text: 'X, B L e P.', isCorrect: false },
+    ]
+    expect(acceptedOptionIds(options)).toEqual(['B', 'C'])
+    expect(acceptedOptionIds(options.map((o) => ({ ...o, text: `${o.id} único` })))).toEqual(['C'])
   })
 })

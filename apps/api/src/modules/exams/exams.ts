@@ -113,12 +113,22 @@ async function finish(id: string, userId: string) {
     for (const q of questions) {
       const chosen = answers[q.id]
       if (!chosen) continue
-      if ((q.options as unknown as QuestionOption[]).find((o) => o.id === chosen)?.isCorrect) correct++
+      if (acceptedOptionIds(q.options as unknown as QuestionOption[]).includes(chosen)) correct++
       else wrong++
     }
     const finishedAt = new Date(Math.min(Date.now(), attempt.startedAt.getTime() + attempt.durationSeconds * 1000))
     return tx.examAttempt.update({ where: { id }, data: { finishedAt, correct, wrong } })
   })
+}
+
+/**
+ * Alternativas que contam como acerto: a do gabarito e qualquer outra com o mesmo texto (a
+ * transcrição de algumas provas repete a alternativa correta, e o aluno não pode perder ponto por isso).
+ */
+export function acceptedOptionIds(options: QuestionOption[]): string[] {
+  const norm = (t: string) => t.replace(/\s+/g, ' ').trim().toLowerCase()
+  const right = options.find((o) => o.isCorrect)
+  return right ? options.filter((o) => o.id === right.id || norm(o.text) === norm(right.text)).map((o) => o.id) : []
 }
 
 async function getAttempt(req: Request, res: Response, next: NextFunction) {
@@ -144,6 +154,7 @@ async function getAttempt(req: Request, res: Response, next: NextFunction) {
         options: options.map(({ id: optionId, text }) => ({ id: optionId, text })),
         ...(done ? {
           correctOptionId: options.find((o) => o.isCorrect)?.id ?? null,
+          acceptedOptionIds: acceptedOptionIds(options),
           explanation: q.explanation || null, explanationByAi: q.explanationByAi,
           difficulty: q.difficultySource ? q.difficulty : null,
         } : {}),

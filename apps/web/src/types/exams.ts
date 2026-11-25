@@ -11,6 +11,8 @@ export interface ExamSummary {
 }
 
 export interface ExamQuestion extends Omit<SimuladoQuestion, 'subjectId'> {
+  /** Gabarito + alternativas com o mesmo texto (transcrição repetida). */
+  acceptedOptionIds?: string[]
   origin?: string | null
   explanationByAi?: boolean
   difficulty?: number | null
