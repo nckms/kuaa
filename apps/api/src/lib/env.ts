@@ -31,9 +31,12 @@ const envSchema = z.object({
   // Pagamentos (Stripe). Sem STRIPE_SECRET_KEY a venda fica desligada.
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
-  STRIPE_PLUS_LOOKUP_KEY: z.string().default('kuaa_plus_enem_2027'),
-  // Fim do acesso do Plus vendido agora (data no horário de Brasília).
-  PLUS_EXPIRES_AT: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).default('2027-12-31'),
+  STRIPE_PRICE_FULL_LOOKUP: z.string().default('kuaa_plus_mensal'),
+  STRIPE_PRICE_STUDENT_LOOKUP: z.string().default('kuaa_plus_mensal_estudante'),
+  // Teto autorizado no Pix Automático (centavos). Cobre o preço cheio.
+  PIX_MANDATE_MAX_CENTS: z.coerce.number().int().positive().default(2990),
+  // IDs de usuário (separados por vírgula) que podem analisar documentos de estudante.
+  ADMIN_USER_IDS: z.string().default(''),
   PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().min(5).max(120).default(30),
 })
 
