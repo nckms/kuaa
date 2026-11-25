@@ -4,6 +4,17 @@ import { useSession, useAnswer, useFinish } from '../../hooks/useQuiz'
 import { useAuthStore } from '../../stores/auth.store'
 import QuestionMedia from '../../components/quiz/QuestionMedia'
 import type { AnswerResult } from '../../types/quiz'
+
+const LEVELS = ['Muito fácil', 'Fácil', 'Média', 'Difícil', 'Muito difícil']
+
+/** Nível de dificuldade da questão, mostrado depois da resposta. */
+function DifficultyLevel({ value }: { value: number }) {
+  const level = Math.min(5, Math.max(1, Math.round(value)))
+  return <div className="qz-level" aria-label={`Nível de dificuldade: ${LEVELS[level - 1]}, ${level} de 5`}>
+    <span>Nível: <strong>{LEVELS[level - 1]}</strong></span>
+    <span className="qz-level-dots" aria-hidden="true">{[1, 2, 3, 4, 5].map((n) => <i key={n} className={n <= level ? 'is-on' : ''} />)}</span>
+  </div>
+}
 import './QuizPage.css'
 
 function formatTime(seconds: number): string {
@@ -157,6 +168,7 @@ export default function QuizPage() {
               <div>
                 <div className="qz-feedback-title">{ok ? 'Mandou bem!' : `Quase. A correta é ${correctLetter}.`}{displayResult.xpDelta > 0 && <span className="qz-xp">+{displayResult.xpDelta} XP</span>}</div>
                 <div className="qz-feedback-exp">{displayResult.explanation}</div>
+                {currentQ.difficulty != null && <DifficultyLevel value={currentQ.difficulty} />}
                 {displayResult.explanationByAi && <div className="qz-feedback-ai"><i className="bi bi-stars" aria-hidden="true" /> Explicação escrita com apoio de IA · gabarito oficial</div>}
               </div>
             </div>

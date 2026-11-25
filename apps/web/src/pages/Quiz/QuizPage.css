@@ -92,3 +92,8 @@
 .qz-review-exp { font-size: 13px; color: #A797AE; line-height: 1.5; }
 .qz-confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
 .qz-confetti span { position: absolute; top: -20px; }
+
+.qz-level { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; opacity: .9; }
+.qz-level-dots { display: inline-flex; gap: 3px; }
+.qz-level-dots i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .25; }
+.qz-level-dots i.is-on { opacity: 1; }

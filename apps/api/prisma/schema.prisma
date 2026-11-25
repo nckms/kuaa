@@ -190,6 +190,8 @@ model Question {
   explanationByAi       Boolean        @default(false)
   /// Como o tópico da questão oficial foi definido: null = palavras-chave; "ai" = classificada pela IA.
   topicSource           String?
+  /// Origem da dificuldade da questão oficial: null = ainda sem estimativa; "ai" = estimada pela IA.
+  difficultySource      String?
   topic                 Topic          @relation(fields: [topicId], references: [id])
   generatedForSession   QuizSession?   @relation("SessionGeneratedQuestions", fields: [generatedForSessionId], references: [id], onDelete: SetNull)
   answers               UserAnswer[]
