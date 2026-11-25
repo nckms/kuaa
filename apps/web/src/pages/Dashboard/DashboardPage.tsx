@@ -17,6 +17,7 @@ import InstallAppCard from '../../components/InstallAppCard'
 import ReminderCard from '../../components/ReminderCard'
 import InviteCard from '../../components/InviteCard'
 import { useReviewOverview } from '../../hooks/useReview'
+import PlanCountdownCard from '../../components/PlanCountdownCard'
 
 const DAYS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
 const WEEK_TARGET = 5
@@ -187,6 +188,7 @@ export default function DashboardPage() {
         </div>
       </section>
       <div className="dash-side">
+        {firstVestibularSlug && <PlanCountdownCard slug={firstVestibularSlug} />}
         {(review.data?.open ?? 0) > 0 && (
           <Link to="/erros" className={`k-card is-md dash-review${review.data!.due ? ' is-due' : ''}`}>
             <i className="bi bi-arrow-repeat" aria-hidden="true" />
