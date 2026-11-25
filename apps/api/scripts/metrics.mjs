@@ -98,16 +98,32 @@ WHERE s."createdAt" >= params.since
 GROUP BY 1 ORDER BY 2 DESC
 `
 
+// Uso do que foi lançado em 25/11: provas anteriores e práticas com questão oficial (alunos reais).
+const USAGE_SQL = `
+WITH params AS (SELECT date_trunc('week', now()) - ($1::int - 1) * interval '1 week' AS since),
+real AS (SELECT id FROM "User" u WHERE NOT (lower(split_part(u.email, '@', 2)) = ANY($2::text[])) AND NOT (lower(u.email) ~ $3))
+SELECT
+  (SELECT count(*)::int FROM "ExamAttempt" e, params WHERE e."startedAt" >= params.since AND e."userId" IN (SELECT id FROM real)) AS provas_iniciadas,
+  (SELECT count(*)::int FROM "ExamAttempt" e, params WHERE e."startedAt" >= params.since AND e."finishedAt" IS NOT NULL AND e."userId" IN (SELECT id FROM real)) AS provas_entregues,
+  (SELECT count(DISTINCT e."userId")::int FROM "ExamAttempt" e, params WHERE e."startedAt" >= params.since AND e."userId" IN (SELECT id FROM real)) AS alunos_com_prova,
+  (SELECT count(*)::int FROM "QuizSession" s, params WHERE s."startedAt" >= params.since AND s."userId" IN (SELECT id FROM real)) AS praticas,
+  (SELECT count(*)::int FROM "QuizSession" s, params WHERE s."startedAt" >= params.since AND s."userId" IN (SELECT id FROM real)
+     AND s."generationMetadata" ->> 'source' = 'OFFICIAL') AS praticas_oficiais,
+  (SELECT count(DISTINCT p."userId")::int FROM "PushSubscription" p WHERE p."userId" IN (SELECT id FROM real)) AS alunos_com_lembrete,
+  (SELECT count(*)::int FROM "User" u, params WHERE u."createdAt" >= params.since AND u."referredById" IS NOT NULL AND u.id IN (SELECT id FROM real)) AS cadastros_por_convite
+`
+
 const pct = (part, whole) => (whole ? `${Math.round((100 * part) / whole)}%` : '—')
 
 let bySource = []
 let signals = []
+let usage = null
 try {
   const rows = await prisma.$transaction(async (tx) => {
     await tx.$executeRawUnsafe('SET TRANSACTION READ ONLY')
     return [await tx.$queryRawUnsafe(SQL, weeks, excluded, TEST_PATTERN), await tx.$queryRawUnsafe(SOURCE_SQL, weeks, excluded, TEST_PATTERN),
-      await tx.$queryRawUnsafe(SIGNAL_SQL, weeks, excluded, TEST_PATTERN)]
-  }).then(([funnel, sources, sig]) => { bySource = sources; signals = sig; return funnel })
+      await tx.$queryRawUnsafe(SIGNAL_SQL, weeks, excluded, TEST_PATTERN), await tx.$queryRawUnsafe(USAGE_SQL, weeks, excluded, TEST_PATTERN)]
+  }).then(([funnel, sources, sig, use]) => { bySource = sources; signals = sig; usage = use[0]; return funnel })
   const total = rows.reduce((acc, r) => {
     for (const key of Object.keys(r)) if (key !== 'semana') acc[key] = (acc[key] ?? 0) + r[key]
     return acc
@@ -135,6 +151,14 @@ try {
     praticou: `${r.praticaram} (${pct(r.praticaram, r.cadastros)})`, plus: r.plus })))
   console.log('Intenção de compra (plus-interest = pediu aviso; quota-hit:* = bateu na cota do gratuito):')
   console.table(signals)
+  if (usage) {
+    console.log('Uso das novidades (provas anteriores, questões oficiais, lembretes, convites):')
+    console.table([{
+      'provas iniciadas': usage.provas_iniciadas, 'provas entregues': usage.provas_entregues, 'alunos com prova': usage.alunos_com_prova,
+      'práticas': usage.praticas, 'com questão oficial': `${usage.praticas_oficiais} (${pct(usage.praticas_oficiais, usage.praticas)})`,
+      'alunos com lembrete': usage.alunos_com_lembrete, 'cadastros por convite': usage.cadastros_por_convite,
+    }])
+  }
 } finally {
   await prisma.$disconnect()
 }
