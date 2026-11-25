@@ -1,4 +1,6 @@
 import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../../services/api'
 import { Link, useNavigate } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import { useAuthStore } from '../../stores/auth.store'
@@ -25,6 +27,14 @@ export default function DashboardPage() {
   const { data: trail, isLoading, isError, refetch } = useTrail(firstVestibularSlug ?? '')
   const { data: indexData } = useIndex(firstVestibularSlug ?? '')
   const simulado = useCurrentSimulado(firstVestibularSlug ?? '')
+  // Muitos alunos escolhiam a prova e nunca faziam o diagnóstico. Enquanto
+  // ele não estiver concluído, o painel lembra e leva direto para ele.
+  const diagnostic = useQuery({
+    queryKey: ['diagnostic', firstVestibularSlug],
+    queryFn: async () => (await api.get<{ status: 'profile' | 'questions' | 'completed'; answered: number; total: number }>(`/diagnostic/${firstVestibularSlug}`)).data,
+    enabled: Boolean(firstVestibularSlug),
+    retry: false,
+  })
   const simCard = simuladoCardState(simulado)
   const generateQuiz = useGenerateQuiz()
   const navigate = useNavigate()
@@ -70,6 +80,16 @@ export default function DashboardPage() {
         <span className="k-chip"><i className="bi bi-lightning-charge-fill" style={{ color: 'var(--k-roxo)' }} aria-hidden="true" />{user.xp} XP</span>
       </div>}
     </header>
+
+    {diagnostic.data && diagnostic.data.status !== 'completed' && (
+      <section className="k-card dash-diag" aria-labelledby="diag-reminder">
+        <div>
+          <h2 id="diag-reminder" className="k-h3" style={{ margin: 0 }}>{diagnostic.data.status === 'questions' ? `Falta pouco: ${diagnostic.data.answered} de ${diagnostic.data.total} questões do diagnóstico` : 'Faça o diagnóstico (uns 5 minutos)'}</h2>
+          <p className="k-muted" style={{ margin: '4px 0 0', fontSize: 14 }}>Ele ajusta a dificuldade das questões ao seu nível em cada área.</p>
+        </div>
+        <Link to={`/diagnostico/${firstVestibularSlug}`} className="k-btn k-btn-primary">{diagnostic.data.status === 'questions' ? 'Continuar' : 'Começar'}<i className="bi bi-arrow-right" aria-hidden="true" /></Link>
+      </section>
+    )}
 
     <div className="k-row">
       <section className="dash-hero" aria-labelledby="next-study">

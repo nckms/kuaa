@@ -62,3 +62,5 @@
 .dash-simulado { background: var(--k-ink); color: #fff; border-radius: 28px; padding: 24px 28px; display: flex; flex-direction: column; gap: 14px; }
 .dash-simulado > div { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #BFAFC5; }
 .dash-simulado > strong { font-family: var(--k-display); font-weight: 600; font-size: 20px; letter-spacing: -.03em; }
+
+.dash-diag { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-bottom: 20px; border-left: 4px solid var(--k-amarelo, #FFDC5C); }
