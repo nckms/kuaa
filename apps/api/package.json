@@ -16,7 +16,8 @@
     "weekly-email": "ts-node --transpile-only scripts/weekly-email.ts",
     "db:migrate": "node scripts/reconcile-migrations.mjs && prisma migrate deploy && node scripts/import-official.mjs",
     "import-official": "node scripts/import-official.mjs",
-    "stripe-setup": "node scripts/stripe-setup.mjs"
+    "stripe-setup": "node scripts/stripe-setup.mjs",
+    "guardian-report": "ts-node --transpile-only scripts/guardian-report.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

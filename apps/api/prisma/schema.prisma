@@ -75,6 +75,7 @@ model User {
   emailLogs            EmailLog[]
   subscriptions        Subscription[]
   studentVerifications StudentVerification[]
+  Guardian             Guardian?
 }
 
 model RefreshToken {
@@ -479,4 +480,18 @@ model ReviewItem {
 
   @@unique([userId, questionKey])
   @@index([userId, resolvedAt, dueAt])
+}
+
+/// Responsável do aluno: recebe por e-mail o resumo mensal depois de confirmar o endereço.
+model Guardian {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  email            String
+  /// SHA-256 do token de confirmação (o token só vai no e-mail).
+  confirmTokenHash String    @unique
+  confirmedAt      DateTime?
+  unsubscribedAt   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

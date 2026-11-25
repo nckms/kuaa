@@ -10,6 +10,7 @@ import { api } from '../../services/api'
 import type { User, UserPreferences } from '../../types/user'
 import './SettingsPage.css'
 import AccountDataSection from '../../components/AccountDataSection'
+import GuardianSection from '../../components/GuardianSection'
 import { ReminderSetting } from '../../components/ReminderCard'
 import InstallAppCard, { useInstallAvailable } from '../../components/InstallAppCard'
 
@@ -146,6 +147,8 @@ export default function SettingsPage() {
         </section>
 
         <ReminderSetting />
+
+        <GuardianSection />
 
         <AccountDataSection />
 
