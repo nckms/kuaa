@@ -6,13 +6,14 @@ import { visualQuestions } from '../../data/curated-visual'
 import { enemQuestions } from '../../data/curated-enem'
 import { enemHumanitiesQuestions } from '../../data/curated-enem-humanities'
 import { enemLanguagesQuestions } from '../../data/curated-enem-languages'
+import { reviewQuestions } from '../../data/curated-review'
 
 export interface CuratedQuestion extends GeneratedQuestion {
   id: string
   topicTags: string[]
 }
 
-export const curatedQuestions: CuratedQuestion[] = [...humanities, ...science, ...enemQuestions, ...enemHumanitiesQuestions, ...enemLanguagesQuestions, ...visualQuestions]
+export const curatedQuestions: CuratedQuestion[] = [...humanities, ...science, ...enemQuestions, ...enemHumanitiesQuestions, ...enemLanguagesQuestions, ...visualQuestions, ...reviewQuestions]
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[-_]/g, ' ')
 
 export function getCuratedQuestions(topicName: string): CuratedQuestion[] {
