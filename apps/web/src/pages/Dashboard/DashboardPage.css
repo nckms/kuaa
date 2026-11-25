@@ -64,3 +64,6 @@
 .dash-simulado > strong { font-family: var(--k-display); font-weight: 600; font-size: 20px; letter-spacing: -.03em; }
 
 .dash-diag { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-bottom: 20px; border-left: 4px solid var(--k-amarelo, #FFDC5C); }
+
+.dash-provas-link { display: inline-flex; align-items: center; gap: 8px; color: #E8DFEA; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+.dash-provas-link:hover { color: #fff; }
