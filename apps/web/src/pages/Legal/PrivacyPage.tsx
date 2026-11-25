@@ -14,6 +14,7 @@ export default function PrivacyPage() {
         <tr><td>Dados de pagamento (via Stripe). O Kuaa não vê nem guarda número de cartão ou dados bancários.</td><td>Cobrar e gerenciar a assinatura.</td><td>Execução do contrato e obrigação legal</td></tr>
         <tr><td>Comprovante de estudante.</td><td>Conceder a meia.</td><td>Consentimento (pedido no envio)</td></tr>
         <tr><td>Origem do cadastro (link de divulgação, campanha ou site que trouxe você) e métricas de uso agregadas.</td><td>Entender quais canais funcionam e melhorar o produto.</td><td>Legítimo interesse</td></tr>
+        <tr><td>Endereço técnico de notificação do seu navegador ou app instalado (só se você ativar o lembrete).</td><td>Enviar o lembrete diário de estudo.</td><td>Consentimento (permissão de notificação; desligue em Configurações)</td></tr>
         <tr><td>E-mail semanal com o próximo tópico.</td><td>Lembrar você de estudar.</td><td>Legítimo interesse (dá para desligar a qualquer momento)</td></tr>
       </tbody>
     </table>
@@ -26,7 +27,7 @@ export default function PrivacyPage() {
       <li><strong>Google (Gemini)</strong>: o texto das perguntas ao Sabiá, das redações e o contexto do tópico são enviados para gerar respostas, questões e comentários. Não enviamos seu nome nem e-mail.</li>
       <li><strong>Stripe</strong>: processamento das assinaturas.</li>
       <li><strong>Vercel e Railway</strong>: hospedagem do site, da API e do banco de dados (servidores podem ficar fora do Brasil, com as garantias do art. 33 da LGPD).</li>
-      <li>Serviço de envio de e-mail, quando ativo.</li>
+      <li>Serviço de envio de e-mail, quando ativo, e o serviço de notificações do seu navegador (Google, Apple ou Mozilla) para entregar lembretes, se você os ativar.</li>
       <li>Autoridades, só quando a lei exigir.</li>
     </ul>
 

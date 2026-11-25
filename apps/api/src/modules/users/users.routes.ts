@@ -19,6 +19,7 @@ const PreferencesSchema = z.object({
   highContrast: z.boolean().default(false),
   enemLanguage: z.enum(['ingles', 'espanhol']).default('ingles'),
   weeklyEmail: z.boolean().default(true),
+  pushReminders: z.boolean().default(true),
 })
 
 function preferencesWithDefaults(value: unknown) {

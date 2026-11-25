@@ -37,6 +37,10 @@ const envSchema = z.object({
   PIX_MANDATE_MAX_CENTS: z.coerce.number().int().positive().default(2990),
   // IDs de usuário (separados por vírgula) que podem analisar documentos de estudante.
   ADMIN_USER_IDS: z.string().default(''),
+  // Web Push (lembretes). Sem as duas chaves o recurso fica desligado.
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().default('https://kuaa-web.vercel.app'),
   PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().min(5).max(120).default(30),
 })
 

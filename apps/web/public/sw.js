@@ -3,7 +3,7 @@
 // - /api/* NUNCA passa por aqui (dados do aluno, sessão e pagamentos ficam só na rede).
 // - Navegação: rede primeiro; sem rede, a última versão do app ou a página offline.
 // - /assets/* (arquivos com hash do Vite): cache primeiro, são imutáveis.
-const VERSION = 'kuaa-v1'
+const VERSION = 'kuaa-v2'
 const SHELL = ['/', '/offline.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/brand/wordmark-t.png']
 
 self.addEventListener('install', (event) => {
@@ -43,4 +43,25 @@ self.addEventListener('fetch', (event) => {
       return response
     })))
   }
+})
+
+// Lembretes de estudo (Web Push). O conteúdo vem da API do Kuaa.
+self.addEventListener('push', (event) => {
+  let data = { title: 'Kuaa', body: 'Hora de estudar um pouco?', url: '/dashboard', tag: 'kuaa' }
+  try { data = { ...data, ...event.data.json() } } catch { /* usa o texto padrão */ }
+  event.waitUntil(self.registration.showNotification(data.title, {
+    body: data.body, tag: data.tag, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png',
+    data: { url: data.url },
+  }))
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = new URL((event.notification.data && event.notification.data.url) || '/dashboard', self.location.origin)
+  if (target.origin !== self.location.origin) return
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+    const open = windows.find((w) => new URL(w.url).origin === self.location.origin)
+    if (open) return open.navigate(target.href).then((w) => (w || open).focus())
+    return self.clients.openWindow(target.href)
+  }))
 })
