@@ -29,6 +29,14 @@ const GRANDEZAS = ['Grandezas, Medidas e Escalas']
 const GEOPOLITICA = ['Geopolítica Mundial', 'Globalização, Território e Geopolítica']
 const CELULA = ['Biologia Celular e Genética', 'Citologia, Metabolismo e Histologia']
 const ECOLOGIA = ['Ecologia e Sustentabilidade']
+const POLITICA_BR = ['Política e Economia Brasileira']
+const GRAMATICA = ['Gramática Contextualizada', 'Gramática e Norma Culta']
+const TRIGONOMETRIA = ['Trigonometria']
+const GEO_ANALITICA = ['Geometria Analítica']
+const COMBINATORIA = ['Combinatória e Probabilidade', 'Probabilidade e Estatística', 'Álgebra e Análise Combinatória']
+const VARIACAO = ['Variação Linguística']
+const INTERTEXTO = ['Intertextualidade']
+const INTERNACIONAL = ['Cenário Internacional']
 
 export const reviewQuestions: CuratedQuestion[] = [
   // ── Interpretação de texto ────────────────────────────────────────────────
@@ -338,4 +346,144 @@ export const reviewQuestions: CuratedQuestion[] = [
     'Despejar esgoto doméstico sem tratamento em um lago pode causar mortandade de peixes porque',
     ['o excesso de nutrientes favorece a proliferação de algas e a decomposição consome o oxigênio da água (eutrofização).', 'o esgoto aumenta a quantidade de oxigênio dissolvido.', 'os peixes passam a fazer fotossíntese.', 'o esgoto esfria a água abaixo de zero.', 'as algas deixam de existir.'],
     'Nutrientes do esgoto causam explosão de algas; quando morrem, bactérias aeróbias as decompõem e consomem o oxigênio dissolvido, e os peixes morrem por falta de O₂.'),
+
+  // ── Política e economia brasileira ───────────────────────────────────────
+  q('politica-br-1', POLITICA_BR, 1,
+    'O Plano Real, lançado em 1994, teve como objetivo principal',
+    ['controlar a hiperinflação e estabilizar a moeda.', 'criar o Sistema Único de Saúde.', 'estatizar todos os bancos.', 'acabar com o voto obrigatório.', 'adotar o dólar como moeda oficial.'],
+    'Depois de anos de inflação muito alta e de vários planos fracassados, o Real (com a URV como transição) estabilizou os preços. O dólar nunca foi adotado como moeda oficial.'),
+  q('politica-br-2', POLITICA_BR, 2,
+    'Quando a inflação está alta, o Banco Central costuma aumentar a taxa Selic porque',
+    ['juros mais altos encarecem o crédito, reduzem o consumo e aliviam a pressão sobre os preços.', 'juros altos aumentam diretamente os salários.', 'a Selic define o preço da gasolina.', 'juros mais altos baixam o desemprego imediatamente.', 'a Selic só afeta o comércio exterior.'],
+    'Com crédito mais caro, famílias e empresas compram e investem menos; a demanda cai e os preços sobem mais devagar. O efeito colateral é desaceleração da economia.'),
+  q('politica-br-3', POLITICA_BR, 2,
+    'No sistema político brasileiro, a função típica do Poder Legislativo é',
+    ['elaborar leis e fiscalizar o Poder Executivo.', 'julgar crimes comuns em última instância.', 'comandar as Forças Armadas.', 'administrar diretamente os hospitais.', 'nomear todos os juízes do país.'],
+    'Congresso, assembleias e câmaras fazem as leis e fiscalizam o Executivo (por exemplo, com CPIs e julgamento das contas). Julgar é função do Judiciário.'),
+  q('politica-br-4', POLITICA_BR, 3,
+    'A reforma tributária aprovada em 2023 (Emenda Constitucional 132) tem como uma de suas principais mudanças',
+    ['substituir tributos sobre o consumo por um IVA dual (CBS federal e IBS de estados e municípios).', 'extinguir o Imposto de Renda.', 'criar um imposto único sobre transações bancárias.', 'proibir a cobrança de impostos pelos municípios.', 'transferir toda a arrecadação para a União.'],
+    'A EC 132 prevê a troca gradual de PIS, Cofins, IPI, ICMS e ISS por CBS (federal) e IBS (estados e municípios), com cobrança no destino e transição longa.'),
+  q('politica-br-5', POLITICA_BR, 2,
+    'Programas de transferência de renda condicionada, como o Bolsa Família, costumam exigir como contrapartida',
+    ['frequência escolar das crianças e acompanhamento de saúde, como vacinação.', 'que a família não tenha filhos.', 'serviço militar de todos os adultos.', 'que o beneficiário more fora do Brasil.', 'a compra de títulos do governo.'],
+    'As condicionalidades ligam o benefício à educação e à saúde (matrícula e frequência, vacinação, pré-natal), buscando reduzir a pobreza no presente e no futuro.'),
+
+  // ── Gramática contextualizada ─────────────────────────────────────────────
+  q('gramatica-1', GRAMATICA, 1,
+    'Assinale a frase de acordo com a norma-padrão quanto à concordância verbal.',
+    ['Faz dois anos que me mudei.', 'Haviam muitas pessoas na fila.', 'Fazem dez dias que não chove.', 'Houveram problemas na entrega.', 'Existe muitas dúvidas sobre o tema.'],
+    'O verbo "fazer" indicando tempo e "haver" com sentido de existir são impessoais: ficam no singular ("Faz dois anos", "Havia muitas pessoas", "Houve problemas"). "Existir" é pessoal: "Existem muitas dúvidas".'),
+  q('gramatica-2', GRAMATICA, 2,
+    'Em "Os alunos, que estudaram, foram aprovados", a oração entre vírgulas indica que',
+    ['todos os alunos estudaram e foram aprovados (oração explicativa).', 'só parte dos alunos estudou (oração restritiva).', 'nenhum aluno estudou.', 'a aprovação causou o estudo.', 'a frase contém erro de pontuação.'],
+    'Entre vírgulas, a oração adjetiva é explicativa: acrescenta informação sobre todo o grupo. Sem vírgulas ("Os alunos que estudaram foram aprovados") seria restritiva, indicando só os que estudaram.'),
+  q('gramatica-3', GRAMATICA, 2,
+    'Em qual frase o acento grave indicativo de crase está empregado corretamente?',
+    ['Fui à escola ontem.', 'Começou à chover.', 'Ele saiu à pé.', 'Entreguei o livro à ele.', 'Vou à Paris nas férias.'],
+    'Há crase quando a preposição "a" encontra o artigo "a": "ir a + a escola". Não há antes de verbo (chover), de palavra masculina (pé), de pronome pessoal (ele) nem de cidade sem artigo (Paris).'),
+  q('gramatica-4', GRAMATICA, 3,
+    'Em "Embora estivesse cansada, terminou o trabalho", a conjunção "embora" estabelece relação de',
+    ['concessão.', 'causa.', 'finalidade.', 'conclusão.', 'condição.'],
+    '"Embora" introduz um fato que poderia impedir a ação principal, mas não impede: é conjunção concessiva, equivalente a "apesar de que" ou "ainda que".'),
+  q('gramatica-5', GRAMATICA, 2,
+    'Na frase "Vende-se casas na praia", segundo a norma-padrão, o verbo deveria ficar no plural porque',
+    ['"casas" é o sujeito da oração na voz passiva sintética ("casas são vendidas").', '"se" é sempre sujeito.', 'o verbo concorda com "praia".', 'a frase está no futuro.', 'a norma não admite o pronome "se".'],
+    'Com verbo transitivo direto + "se" (partícula apassivadora), o termo "casas" é sujeito paciente; a norma pede "Vendem-se casas", como em "casas são vendidas".'),
+
+  // ── Trigonometria ─────────────────────────────────────────────────────────
+  q('trigo-1', TRIGONOMETRIA, 1,
+    'Num triângulo retângulo, o cateto oposto a um ângulo de 30° mede 5 cm. A hipotenusa mede',
+    ['10 cm', '5 cm', '2,5 cm', '5√3 cm', '15 cm'],
+    'sen 30° = cateto oposto / hipotenusa = 1/2. Logo, hipotenusa = 5 / (1/2) = 10 cm.'),
+  q('trigo-2', TRIGONOMETRIA, 2,
+    'Uma rampa sobe 1 m de altura com inclinação de 30° em relação ao chão. O comprimento da rampa é',
+    ['2 m', '1 m', '√3 m', '0,5 m', '3 m'],
+    'O comprimento é a hipotenusa: sen 30° = 1 / c ⇒ c = 1 / 0,5 = 2 m.'),
+  q('trigo-3', TRIGONOMETRIA, 2,
+    'Para qualquer ângulo x, a expressão sen²x + cos²x é igual a',
+    ['1', '0', 'tg x', '2', 'sen 2x'],
+    'É a relação fundamental da trigonometria, que vem do teorema de Pitágoras no círculo de raio 1.'),
+  q('trigo-4', TRIGONOMETRIA, 3,
+    'Uma pessoa a 30 m de um prédio vê o topo sob um ângulo de 45° (despreze a altura dos olhos). A altura do prédio é',
+    ['30 m', '15 m', '30√2 m', '60 m', '30√3 m'],
+    'tg 45° = altura / distância = 1, então a altura é igual à distância: 30 m.'),
+
+  // ── Geometria analítica ───────────────────────────────────────────────────
+  q('geo-analitica-1', GEO_ANALITICA, 1,
+    'A distância entre os pontos A(1, 2) e B(4, 6) no plano cartesiano é',
+    ['5', '7', '25', '√7', '3'],
+    'd = √[(4−1)² + (6−2)²] = √(9 + 16) = √25 = 5.'),
+  q('geo-analitica-2', GEO_ANALITICA, 2,
+    'O ponto médio do segmento de extremos (2, −4) e (6, 8) é',
+    ['(4, 2)', '(8, 4)', '(2, 6)', '(4, 6)', '(3, 2)'],
+    'Ponto médio = média das coordenadas: ((2+6)/2, (−4+8)/2) = (4, 2).'),
+  q('geo-analitica-3', GEO_ANALITICA, 2,
+    'A reta que passa por (0, 3) e (2, 7) tem equação',
+    ['y = 2x + 3', 'y = 3x + 2', 'y = 7x', 'y = x + 3', 'y = 2x + 7'],
+    'Coeficiente angular m = (7−3)/(2−0) = 2; corta o eixo y em 3. Logo, y = 2x + 3.'),
+  q('geo-analitica-4', GEO_ANALITICA, 3,
+    'A circunferência de equação (x − 3)² + (y + 1)² = 16 tem centro e raio iguais a',
+    ['centro (3, −1) e raio 4.', 'centro (−3, 1) e raio 4.', 'centro (3, −1) e raio 16.', 'centro (3, 1) e raio 8.', 'centro (−3, −1) e raio 2.'],
+    'Na forma (x − a)² + (y − b)² = r², o centro é (a, b) = (3, −1) e r² = 16, então r = 4.'),
+
+  // ── Combinatória e probabilidade ──────────────────────────────────────────
+  q('combinatoria-1', COMBINATORIA, 1,
+    'Uma lanchonete oferece 3 tipos de pão e 4 tipos de recheio. Quantos sanduíches diferentes (1 pão e 1 recheio) podem ser montados?',
+    ['12', '7', '24', '81', '64'],
+    'Princípio multiplicativo: 3 escolhas de pão × 4 de recheio = 12.'),
+  q('combinatoria-2', COMBINATORIA, 2,
+    'Quantos anagramas tem a palavra AMOR?',
+    ['24', '16', '12', '4', '256'],
+    'São 4 letras distintas, permutadas: 4! = 4 · 3 · 2 · 1 = 24.'),
+  q('combinatoria-3', COMBINATORIA, 2,
+    'De uma turma de 6 estudantes, serão escolhidos 2 para uma comissão (sem cargos). Quantas comissões diferentes são possíveis?',
+    ['15', '30', '12', '36', '6'],
+    'A ordem não importa (combinação): C(6,2) = 6 · 5 / 2 = 15. Se houvesse cargos diferentes, seriam 30 (arranjo).'),
+  q('combinatoria-4', COMBINATORIA, 3,
+    'Lançando-se dois dados comuns, a probabilidade de a soma ser 7 é',
+    ['1/6', '1/12', '7/36', '1/36', '1/2'],
+    'Há 36 resultados igualmente prováveis; somam 7: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1) = 6 casos. 6/36 = 1/6.'),
+
+  // ── Variação linguística ──────────────────────────────────────────────────
+  q('variacao-1', VARIACAO, 1,
+    'Expressões como "trem" (para qualquer objeto), em Minas Gerais, e "oxente", no Nordeste, são exemplos de variação',
+    ['regional (diatópica).', 'histórica, de palavras extintas.', 'apenas de erro gramatical.', 'de língua estrangeira.', 'exclusiva da escrita formal.'],
+    'Variações ligadas ao lugar são chamadas diatópicas ou regionais. Não são erros: são usos legítimos de comunidades de falantes.'),
+  q('variacao-2', VARIACAO, 2,
+    'Uma estudante fala "a gente vai" com os amigos e escreve "nós iremos" em uma redação do vestibular. Ela está',
+    ['adequando a linguagem à situação de comunicação.', 'cometendo um erro nas duas situações.', 'usando duas línguas diferentes.', 'mostrando que a fala informal é inferior.', 'desrespeitando a norma nas duas situações.'],
+    'Competência linguística inclui escolher o registro adequado: informal entre amigos, norma-padrão em textos formais. Ambos os usos são apropriados a seus contextos.'),
+  q('variacao-3', VARIACAO, 3,
+    'O chamado "preconceito linguístico" consiste em',
+    ['julgar pessoas como menos capazes pela forma como falam, geralmente por região ou classe social.', 'ensinar a norma-padrão na escola.', 'aprender uma língua estrangeira.', 'usar gírias entre amigos.', 'consultar o dicionário.'],
+    'É a discriminação de falantes por suas variedades (sotaque, região, escolaridade). Ensinar a norma-padrão não é preconceito; desqualificar quem fala diferente, sim.'),
+
+  // ── Intertextualidade ─────────────────────────────────────────────────────
+  q('intertexto-1', INTERTEXTO, 1,
+    'Quando um anúncio retoma um verso famoso e muda algumas palavras para vender um produto, ocorre',
+    ['intertextualidade, por meio de paródia ou paráfrase.', 'plágio obrigatório.', 'tradução literal.', 'ausência de relação com outros textos.', 'apenas variação regional.'],
+    'Intertextualidade é o diálogo entre textos. Ao reaproveitar um texto conhecido com alterações, o anúncio aproveita a memória do leitor para chamar atenção.'),
+  q('intertexto-2', INTERTEXTO, 2,
+    'A diferença entre paródia e paráfrase é que a paródia',
+    ['retoma o texto original com intenção crítica ou humorística, alterando seu sentido.', 'reproduz o texto original sem nenhuma mudança.', 'sempre mantém o mesmo sentido do original.', 'só pode ser feita em língua estrangeira.', 'não tem relação com outro texto.'],
+    'A paráfrase reescreve mantendo o sentido; a paródia desloca ou subverte o sentido, muitas vezes com ironia ou humor.'),
+  q('intertexto-3', INTERTEXTO, 3,
+    'Um meme usa a imagem de uma pintura famosa com uma legenda sobre a semana de provas. O efeito do meme depende principalmente',
+    ['de o leitor reconhecer a obra original e perceber o deslocamento de contexto.', 'de o leitor saber o preço da pintura.', 'de a legenda repetir o título original da obra.', 'de o meme ser publicado em um museu.', 'de não haver nenhuma relação com a obra.'],
+    'O humor nasce do contraste entre o contexto original (arte consagrada) e o novo (rotina do estudante). Sem reconhecer a referência, o efeito se perde.'),
+
+  // ── Cenário internacional ─────────────────────────────────────────────────
+  q('internacional-1', INTERNACIONAL, 1,
+    'O BRICS é um agrupamento que reúne inicialmente',
+    ['Brasil, Rússia, Índia, China e África do Sul, e foi ampliado com novos membros.', 'apenas países da União Europeia.', 'os membros permanentes do Conselho de Segurança da ONU.', 'os países da América do Norte.', 'somente países produtores de petróleo.'],
+    'O grupo começou com Brasil, Rússia, Índia e China, incluiu a África do Sul em 2011 e passou por ampliação a partir de 2024, buscando mais peso dos emergentes na governança global.'),
+  q('internacional-2', INTERNACIONAL, 2,
+    'O Acordo de Paris (2015), sobre o clima, tem como meta central',
+    ['limitar o aquecimento global a bem menos de 2 °C, buscando 1,5 °C, em relação à era pré-industrial.', 'proibir imediatamente todos os combustíveis fósseis.', 'criar uma moeda mundial para o clima.', 'aumentar as emissões dos países ricos.', 'tratar apenas de poluição sonora.'],
+    'Cada país apresenta metas próprias de redução de emissões (NDCs) para conter o aumento da temperatura média global.'),
+  q('internacional-3', INTERNACIONAL, 3,
+    'O Conselho de Segurança da ONU é frequentemente criticado por',
+    ['concentrar poder de veto em cinco membros permanentes, o que pode travar decisões.', 'não ter nenhum país membro.', 'ser formado só por países da América do Sul.', 'não poder discutir conflitos armados.', 'ter sido extinto em 1991.'],
+    'EUA, Rússia, China, Reino Unido e França têm assento permanente e veto. Países como o Brasil defendem reformar o Conselho para refletir melhor o mundo atual.'),
 ]
