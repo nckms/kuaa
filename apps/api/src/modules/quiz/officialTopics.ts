@@ -35,7 +35,8 @@ const DIFFICULTY_SCALE = `Estime tambem a dificuldade para um aluno medio do ENE
 export async function classifyNextOfficial(): Promise<'done' | 'classified' | 'kept' | 'error'> {
   const q = await prisma.question.findFirst({
     where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, OR: [{ topicSource: null }, { difficultySource: null }] },
-    orderBy: { id: 'asc' },
+    // Provas mais recentes primeiro: são as que os alunos mais praticam.
+    orderBy: [{ year: 'desc' }, { id: 'asc' }],
     select: { id: true, body: true, options: true, topicId: true, topicSource: true, topic: { select: { name: true, subject: { select: { slug: true, vestibularId: true } } } } },
   })
   if (!q) return 'done'

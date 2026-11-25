@@ -45,9 +45,9 @@ async function officialPool(record: Enrollment, areas: DiagnosticArea[]): Promis
     where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, topic: { name: { in: [...owner.keys()] } } },
     select: { body: true, options: true, difficulty: true, difficultySource: true, origin: true, imageUrl: true, media: true, topic: { select: { name: true } } },
   })
-  // Diagnóstico curto: prefere enunciados de leitura rápida e com dificuldade já estimada.
-  const ranked = shuffle(rows).sort((a, b) => Number(a.body.length > 1400) - Number(b.body.length > 1400)
-    || Number(!a.difficultySource) - Number(!b.difficultySource))
+  // Diagnóstico curto: prefere enunciados de leitura rápida. Não prioriza as já classificadas
+  // porque o classificador vai em ordem de ano e isso deixaria o diagnóstico só com provas antigas.
+  const ranked = shuffle(rows).sort((a, b) => Number(a.body.length > 1400) - Number(b.body.length > 1400))
   return areas.flatMap((area) => {
     const inArea = ranked.filter((q) => owner.get(q.topic.name)?.area === area.key)
     const picked: typeof inArea = []
