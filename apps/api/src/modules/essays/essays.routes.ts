@@ -6,10 +6,13 @@ import { requireAuth } from '../../middleware/requireAuth'
 import { makeError } from '../../utils/errors'
 import { essayThemes, getEssayTheme } from './themes'
 import { generateEssayFeedback } from './essayFeedback'
+import { essayCorrectionRouter } from './essayCorrection'
 import { env } from '../../lib/env'
 
 export const essaysRouter = Router()
 essaysRouter.use(requireAuth)
+// Correção completa (Plus) antes de /:id para /corrections/history não cair em GET /:id.
+essaysRouter.use(essayCorrectionRouter)
 
 const reviewSchema = z.object({ respondsToPrompt: z.boolean(), argumentSupported: z.boolean(),
   coherenceReviewed: z.boolean(), finalReview: z.boolean() }).strict()

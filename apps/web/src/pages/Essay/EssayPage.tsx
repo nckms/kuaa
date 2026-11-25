@@ -8,6 +8,7 @@ import { useAuthStore } from '../../stores/auth.store'
 import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import './EssayPage.css'
 import { QuotaNotice, quotaInfo } from '../../components/QuotaNotice'
+import EssayCorrection from './EssayCorrection'
 
 type ReviewKey = 'respondsToPrompt' | 'argumentSupported' | 'coherenceReviewed' | 'finalReview'
 type Review = Record<ReviewKey, boolean>
@@ -209,6 +210,7 @@ function EssayEditor({ essayId, slug, onLeave }: { essayId: string; slug: string
           </div>}
         </>}
       </section>
+      {slug === 'enem' && <EssayCorrection essayId={essay.id} />}
     </>}
     <button className="essay-back" type="button" onClick={() => void leaveForTrail()}>Voltar à trilha</button>
   </div>

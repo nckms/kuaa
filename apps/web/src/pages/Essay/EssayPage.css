@@ -85,3 +85,34 @@
   .essay-history-item { flex-wrap: wrap; align-items: flex-start; }
   .essay-feedback-criteria { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Correção por competência (Plus) */
+.ec { margin-top: 16px; }
+.ec-head { display: flex; align-items: center; gap: 10px; }
+.ec-head h2 { margin: 0; }
+.ec-plus { font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: #FFDC5C; color: #35143E; }
+.ec-upsell { display: grid; gap: 12px; justify-items: start; }
+.ec-upsell p { margin: 0; font-size: 15px; }
+.ec-total { display: flex; align-items: baseline; gap: 10px; }
+.ec-total strong { font-family: var(--k-display); font-size: 44px; letter-spacing: -.03em; color: var(--k-roxo); }
+.ec-total span { color: var(--k-muted-2); font-size: 14px; }
+.ec-comps { display: grid; gap: 12px; }
+.ec-comp { background: var(--k-bg); border-radius: 16px; padding: 16px; min-width: 0; }
+.ec-comp-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.ec-comp h3 { font-size: 15px; font-weight: 600; margin: 0; color: var(--k-roxo); }
+.ec-comp p { font-size: 14px; line-height: 1.55; margin: 8px 0 0; overflow-wrap: anywhere; }
+.ec-bar { height: 6px; border-radius: 999px; background: var(--k-line-soft, #eee); margin-top: 8px; overflow: hidden; }
+.ec-bar span { display: block; height: 100%; background: var(--k-roxo); border-radius: inherit; }
+.ec-elements { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13px; color: var(--k-muted-2); }
+.ec-elements li { display: inline-flex; align-items: center; gap: 5px; }
+.ec-elements li.is-on { color: var(--k-verde, #1f7a52); font-weight: 600; }
+.ec-excerpt { border-top: 1px solid var(--k-line-soft, #eee); margin-top: 12px; padding-top: 10px; }
+.ec-excerpt blockquote { margin: 0; font-family: var(--k-read, inherit); font-size: 15px; font-style: italic; }
+.ec-rewrite { display: grid; gap: 8px; margin-top: 8px; }
+.ec-rewrite label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+.ec-rewrite textarea { font: inherit; font-weight: 400; font-size: 15px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--k-line); resize: vertical; }
+.ec-rewrite .essay-secondary { justify-self: start; }
+.ec-verdict { font-size: 14px; padding: 10px 12px; border-radius: 12px; background: #fff; margin: 0; }
+.ec-verdict.is-melhorou { border-left: 4px solid var(--k-verde, #1f7a52); }
+.ec-verdict.is-igual { border-left: 4px solid #C9A227; }
+.ec-verdict.is-piorou { border-left: 4px solid var(--k-vinho, #840033); }

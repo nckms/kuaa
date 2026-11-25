@@ -76,6 +76,7 @@ model User {
   subscriptions        Subscription[]
   studentVerifications StudentVerification[]
   Guardian             Guardian?
+  EssayCorrection      EssayCorrection[]
 }
 
 model RefreshToken {
@@ -120,24 +121,25 @@ model Vestibular {
 }
 
 model EssayDraft {
-  id                  String      @id @default(cuid())
+  id                  String           @id @default(cuid())
   userId              String
   vestibularId        String
   themeId             String
   themeTitle          String
   prompt              String
   textType            String
-  body                String      @default("") @db.Text
-  selfReview          Json        @default("{}")
+  body                String           @default("") @db.Text
+  selfReview          Json             @default("{}")
   feedback            Json?
   feedbackRequestedAt DateTime?
   aiConsentAt         DateTime?
-  status              EssayStatus @default(DRAFT)
+  status              EssayStatus      @default(DRAFT)
   submittedAt         DateTime?
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vestibular          Vestibular  @relation(fields: [vestibularId], references: [id])
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vestibular          Vestibular       @relation(fields: [vestibularId], references: [id])
+  correction          EssayCorrection?
 
   @@index([userId, createdAt])
 }
@@ -496,4 +498,22 @@ model Guardian {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Correção completa por competência do ENEM (Kuaa Plus). Uma por redação enviada.
+model EssayCorrection {
+  id        String     @id @default(cuid())
+  essayId   String     @unique
+  userId    String
+  /// pending enquanto a IA corrige; done com o resultado.
+  status    String     @default("pending")
+  total     Int?
+  result    Json?
+  rewrites  Json       @default("[]")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  essay     EssayDraft @relation(fields: [essayId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

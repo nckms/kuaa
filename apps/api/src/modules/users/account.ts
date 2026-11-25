@@ -29,7 +29,7 @@ export async function exportMyData(req: Request, res: Response, next: NextFuncti
           question: { select: { body: true, options: true, explanation: true } } } },
       } }),
       prisma.simuladoAttempt.findMany({ where: { userId }, select: { startedAt: true, finishedAt: true, score: true, correct: true, wrong: true, answers: true } }),
-      prisma.essayDraft.findMany({ where: { userId } }),
+      prisma.essayDraft.findMany({ where: { userId }, include: { correction: true } }),
       prisma.sabiaMessage.findMany({ where: { userId }, orderBy: { createdAt: 'asc' }, select: { conversationId: true, role: true, content: true, createdAt: true } }),
       prisma.userAchievement.findMany({ where: { userId }, include: { achievement: { select: { name: true } } } }),
       prisma.subscription.findMany({ where: { userId }, select: { status: true, priceKind: true, currentPeriodEnd: true, cancelAtPeriodEnd: true, createdAt: true } }),
