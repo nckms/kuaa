@@ -115,8 +115,16 @@ describe('banco de questões oficiais', () => {
     expect(total).toBeGreaterThan(1500)
     const one = await testPrisma.question.findFirstOrThrow({ where: { source: 'OFFICIAL' } })
     await testPrisma.question.update({ where: { id: one.id }, data: { explanation: 'Explicação revisada.', explanationByAi: false } })
-    expect(run()).toMatch(/0 novas, 0 atualizadas/)
+    expect(run()).toMatch(/0 novas, 0 atualizadas, \d+ no arquivo, 0 explicações refeitas/)
     expect((await testPrisma.question.findUniqueOrThrow({ where: { id: one.id } })).explanation).toBe('Explicação revisada.')
     expect(await testPrisma.question.count({ where: { source: 'OFFICIAL' } })).toBe(total)
   }, 60_000)
+})
+
+describe('tom da explicação', () => {
+  it('remove saudação informal do início', async () => {
+    const { stripGreeting } = await import('../modules/quiz/official')
+    expect(stripGreeting('Fala, moçada! Salve para a rede pública! O texto destaca que a linotipo barateou a produção.')).toBe('O texto destaca que a linotipo barateou a produção.')
+    expect(stripGreeting('O fator decisivo é a densidade.')).toBe('O fator decisivo é a densidade.')
+  })
 })

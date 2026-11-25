@@ -36,7 +36,12 @@ async function main() {
         updated++
       }
     }
-    console.log(`[official] ${slug}: ${fresh.length} novas, ${updated} atualizadas, ${rows.length} no arquivo`)
+    // Explicações de IA geradas com o primeiro prompt (tom informal, com saudação) voltam a ser escritas.
+    const reset = await prisma.question.updateMany({
+      where: { source: 'OFFICIAL', explanationByAi: true, OR: ['Fala', 'Salve', 'Olá', 'Ola', 'Oi', 'E aí', 'Bora'].map((g) => ({ explanation: { startsWith: g } })) },
+      data: { explanation: '', explanationByAi: false },
+    })
+    console.log(`[official] ${slug}: ${fresh.length} novas, ${updated} atualizadas, ${rows.length} no arquivo, ${reset.count} explicações refeitas`)
   }
 }
 
