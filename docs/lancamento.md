@@ -21,5 +21,8 @@ Estado em 25/11/2026: código em produção; venda **desligada** (sem chaves Str
 
 ## 4. Antes de divulgar
 - [ ] Domínio próprio + SMTP/Resend (recuperação de senha e e-mail semanal).
-- [ ] Termos de uso e política de privacidade revisados (menores de idade, LGPD, documento de estudante, assinatura e cancelamento).
+- [x] Rascunho de `/termos` e `/privacidade` no ar, com aviso de "versão preliminar" (links no rodapé, cadastro e checkout).
+- [ ] Revisão por advogado (menores, LGPD, documento de estudante, renovação automática, arrependimento de 7 dias).
+- [ ] Preencher em `apps/web/src/pages/Legal/LegalPage.tsx` (`LEGAL`): responsável (nome/CPF ou CNPJ do MEI) e e-mail de contato público; tirar o aviso de versão preliminar depois da revisão.
+- [x] Exportar dados e excluir conta em Configurações (LGPD art. 18).
 - [ ] `npm run metrics` como linha de base.
