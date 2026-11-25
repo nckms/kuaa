@@ -489,6 +489,8 @@ model Guardian {
   email            String
   /// SHA-256 do token de confirmação (o token só vai no e-mail).
   confirmTokenHash String    @unique
+  /// Quando o convite saiu. Nulo = ainda não saiu (envio de e-mail desligado); o agendador manda depois.
+  inviteSentAt     DateTime?
   confirmedAt      DateTime?
   unsubscribedAt   DateTime?
   createdAt        DateTime  @default(now())
