@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AppLayout from '../../components/layout/AppLayout'
 import { useReviewOverview, useStartReview, type ReviewItemSummary } from '../../hooks/useReview'
 import './Review.css'
@@ -28,6 +28,7 @@ export default function ErrorNotebookPage() {
         <p className="k-eyebrow">Caderno de erros</p>
         <h1 className="sim-title">Meus erros</h1>
         <p className="sim-lead">Toda questão que você erra volta para revisão no dia seguinte. Acertou, ela volta em 3 dias. Dois acertos seguidos e ela sai do caderno. Revisar não gasta suas práticas do dia.</p>
+        <Link to="/raio-x" className="rv-link-plus"><i className="bi bi-activity" aria-hidden="true" />Raio-X dos erros: descubra por que você erra (Plus)</Link>
         {start.isError && <p role="alert" className="k-alert">Não foi possível abrir a revisão. Tente de novo.</p>}
         {overview.isLoading && <div className="k-state">Carregando…</div>}
         {overview.isError && <div className="k-state" role="alert">Não foi possível carregar seus erros.</div>}

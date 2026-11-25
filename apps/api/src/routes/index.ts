@@ -20,6 +20,7 @@ import { adminStudentsRouter, studentsRouter } from '../modules/students/student
 import { pushRouter } from '../modules/engagement/push.routes'
 import { examsRouter } from '../modules/exams/exams'
 import { reviewRouter } from '../modules/review/review'
+import { insightsRouter } from '../modules/review/insights'
 import { guardianRouter } from '../modules/engagement/guardian'
 import { redis } from '../lib/redis'
 
@@ -68,4 +69,5 @@ router.use('/essays', essaysRouter)
 router.use('/push', pushRouter)
 router.use('/exams', examsRouter)
 router.use('/review', reviewRouter)
+router.use('/insights', insightsRouter)
 router.use('/guardian', guardianRouter)

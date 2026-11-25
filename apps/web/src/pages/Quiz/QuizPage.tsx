@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useSession, useAnswer, useFinish } from '../../hooks/useQuiz'
 import { useAuthStore } from '../../stores/auth.store'
 import QuestionMedia from '../../components/quiz/QuestionMedia'
+import MistakeReason from '../../components/quiz/MistakeReason'
 import type { AnswerResult } from '../../types/quiz'
 
 const LEVELS = ['Muito fácil', 'Fácil', 'Média', 'Difícil', 'Muito difícil']
@@ -170,6 +171,7 @@ export default function QuizPage() {
                 <div className="qz-feedback-exp">{displayResult.explanation}</div>
                 {currentQ.difficulty != null && <DifficultyLevel value={currentQ.difficulty} />}
                 {displayResult.explanationByAi && <div className="qz-feedback-ai"><i className="bi bi-stars" aria-hidden="true" /> Explicação escrita com apoio de IA · gabarito oficial</div>}
+                {!ok && sessionId && <MistakeReason key={currentQ.id} sessionId={sessionId} questionId={currentQ.id} />}
               </div>
             </div>
           ) : <div className="qz-feedback-hint">Escolha uma alternativa e confirme</div>}

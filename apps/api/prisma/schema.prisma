@@ -239,17 +239,19 @@ model QuizSession {
 }
 
 model UserAnswer {
-  id          String      @id @default(cuid())
-  userId      String
-  questionId  String
-  sessionId   String
-  optionId    String
-  isCorrect   Boolean
-  timeSpentMs Int
-  answeredAt  DateTime    @default(now())
-  user        User        @relation(fields: [userId], references: [id])
-  question    Question    @relation(fields: [questionId], references: [id])
-  session     QuizSession @relation(fields: [sessionId], references: [id])
+  id            String      @id @default(cuid())
+  userId        String
+  questionId    String
+  sessionId     String
+  optionId      String
+  isCorrect     Boolean
+  timeSpentMs   Int
+  /// Por que errou, na voz do aluno: conteudo, leitura, conta, duvida, tempo (Raio-X dos erros).
+  mistakeReason String?
+  answeredAt    DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id])
+  question      Question    @relation(fields: [questionId], references: [id])
+  session       QuizSession @relation(fields: [sessionId], references: [id])
 }
 
 model UserTopicProgress {
