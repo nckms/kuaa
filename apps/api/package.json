@@ -14,7 +14,8 @@
     "metrics": "node scripts/metrics.mjs",
     "grant-plus": "node scripts/grant-plus.mjs",
     "weekly-email": "ts-node --transpile-only scripts/weekly-email.ts",
-    "db:migrate": "node scripts/reconcile-migrations.mjs && prisma migrate deploy",
+    "db:migrate": "node scripts/reconcile-migrations.mjs && prisma migrate deploy && node scripts/import-official.mjs",
+    "import-official": "node scripts/import-official.mjs",
     "stripe-setup": "node scripts/stripe-setup.mjs"
   },
   "prisma": {

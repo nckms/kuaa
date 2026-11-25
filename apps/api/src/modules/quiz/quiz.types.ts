@@ -44,6 +44,10 @@ export interface AnswerResult {
   selectedOptionId: string
   correctOptionId: string
   explanation: string
+  /** Explicação escrita por IA (questão oficial). */
+  explanationByAi?: boolean
+  /** Ex.: "ENEM 2019 · questão 45". */
+  origin?: string | null
   xpDelta: number
   heartsRemaining: number
   masteryLevel: number

@@ -49,7 +49,7 @@ async function buildQuestions(vestibularId: string, vestibularName: string, lang
           id: true,
           name: true,
           questions: {
-            where: { active: true, generatedForSessionId: null, source: { in: ['CURATED', 'OFFICIAL'] } },
+            where: { active: true, generatedForSessionId: null, officialRefId: null, source: { in: ['CURATED', 'OFFICIAL'] } },
             select: { id: true, topicId: true, body: true, options: true, difficulty: true, source: true, explanation: true, imageUrl: true, media: true },
           },
         },
@@ -100,7 +100,9 @@ async function buildQuestions(vestibularId: string, vestibularName: string, lang
     const subj = perSubject[si]!
     const need = allocated[si]!
     const subjectBodies = new Set<string>()
-    const available = shuffleArray(subj.questions).filter((question) => {
+    // Questões oficiais (provas reais) primeiro; o acervo autoral completa o que faltar.
+    const shuffled = shuffleArray(subj.questions)
+    const available = [...shuffled.filter((q) => q.source === 'OFFICIAL'), ...shuffled.filter((q) => q.source !== 'OFFICIAL')].filter((question) => {
       const body = question.body.trim().toLowerCase()
       if (seenBodies.has(body) || subjectBodies.has(body)) return false
       subjectBodies.add(body)
@@ -192,7 +194,7 @@ function formatAttempt(attempt: {
       options: q.options.map(({ id, text }) => ({ id, text })),
       ...(attempt.finishedAt ? {
         correctOptionId: q.options.find((option) => option.isCorrect)?.id ?? null,
-        explanation: q.explanation ?? null,
+        explanation: q.explanation || null,
       } : {}),
     })),
     answers: attempt.answers as Record<string, string>,

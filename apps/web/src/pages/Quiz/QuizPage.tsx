@@ -129,13 +129,15 @@ export default function QuizPage() {
         </div>
         <details className="qz-info">
           <summary>Sobre estas questões</summary>
-          <p>{session.generation?.source === 'AI_GENERATED' ? 'Questões criadas com apoio de IA. Confira dados importantes nas explicações.' : 'Questões selecionadas do acervo de estudos.'}</p>
+          <p>{session.generation?.source === 'OFFICIAL' ? 'Questões reais de provas anteriores do ENEM (INEP). As explicações são escritas com apoio de IA e podem conter erros; o gabarito é o oficial.'
+            : session.generation?.source === 'AI_GENERATED' ? 'Questões criadas com apoio de IA. Confira dados importantes nas explicações.' : 'Questões selecionadas do acervo de estudos.'}</p>
           {session.generation?.targetSatisfied === false && <p>Algumas questões podem estar fora da dificuldade prevista.</p>}
           {(session.generation?.deliveredCount ?? total) < (session.generation?.requestedCount ?? total) && <p>Esta sessão tem menos questões porque não havia outras adequadas para este tópico.</p>}
           {session.generation?.remediationSourceQuestionId && session.generation.source === 'CURATED' && <p>Esta prática retoma o tópico do erro, mas pode abordar outra parte do conteúdo.</p>}
         </details>
         {(answerMutation.isError || finishMutation.isError) && <p role="alert" className="qz-alert">Não foi possível salvar. Confira sua conexão e tente novamente.</p>}
-        <h2 className="qz-question">{currentQ.body}</h2>
+        {currentQ.origin && <p className="qz-origin"><i className="bi bi-patch-check" aria-hidden="true" />{currentQ.origin}</p>}
+        <h2 className={`qz-question${currentQ.body.length > 280 ? ' is-long' : ''}`}>{currentQ.body}</h2>
         <div className="qz-media"><QuestionMedia key={currentQ.id} {...currentQ} /></div>
         <div className="qz-options">
           {currentQ.options.map((opt) => (
@@ -155,6 +157,7 @@ export default function QuizPage() {
               <div>
                 <div className="qz-feedback-title">{ok ? 'Mandou bem!' : `Quase. A correta é ${correctLetter}.`}{displayResult.xpDelta > 0 && <span className="qz-xp">+{displayResult.xpDelta} XP</span>}</div>
                 <div className="qz-feedback-exp">{displayResult.explanation}</div>
+                {displayResult.explanationByAi && <div className="qz-feedback-ai"><i className="bi bi-stars" aria-hidden="true" /> Explicação escrita com apoio de IA · gabarito oficial</div>}
               </div>
             </div>
           ) : <div className="qz-feedback-hint">Escolha uma alternativa e confirme</div>}

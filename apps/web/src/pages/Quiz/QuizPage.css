@@ -24,6 +24,9 @@
 .qz-info p { margin: 8px 0 0; line-height: 1.5; }
 .qz-alert { margin: 16px 0 0; color: #FF8FA3; font-size: 14px; }
 .qz-question { font-family: var(--k-read); font-weight: 400; font-size: clamp(20px, 2.8vw, 26px); line-height: 1.45; margin: 24px 0 24px; color: #fff; text-wrap: pretty; white-space: pre-wrap; }
+.qz-question.is-long { font-size: 17px; line-height: 1.6; margin: 16px 0 20px; color: #EDE4F0; }
+.qz-origin { display: inline-flex; align-items: center; gap: 6px; margin: 16px 0 0; padding: 4px 10px; border-radius: 999px; background: #2E2134; color: #F2D27A; font-size: 13px; font-weight: 600; }
+.qz-feedback-ai { margin-top: 6px; font-size: 12px; opacity: .75; }
 .qz-media .question-media { color: #1E1424; }
 .qz-options { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 .qz-option { display: flex; align-items: center; gap: 16px; width: 100%; text-align: left; padding: 15px 18px; border-radius: 16px; font-size: 16px; line-height: 1.4; transition: all .15s; background: #1F1424; border: 2px solid #2E2134; color: #EDE4F0; }
