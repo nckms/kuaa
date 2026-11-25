@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../services/api'
 
@@ -8,6 +8,10 @@ interface Referral { code: string; url: string; joined: number; rewarded: number
 export default function InviteCard() {
   const referral = useQuery({ queryKey: ['referral'], queryFn: async () => (await api.get<Referral>('/users/me/referral')).data, staleTime: 60_000 })
   const [copied, setCopied] = useState(false)
+  const ref = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (referral.data && window.location.hash === '#convite') ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [referral.data])
   if (!referral.data) return null
   const { url, rewarded, rewardDays, remainingThisMonth } = referral.data
   const message = `Tô usando o Kuaa pra estudar pro ENEM: faz um diagnóstico de 5 minutos e mostra o que estudar. Entra pelo meu link e a gente ganha ${rewardDays} dias do Plus: ${url}`
@@ -19,7 +23,7 @@ export default function InviteCard() {
     try { await navigator.clipboard.writeText(message); setCopied(true); setTimeout(() => setCopied(false), 2500) } catch { /* sem clipboard */ }
   }
 
-  return <section className="k-card is-md" aria-labelledby="invite-title" style={{ marginBottom: 16 }}>
+  return <section ref={ref} id="convite" className="k-card is-md" aria-labelledby="invite-title" style={{ marginBottom: 16 }}>
     <h2 id="invite-title" className="st-h2" style={{ margin: 0 }}>Estude com um amigo</h2>
     <p className="k-muted" style={{ fontSize: 14, margin: '6px 0 12px' }}>
       Quando um amigo entra pelo seu link e termina o diagnóstico, vocês dois ganham <strong>{rewardDays} dias do Kuaa Plus</strong>.

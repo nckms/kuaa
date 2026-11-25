@@ -69,6 +69,7 @@ model User {
   essays EssayDraft[]
   planGrants PlanGrant[]
   pushSubscriptions PushSubscription[]
+  productSignals ProductSignal[]
   emailLogs EmailLog[]
   subscriptions Subscription[]
   studentVerifications StudentVerification[]
@@ -406,4 +407,19 @@ model PushSubscription {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+/// Sinais de produto sem dado sensível: bateu na cota do gratuito (1x/dia por
+/// cota) e pediu aviso da abertura do Plus. Base da medição de intenção de compra.
+model ProductSignal {
+  id        String   @id @default(cuid())
+  userId    String
+  kind      String
+  periodKey String
+  source    String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, periodKey])
+  @@index([kind, createdAt])
 }
