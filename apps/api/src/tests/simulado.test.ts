@@ -7,7 +7,7 @@ import type { StoredQuestion } from '../modules/simulado/simulado.results'
  * Testes do Simulado da Semana.
  *
  * GEMINI_API_KEY ausente em .env.test → geração via generateFallbackQuestions.
- * ENEM tem 4 subjects × peso 0.25 cada → distribuição esperada: 45 questões.
+ * ENEM tem 4 subjects × peso 0.25 cada → distribuição esperada: 30 questões.
  *
  * Trava semanal: segunda chamada a POST /start deve retornar 409.
  */
@@ -48,15 +48,15 @@ describe('Simulado da Semana', () => {
     expect(res.body).toBeNull()
   })
 
-  it('POST /start cria simulado com exatamente 45 questões', async () => {
+  it('POST /start cria simulado com exatamente 30 questões', async () => {
     const res = await api
       .post('/api/v1/simulado/enem/start')
       .set('Authorization', `Bearer ${token}`)
 
     expect(res.status).toBe(200)
     expect(res.body.id).toBeTruthy()
-    expect(res.body.questions).toHaveLength(45)
-    expect(new Set(res.body.questions.map((q: { body: string }) => q.body)).size).toBe(45)
+    expect(res.body.questions).toHaveLength(30)
+    expect(new Set(res.body.questions.map((q: { body: string }) => q.body)).size).toBe(30)
     expect(res.body.questions.every((q: object) => !('correctOptionId' in q) && !('explanation' in q))).toBe(true)
     expect(res.body.finishedAt).toBeNull()
     expect(res.body.vestibularName).toBe('ENEM')
@@ -80,7 +80,7 @@ describe('Simulado da Semana', () => {
 
     expect(res.status).toBe(200)
     expect(res.body).not.toBeNull()
-    expect(res.body.questions).toHaveLength(45)
+    expect(res.body.questions).toHaveLength(30)
   })
 
   it('POST /start retorna 409 na segunda tentativa na mesma semana (trava semanal)', async () => {
@@ -150,7 +150,7 @@ describe('Simulado da Semana', () => {
     expect(res.status).toBe(200)
     expect(res.body.score).toBeGreaterThanOrEqual(300)
     expect(res.body.score).toBeLessThanOrEqual(1000)
-    expect(res.body.total).toBe(45)
+    expect(res.body.total).toBe(30)
     expect(res.body.finishedAt).toBeTruthy()
     expect(res.body.correct).toBe(2)
     expect(res.body.wrong).toBe(1)

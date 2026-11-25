@@ -63,7 +63,7 @@ describe('figures from storage to active questions and review', () => {
     })) })
     const start = await api.post(`/api/v1/simulado/${slug}/start`).set('Authorization', `Bearer ${token}`)
     expect(start.status).toBe(200)
-    expect(start.body.questions).toHaveLength(45)
+    expect(start.body.questions).toHaveLength(30)
     expect(start.body.questions[0]).toMatchObject({ imageAlt: 'Figura de teste', visual })
     expect(start.body.questions[0].options.every((option: object) => !('isCorrect' in option))).toBe(true)
     const id = start.body.id as string

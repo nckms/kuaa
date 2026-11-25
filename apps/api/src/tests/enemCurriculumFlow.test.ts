@@ -29,7 +29,7 @@ describe('ENEM curriculum in the persisted learning flow', () => {
     expect((await api.patch('/api/v1/users/me').set('Authorization', `Bearer ${auth.token}`).send({ preferences: { enemLanguage: 'espanhol' } })).status).toBe(200)
     const attempt = await api.post('/api/v1/simulado/enem/start').set('Authorization', `Bearer ${auth.token}`)
     expect(attempt.status).toBe(200)
-    expect(attempt.body.questions).toHaveLength(45)
+    expect(attempt.body.questions).toHaveLength(30)
     const subjects = attempt.body.questions.map((question: { subjectSlug: string }) => question.subjectSlug)
     expect(subjects).toContain('espanhol')
     expect(subjects).not.toContain('ingles')

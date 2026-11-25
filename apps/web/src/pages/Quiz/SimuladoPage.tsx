@@ -40,7 +40,7 @@ function SimuladoIntro({ vestibularName, onStart, isStarting }: { vestibularName
       <p className="sim-lead">Questões no estilo {exam}, cronometradas. O resultado vira nota de 300 a 1000 e atualiza seu Índice Kuaa. Não é prova oficial.</p>
       <div className="k-grid sim-facts" style={{ ['--min' as string]: '160px' }}>
         {[
-          { icon: 'bi-list-check', v: 'Até 45', l: 'questões' },
+          { icon: 'bi-list-check', v: 'Até 30', l: 'questões' },
           { icon: 'bi-stopwatch', v: '90 min', l: 'de prova' },
           { icon: 'bi-calendar3', v: 'Dom', l: 'novo toda semana' },
           { icon: 'bi-speedometer2', v: '300–1000', l: 'escala da nota' },
