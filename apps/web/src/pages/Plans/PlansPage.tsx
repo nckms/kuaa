@@ -24,10 +24,13 @@ const ROWS: Array<[string, string, string]> = [
   ['Questões reais do ENEM (2009–2023)', 'Incluído', 'Incluído'],
   ['Provas anteriores completas, com tempo de prova', 'Incluído', 'Incluído'],
   ['Explicação de todo erro', 'Sempre', 'Sempre'],
+  ['Caderno de erros com revisão espaçada', 'Incluído', 'Incluído'],
+  ['Resumo mensal para o responsável', 'Incluído', 'Incluído'],
   ['Simulado semanal', 'Incluído', 'Incluído'],
   ['Sessões de prática', '5 por dia', '40 por dia'],
   ['Perguntas ao Sabiá', '15 por dia', '100 por dia'],
-  ['Análise de redação por IA', '2 por mês', '15 por mês'],
+  ['Análise formativa de redação por IA', '2 por mês', '15 por mês'],
+  ['Correção da redação do ENEM por competência, com nota estimada e reescrita guiada', '—', '15 por mês'],
 ]
 const brl = (cents: number) => (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const date = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '')
