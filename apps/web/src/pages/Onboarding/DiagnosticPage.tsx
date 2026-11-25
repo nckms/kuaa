@@ -5,6 +5,8 @@ import { isAxiosError } from 'axios'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth.store'
 import { useTrail } from '../../hooks/useTrail'
+import { useGenerateQuiz } from '../../hooks/useQuiz'
+import { QuotaNotice } from '../../components/QuotaNotice'
 import QuestionMedia from '../../components/quiz/QuestionMedia'
 import KuaaMascotLogo from '../../components/ui/KuaaMascotLogo'
 import type { QuestionMediaData } from '../../types/quiz'
@@ -97,7 +99,7 @@ function ProfileForm({ profile, subjects, busy, onSave }: {
   const ready = !!stage && !!horizon && !!minutes
 
   return <div key={current} className="diag-screen">
-    <p className="k-eyebrow">Pergunta {current + 1} de {screens.length}</p>
+    <p className="k-eyebrow">Pergunta {current + 1} de {screens.length}{current === 0 ? ' · leva uns 5 minutos no total' : ''}</p>
     <h1 className="diag-title" tabIndex={-1}>{screen.title}</h1>
     <p className="diag-desc">{screen.desc}</p>
     {screen.body}
@@ -106,7 +108,7 @@ function ProfileForm({ profile, subjects, busy, onSave }: {
       {current === screens.length - 1
         ? <button type="button" className="k-btn k-btn-primary is-lg" style={{ marginLeft: 'auto' }} disabled={busy || !ready}
           onClick={() => { if (stage && horizon && minutes) onSave({ schoolStage: stage, examHorizon: horizon, weeklyMinutes: minutes, difficultSubjects: difficult }) }}>
-          {busy ? 'Salvando...' : 'Iniciar questões'} <i className="bi bi-arrow-right" aria-hidden="true" />
+          {busy ? 'Salvando...' : difficult.length ? 'Iniciar questões' : 'Pular e iniciar questões'} <i className="bi bi-arrow-right" aria-hidden="true" />
         </button>
         : [stage, horizon, minutes][current] && <button type="button" className="k-btn k-btn-outline" style={{ marginLeft: 'auto' }} onClick={() => setStep(current + 1)}>Próxima<i className="bi bi-arrow-right" aria-hidden="true" /></button>}
     </div>
@@ -198,6 +200,9 @@ function Diagnostic({ slug }: { slug: string }) {
   // O diagnóstico só calibra a dificuldade inicial por área; quem escolhe o
   // primeiro tópico é a trilha. Mostramos exatamente o tópico que ela recomenda.
   const trail = useTrail(data?.status === 'completed' ? slug : '')
+  // Depois do diagnóstico, metade dos alunos não abria nenhuma prática: o
+  // próximo passo agora é a própria prática do tópico recomendado.
+  const firstPractice = useGenerateQuiz()
   const startSubject = trail.data?.subjects.find((subject) => subject.topics.some((topic) => topic.id === trail.data?.recommendation?.topicId))
   const startTopic = startSubject?.topics.find((topic) => topic.id === trail.data?.recommendation?.topicId)
 
@@ -207,7 +212,7 @@ function Diagnostic({ slug }: { slug: string }) {
       <ol className="diag-steps" aria-label="Etapas do diagnóstico">
         {['Perfil', 'Questões', 'Resultado'].map((label, index) => <li key={label} className={index <= phase ? 'is-done' : ''} aria-current={index === phase ? 'step' : undefined}><span />{label}</li>)}
       </ol>
-      <Link to={`/trilha/${slug}`} className="diag-skip">Pular</Link>
+      <Link to={`/trilha/${slug}`} className="diag-skip">Fazer depois</Link>
     </header>
     <div className="diag-body">
       <div className="diag-inner" aria-busy={saving || query.isFetching}>
@@ -247,7 +252,16 @@ function Diagnostic({ slug }: { slug: string }) {
             <div><small>Ritmo recomendado</small><strong>{data.result.recommendedMinutes} min/dia</strong><small>em 5 dias da semana ({data.profile?.weeklyMinutes} min semanais)</small></div>
             <i className="bi bi-speedometer2" aria-hidden="true" />
           </div>
-          <button className="k-btn k-btn-primary is-lg is-block" disabled={busy} onClick={() => void goToTrail()}>Ver minha trilha <i className="bi bi-arrow-right" aria-hidden="true" /></button>
+          {startTopic
+            ? <>
+              <button className="k-btn k-btn-primary is-lg is-block" disabled={busy || firstPractice.isPending}
+                onClick={() => firstPractice.mutate({ topicId: startTopic.id, count: 5 })}>
+                {firstPractice.isPending ? 'Preparando questões…' : `Fazer 5 questões de ${startTopic.name}`} <i className="bi bi-arrow-right" aria-hidden="true" />
+              </button>
+              {firstPractice.isError && <QuotaNotice error={firstPractice.error} fallback="Não foi possível preparar a prática. Tente de novo ou abra a trilha." />}
+              <button className="k-btn k-btn-outline is-block" disabled={busy} onClick={() => void goToTrail()}>Ver a trilha completa</button>
+            </>
+            : <button className="k-btn k-btn-primary is-lg is-block" disabled={busy} onClick={() => void goToTrail()}>Ver minha trilha <i className="bi bi-arrow-right" aria-hidden="true" /></button>}
         </section>}
         {data && ((data.status === 'questions' && !data.question) || (data.status === 'completed' && !data.result)) && <div className="k-alert" role="alert">
           <p style={{ margin: '0 0 10px' }}>O diagnóstico está indisponível no momento.</p><button className="k-btn k-btn-outline is-sm" disabled={busy} onClick={() => void retry()}>Tentar novamente</button>
