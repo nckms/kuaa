@@ -150,7 +150,7 @@ export default function PlansPage() {
                   : <form className="kp-buy" onSubmit={(event) => { event.preventDefault(); if (adult) checkout.mutate() }}>
                     <label className="kp-check">
                       <input type="checkbox" checked={adult} onChange={(event) => setAdult(event.target.checked)} />
-                      <span>Sou maior de 18 anos ou responsável pelo estudante.</span>
+                      <span>Sou maior de 18 anos ou responsável pelo estudante e concordo com os <Link to="/termos" target="_blank">Termos</Link> (renovação mensal, cancelamento quando quiser).</span>
                     </label>
                     <button type="submit" className="kp-btn" disabled={!adult || checkout.isPending}>
                       {checkout.isPending ? 'Abrindo pagamento…' : 'Assinar com Pix'}<i className="bi bi-lock" aria-hidden="true" />

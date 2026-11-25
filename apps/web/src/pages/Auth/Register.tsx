@@ -171,6 +171,9 @@ export default function Register() {
         <button type="submit" disabled={loading} className={`k-btn is-lg is-block ${canSubmit ? 'k-btn-primary' : 'k-btn-outline'}`} style={{ marginTop: 12 }}>
           {loading ? 'Criando conta…' : 'Continuar'} <i className="bi bi-arrow-right" aria-hidden="true" />
         </button>
+        <p className="k-muted" style={{ fontSize: 13, marginTop: 12, textAlign: 'center' }}>
+          Ao continuar, você concorda com os <Link to="/termos" target="_blank">Termos de Uso</Link> e a <Link to="/privacidade" target="_blank">Política de Privacidade</Link>.
+        </p>
       </form>
     </AuthShell>
   )

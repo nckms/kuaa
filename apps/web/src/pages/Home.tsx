@@ -92,6 +92,8 @@ export default function Home() {
       <footer className="kl-foot">
         <img src="/brand/wordmark-t.png" alt="Kuaa" />
         <Link to="/planos" className="kl-foot-link">Planos</Link>
+        <Link to="/termos" className="kl-foot-link">Termos</Link>
+        <Link to="/privacidade" className="kl-foot-link">Privacidade</Link>
       </footer>
     </div>
   )
