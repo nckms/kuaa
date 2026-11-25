@@ -36,6 +36,11 @@ export const OFFICIAL_SIBLINGS: Record<string, string[]> = {
   'Política e Economia Brasileira': ['República, Guerras e Mundo Contemporâneo', 'Poder, Cidadania e Movimentos Sociais'],
   'Cenário Internacional': ['Globalização, Território e Geopolítica'],
   'Cultura e Sociedade': ['Cultura, Identidade e Socialização'],
+  'Álgebra e Funções': ['Funções e Gráficos', 'Álgebra e Análise Combinatória'],
+  'Conjuntos e Funções': ['Funções e Gráficos', 'Álgebra e Análise Combinatória'],
+  'Coesão e Coerência': ['Semântica, Coesão e Intertextualidade'],
+  'Gêneros Textuais Dissertativos': ['Gêneros Textuais e Funções da Linguagem', 'Comunicação Digital e Argumentação'],
+  'Argumentação e Refutação': ['Comunicação Digital e Argumentação'],
 }
 
 export interface OfficialPick extends GeneratedQuestion { officialRefId: string; origin: string | null; year: number | null; difficultySource: string | null }
