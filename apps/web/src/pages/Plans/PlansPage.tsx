@@ -21,6 +21,8 @@ interface StudentStatus { eligible: boolean; last: { status: string; submittedAt
 const QUOTA_LABEL = { practice: 'Práticas', sabia: 'Perguntas ao Sabiá', essayFeedback: 'Análises de redação' }
 const ROWS: Array<[string, string, string]> = [
   ['Diagnóstico e trilha adaptativa', 'Incluído', 'Incluído'],
+  ['Questões reais do ENEM (2009–2023)', 'Incluído', 'Incluído'],
+  ['Provas anteriores completas, com tempo de prova', 'Incluído', 'Incluído'],
   ['Explicação de todo erro', 'Sempre', 'Sempre'],
   ['Simulado semanal', 'Incluído', 'Incluído'],
   ['Sessões de prática', '5 por dia', '40 por dia'],
@@ -101,7 +103,7 @@ export default function PlansPage() {
 
       <main className="kp-main">
         <h1>Planos</h1>
-        <p className="kp-lead">O gratuito já tem o essencial para estudar: diagnóstico, trilha e explicação de todo erro. O Plus aumenta o volume de prática e de IA para quem estuda todo dia.</p>
+        <p className="kp-lead">O gratuito já tem o essencial para estudar: diagnóstico, trilha, mais de 2.700 questões reais do ENEM, provas anteriores completas e explicação de todo erro. O Plus aumenta o volume de prática e de IA para quem estuda todo dia.</p>
 
         {purchase === 'ok' && !isPlus && <p className="kp-banner" role="status">Assinatura enviada. Assim que o banco confirmar (no Pix leva instantes), seu Plus aparece aqui.</p>}
         {purchase === 'ok' && isPlus && <p className="kp-banner is-ok" role="status">Tudo certo: seu Kuaa Plus está ativo.</p>}
@@ -208,6 +210,8 @@ export default function PlansPage() {
             <dd>Maiores de 18 anos ou o responsável pelo estudante.</dd>
             <dt>E se eu me arrepender?</dt>
             <dd>Você pode pedir o reembolso integral da primeira mensalidade em até 7 dias.{SUPPORT_EMAIL && <> Escreva para <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</>}</dd>
+            <dt>De onde vêm as questões?</dt>
+            <dd>A prática usa primeiro questões reais do ENEM (2009–2023), com o gabarito oficial. A explicação de cada uma é escrita por IA e aparece marcada como tal. Quando o banco não tem questão do tópico, o Kuaa completa com questões próprias.</dd>
             <dt>O Kuaa garante aprovação?</dt>
             <dd>Não. O Kuaa organiza o que estudar e explica seus erros; o resultado depende do seu estudo.</dd>
           </dl>
