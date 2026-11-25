@@ -20,7 +20,7 @@ export async function exportMyData(req: Request, res: Response, next: NextFuncti
         preferences: true, signupSource: true },
     })
     if (!user) throw makeError('Conta não encontrada', 404, 'NOT_FOUND')
-    const [enrollments, progress, sessions, simulados, essays, sabia, achievements, subscriptions, grants, studentChecks, signals, reviewItems, exams] = await Promise.all([
+    const [enrollments, progress, sessions, simulados, essays, sabia, achievements, subscriptions, grants, studentChecks, signals, reviewItems, exams, guardian] = await Promise.all([
       prisma.enrollment.findMany({ where: { userId }, include: { vestibular: { select: { slug: true, name: true } } } }),
       prisma.userTopicProgress.findMany({ where: { userId }, include: { topic: { select: { name: true } } } }),
       prisma.quizSession.findMany({ where: { userId }, orderBy: { startedAt: 'asc' }, include: {
@@ -38,11 +38,12 @@ export async function exportMyData(req: Request, res: Response, next: NextFuncti
       prisma.productSignal.findMany({ where: { userId }, select: { kind: true, periodKey: true, source: true, createdAt: true } }),
       prisma.reviewItem.findMany({ where: { userId }, select: { questionKey: true, topicId: true, timesWrong: true, correctStreak: true, dueAt: true, lastWrongAt: true, resolvedAt: true } }),
       prisma.examAttempt.findMany({ where: { userId }, select: { exam: true, year: true, day: true, startedAt: true, finishedAt: true, correct: true, wrong: true, answers: true } }),
+      prisma.guardian.findUnique({ where: { userId }, select: { email: true, confirmedAt: true, unsubscribedAt: true, createdAt: true } }),
     ])
     const data = {
       exportedAt: new Date().toISOString(),
       about: 'Cópia dos seus dados no Kuaa (LGPD art. 18). Senha e documentos de estudante não são incluídos: a senha é guardada só como hash e o documento é apagado após a análise.',
-      user, enrollments, progress, sessions, simulados, essays, sabia, achievements, subscriptions, planGrants: grants, studentVerifications: studentChecks, productSignals: signals, errorNotebook: reviewItems, pastExams: exams,
+      user, enrollments, progress, sessions, simulados, essays, sabia, achievements, subscriptions, planGrants: grants, studentVerifications: studentChecks, productSignals: signals, errorNotebook: reviewItems, pastExams: exams, guardian,
     }
     res.setHeader('Content-Type', 'application/json; charset=utf-8')
     res.setHeader('Content-Disposition', `attachment; filename="kuaa-meus-dados-${new Date().toISOString().slice(0, 10)}.json"`)

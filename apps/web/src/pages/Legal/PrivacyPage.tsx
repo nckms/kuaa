@@ -28,6 +28,7 @@ export default function PrivacyPage() {
       <li><strong>Stripe</strong>: processamento das assinaturas.</li>
       <li><strong>Vercel e Railway</strong>: hospedagem do site, da API e do banco de dados (servidores podem ficar fora do Brasil, com as garantias do art. 33 da LGPD).</li>
       <li>Serviço de envio de e-mail, quando ativo, e o serviço de notificações do seu navegador (Google, Apple ou Mozilla) para entregar lembretes, se você os ativar.</li>
+      <li><strong>Seu responsável</strong>, só se você cadastrar o e-mail dele e ele confirmar: um resumo mensal com dias estudados, quantidade de questões e acertos por matéria. Respostas, redações e conversas com o Sabiá não são enviadas. Você pode remover o responsável em Configurações a qualquer momento.</li>
       <li>Autoridades, só quando a lei exigir.</li>
     </ul>
 

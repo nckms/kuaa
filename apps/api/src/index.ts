@@ -6,6 +6,7 @@ import { prisma } from './lib/prisma'
 import { redis } from './lib/redis'
 import { startReminderScheduler } from './modules/engagement/push'
 import { startOfficialClassifier } from './modules/quiz/officialTopics'
+import { startGuardianScheduler } from './modules/engagement/guardian'
 
 const PORT = env.PORT ?? 3333
 
@@ -19,6 +20,7 @@ const server = app.listen(PORT, () => {
 })
 startReminderScheduler()
 startOfficialClassifier()
+startGuardianScheduler()
 
 let stopping = false
 function shutdown() {

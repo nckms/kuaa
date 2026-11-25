@@ -7,6 +7,7 @@ import { useAuthStore } from './stores/auth.store'
 import Home from './pages/Home'
 import PlansPage from './pages/Plans/PlansPage'
 import Unsubscribe from './pages/Auth/Unsubscribe'
+import GuardianLink from './pages/Auth/GuardianLink'
 import TermsPage from './pages/Legal/TermsPage'
 import PrivacyPage from './pages/Legal/PrivacyPage'
 import StudentReviewPage from './pages/Admin/StudentReviewPage'
@@ -90,6 +91,7 @@ function AppRoutes() {
       <Route path="/esqueci-senha" element={<ForgotPassword />} />
       <Route path="/planos" element={<PlansPage />} />
       <Route path="/descadastrar" element={<Unsubscribe />} />
+      <Route path="/responsavel" element={<GuardianLink />} />
       <Route path="/termos" element={<TermsPage />} />
       <Route path="/privacidade" element={<PrivacyPage />} />
       <Route path="/redefinir-senha" element={<ResetPassword />} />
