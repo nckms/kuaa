@@ -3,7 +3,7 @@ import { makeError } from '../../utils/errors'
 import { prisma } from '../../lib/prisma'
 import { askSabia, type ChatMessage } from './sabia.service'
 
-const select = { id: true, role: true, content: true, createdAt: true }
+const select = { id: true, role: true, content: true, kind: true, createdAt: true }
 
 async function ensureLegacyConversation(userId: string) {
   const first = await prisma.sabiaMessage.findFirst({
@@ -52,6 +52,36 @@ export async function history(req: Request, res: Response, next: NextFunction): 
   } catch (err) { next(err) }
 }
 
+/** Conversa do pedido: null = nova; ausente = a mais recente; id = a do aluno. */
+export async function resolveConversation(userId: string, conversationId: unknown) {
+  await ensureLegacyConversation(userId)
+  return conversationId === null ? null
+    : conversationId === undefined
+    ? await prisma.sabiaConversation.findFirst({ where: { userId }, orderBy: { updatedAt: 'desc' } })
+    : await ownConversation(userId, conversationId)
+}
+
+/** Grava a pergunta e a resposta na conversa (cria a conversa se for nova). */
+export async function persistExchange(userId: string, conversation: { id: string } | null, userContent: string, reply: string, kind: 'text' | 'photo') {
+  return prisma.$transaction(async (tx) => {
+    const thread = conversation
+      ? await tx.sabiaConversation.update({ where: { id: conversation.id }, data: { updatedAt: new Date() } })
+      : await tx.sabiaConversation.create({ data: { userId, title: userContent.replace(/\s+/g, ' ').slice(0, 80) } })
+    const latest = await tx.sabiaMessage.findFirst({
+      where: { userId, conversationId: thread.id }, orderBy: { createdAt: 'desc' }, select: { createdAt: true },
+    })
+    const createdAt = new Date(Math.max(Date.now(), (latest?.createdAt.getTime() ?? 0) + 1))
+    const question = await tx.sabiaMessage.create({
+      data: { userId, conversationId: thread.id, role: 'user', content: userContent, kind, createdAt }, select,
+    })
+    const answer = await tx.sabiaMessage.create({
+      data: { userId, conversationId: thread.id, role: 'assistant', content: reply,
+        createdAt: new Date(Math.max(Date.now(), question.createdAt.getTime() + 1)) }, select,
+    })
+    return { conversationId: thread.id, messages: [question, answer] }
+  })
+}
+
 export async function ask(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const message: unknown = req.body?.message
@@ -75,23 +105,7 @@ export async function ask(req: Request, res: Response, next: NextFunction): Prom
         ? [{ role: entry.role, content: entry.content }] : [],
     )
     const reply = await askSabia(message.trim(), context)
-    const saved = await prisma.$transaction(async (tx) => {
-      const thread = conversation
-        ? await tx.sabiaConversation.update({ where: { id: conversation.id }, data: { updatedAt: new Date() } })
-        : await tx.sabiaConversation.create({ data: { userId, title: message.trim().replace(/\s+/g, ' ').slice(0, 80) } })
-      const latest = await tx.sabiaMessage.findFirst({
-        where: { userId, conversationId: thread.id }, orderBy: { createdAt: 'desc' }, select: { createdAt: true },
-      })
-      const createdAt = new Date(Math.max(Date.now(), (latest?.createdAt.getTime() ?? 0) + 1))
-      const question = await tx.sabiaMessage.create({
-        data: { userId, conversationId: thread.id, role: 'user', content: message.trim(), createdAt }, select,
-      })
-      const answer = await tx.sabiaMessage.create({
-        data: { userId, conversationId: thread.id, role: 'assistant', content: reply,
-          createdAt: new Date(Math.max(Date.now(), question.createdAt.getTime() + 1)) }, select,
-      })
-      return { conversationId: thread.id, messages: [question, answer] }
-    })
+    const saved = await persistExchange(userId, conversation, message.trim(), reply, 'text')
     res.set('Cache-Control', 'no-store').json({ reply, ...saved })
   } catch (err) { next(err) }
 }
