@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/auth.store'
 import './Home.css'
+import InstallAppCard from '../components/InstallAppCard'
 
 const EXAMPLE = [
   { topic: 'Interpretação de texto', area: 'Linguagens', correct: 2, total: 5, action: 'Revisar tópico', state: 'review' },
@@ -92,6 +93,7 @@ export default function Home() {
       <footer className="kl-foot">
         <img src="/brand/wordmark-t.png" alt="Kuaa" />
         <Link to="/planos" className="kl-foot-link">Planos</Link>
+        <InstallAppCard compact />
       </footer>
     </div>
   )
