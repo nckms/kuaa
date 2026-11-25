@@ -202,6 +202,7 @@ export default function DashboardPage() {
           {simCard.kind === 'error'
             ? <button type="button" onClick={() => simulado.refetch()} className="k-btn is-sm" style={{ background: '#fff', color: 'var(--k-ink)', alignSelf: 'flex-start' }}>Tentar de novo</button>
             : simCard.cta && <Link to="/simulado" className="k-btn is-sm" style={{ background: '#fff', color: 'var(--k-ink)', alignSelf: 'flex-start' }}>{simCard.cta}<i className="bi bi-arrow-right" aria-hidden="true" /></Link>}
+          <Link to="/provas" className="dash-provas-link"><i className="bi bi-journal-text" aria-hidden="true" />Ou faça uma prova completa do ENEM (2009–2023)</Link>
         </section>
       </div>
     </div>
