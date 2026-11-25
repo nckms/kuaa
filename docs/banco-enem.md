@@ -1,9 +1,11 @@
 # Banco de questões reais (ENEM)
 
-## O que entrou (fase 1)
+## O que entrou
 
-- **1.706 questões reais do ENEM 2009–2023** (provas do INEP), só as que são
-  100% texto. Fonte da transcrição: base aberta enem.dev
+- **2.526 questões reais do ENEM 2009–2023** (provas do INEP): 1.706 só de
+  texto (fase 1) + 820 com uma figura e alternativas em texto (fase 2). As
+  figuras ficam em `apps/web/public/question-media/enem/` (WebP, ~12 KB cada,
+  geradas por `scripts/official/convert-images.py`). Fonte da transcrição: base aberta enem.dev
   (github.com/yunger7/enem-api). Arquivo: `apps/api/prisma/official/enem.json`.
 - Importação automática no pré-deploy (`npm run db:migrate` → `import-official`),
   idempotente: cria as novas, atualiza texto/tópico, **nunca apaga explicação**.
@@ -23,7 +25,8 @@ O simulado do ENEM também passa a priorizar questões oficiais.
 
 A prova não traz explicação. Na primeira vez que alguém pratica uma questão, a
 IA escreve a explicação (com o gabarito oficial fixado no prompt), que é
-guardada para todos e aparece com "Explicação escrita com apoio de IA ·
+guardada para todos (nas questões com figura, a IA recebe a imagem; se não
+conseguir carregá-la, não explica e mostra só o gabarito) e aparece com "Explicação escrita com apoio de IA ·
 gabarito oficial". Se a IA não responder em 9 s, o aluno vê o gabarito oficial
 e a explicação aparece na revisão. Explicação revisada por professor pode
 substituir a da IA direto no banco (o importador não sobrescreve).
@@ -38,7 +41,8 @@ rodar `node scripts/official/build-enem.mjs <repo enem-api>` de novo.
 
 ## Próximas fases
 
-- **Fase 2:** 1.048 questões com imagem (hospedar as imagens no nosso domínio).
+- **Fase 2b:** ~220 questões com várias figuras ou alternativas em imagem
+  (o app ainda mostra uma figura por questão) e 6 sem figura na base.
 - **Fase 3:** Fuvest/Unicamp — não há base aberta estruturada; exigiria extrair
   dos PDFs das bancas.
 

@@ -19,20 +19,22 @@ async function main() {
     const missing = new Set(questions.filter((q) => !topicId.has(q.topic)).map((q) => q.topic))
     if (missing.size) console.warn(`[official] ${slug}: tópicos inexistentes, questões ignoradas: ${[...missing].join(', ')}`)
     const rows = questions.filter((q) => topicId.has(q.topic))
-    const existing = new Map((await prisma.question.findMany({ where: { id: { in: rows.map((q) => q.id) } }, select: { id: true, topicId: true, body: true } })).map((q) => [q.id, q]))
+    const existing = new Map((await prisma.question.findMany({ where: { id: { in: rows.map((q) => q.id) } }, select: { id: true, topicId: true, body: true, imageUrl: true } })).map((q) => [q.id, q]))
     const origin = (q) => `${slug.toUpperCase()} ${q.year} · questão ${q.number}${q.language === 'ingles' ? ' (inglês)' : q.language === 'espanhol' ? ' (espanhol)' : ''}`
+    const media = (q) => (q.imageUrl ? { imageAlt: `Figura da questão: ${origin(q)}` } : undefined)
     const fresh = rows.filter((q) => !existing.has(q.id))
     for (let i = 0; i < fresh.length; i += 500) {
       await prisma.question.createMany({ skipDuplicates: true, data: fresh.slice(i, i + 500).map((q) => ({
         id: q.id, topicId: topicId.get(q.topic), body: q.body, options: q.options, explanation: '', difficulty: 3,
         source: 'OFFICIAL', year: q.year, origin: origin(q), active: true,
+        imageUrl: q.imageUrl ?? null, media: media(q),
       })) })
     }
     let updated = 0
     for (const q of rows) {
       const cur = existing.get(q.id)
-      if (cur && (cur.topicId !== topicId.get(q.topic) || cur.body !== q.body)) {
-        await prisma.question.update({ where: { id: q.id }, data: { topicId: topicId.get(q.topic), body: q.body, options: q.options, origin: origin(q) } })
+      if (cur && (cur.topicId !== topicId.get(q.topic) || cur.body !== q.body || cur.imageUrl !== (q.imageUrl ?? null))) {
+        await prisma.question.update({ where: { id: q.id }, data: { topicId: topicId.get(q.topic), body: q.body, options: q.options, origin: origin(q), imageUrl: q.imageUrl ?? null, media: media(q) } })
         updated++
       }
     }
