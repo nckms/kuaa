@@ -19,7 +19,7 @@ async function main() {
     const missing = new Set(questions.filter((q) => !topicId.has(q.topic)).map((q) => q.topic))
     if (missing.size) console.warn(`[official] ${slug}: tópicos inexistentes, questões ignoradas: ${[...missing].join(', ')}`)
     const rows = questions.filter((q) => topicId.has(q.topic))
-    const existing = new Map((await prisma.question.findMany({ where: { id: { in: rows.map((q) => q.id) } }, select: { id: true, topicId: true, body: true, imageUrl: true } })).map((q) => [q.id, q]))
+    const existing = new Map((await prisma.question.findMany({ where: { id: { in: rows.map((q) => q.id) } }, select: { id: true, topicId: true, body: true, imageUrl: true, topicSource: true } })).map((q) => [q.id, q]))
     const origin = (q) => `${slug.toUpperCase()} ${q.year} · questão ${q.number}${q.language === 'ingles' ? ' (inglês)' : q.language === 'espanhol' ? ' (espanhol)' : ''}`
     const media = (q) => (q.imageUrl ? { imageAlt: `Figura da questão: ${origin(q)}` } : undefined)
     const fresh = rows.filter((q) => !existing.has(q.id))
@@ -33,8 +33,10 @@ async function main() {
     let updated = 0
     for (const q of rows) {
       const cur = existing.get(q.id)
-      if (cur && (cur.topicId !== topicId.get(q.topic) || cur.body !== q.body || cur.imageUrl !== (q.imageUrl ?? null))) {
-        await prisma.question.update({ where: { id: q.id }, data: { topicId: topicId.get(q.topic), body: q.body, options: q.options, origin: origin(q), imageUrl: q.imageUrl ?? null, media: media(q) } })
+      // Tópico definido pela IA (topicSource = "ai") é mais preciso que as palavras-chave: não é sobrescrito.
+      const keepTopic = cur?.topicSource === 'ai'
+      if (cur && ((!keepTopic && cur.topicId !== topicId.get(q.topic)) || cur.body !== q.body || cur.imageUrl !== (q.imageUrl ?? null))) {
+        await prisma.question.update({ where: { id: q.id }, data: { ...(keepTopic ? {} : { topicId: topicId.get(q.topic) }), body: q.body, options: q.options, origin: origin(q), imageUrl: q.imageUrl ?? null, media: media(q) } })
         updated++
       }
     }
