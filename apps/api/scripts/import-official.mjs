@@ -19,7 +19,7 @@ async function main() {
     const missing = new Set(questions.filter((q) => !topicId.has(q.topic)).map((q) => q.topic))
     if (missing.size) console.warn(`[official] ${slug}: tópicos inexistentes, questões ignoradas: ${[...missing].join(', ')}`)
     const rows = questions.filter((q) => topicId.has(q.topic))
-    const existing = new Map((await prisma.question.findMany({ where: { id: { in: rows.map((q) => q.id) } }, select: { id: true, topicId: true, body: true, imageUrl: true, topicSource: true, topic: { select: { subject: { select: { slug: true } } } } } })).map((q) => [q.id, q]))
+    const existing = new Map((await prisma.question.findMany({ where: { id: { in: rows.map((q) => q.id) } }, select: { id: true, topicId: true, body: true, imageUrl: true, topicSource: true, options: true, topic: { select: { subject: { select: { slug: true } } } } } })).map((q) => [q.id, q]))
     // Matéria → área da prova, para detectar tópico escolhido dentro da área errada.
     const AREA_OF = { matematica: 'matematica', fisica: 'ciencias-natureza', quimica: 'ciencias-natureza', biologia: 'ciencias-natureza', 'ciencias-natureza': 'ciencias-natureza',
       historia: 'ciencias-humanas', geografia: 'ciencias-humanas', filosofia: 'ciencias-humanas', sociologia: 'ciencias-humanas', 'ciencias-humanas': 'ciencias-humanas',
@@ -41,8 +41,12 @@ async function main() {
       // Exceção: se a área da prova mudou (base de origem errava a área), volta para a fila de classificação.
       const wrongArea = cur && q.area && AREA_OF[cur.topic.subject.slug] !== q.area
       const keepTopic = cur?.topicSource === 'ai' && !wrongArea
-      if (cur && ((!keepTopic && cur.topicId !== topicId.get(q.topic)) || cur.body !== q.body || cur.imageUrl !== (q.imageUrl ?? null) || (wrongArea && cur.topicSource))) {
-        await prisma.question.update({ where: { id: q.id }, data: { ...(keepTopic ? {} : { topicId: topicId.get(q.topic), ...(wrongArea ? { topicSource: null } : {}) }), body: q.body, options: q.options, origin: origin(q), imageUrl: q.imageUrl ?? null, media: media(q) } })
+      // Gabarito corrigido (INEP): a explicação antiga defendia a alternativa errada e é refeita.
+      const correctOf = (opts) => (Array.isArray(opts) ? opts.find((o) => o.isCorrect)?.id : undefined)
+      const keyChanged = cur && correctOf(cur.options) !== correctOf(q.options)
+      if (cur && (keyChanged || (!keepTopic && cur.topicId !== topicId.get(q.topic)) || cur.body !== q.body || cur.imageUrl !== (q.imageUrl ?? null) || (wrongArea && cur.topicSource))) {
+        await prisma.question.update({ where: { id: q.id }, data: { ...(keepTopic ? {} : { topicId: topicId.get(q.topic), ...(wrongArea ? { topicSource: null } : {}) }), body: q.body, options: q.options, origin: origin(q), imageUrl: q.imageUrl ?? null, media: media(q),
+          ...(keyChanged ? { explanation: '', explanationByAi: false } : {}) } })
         updated++
       }
     }

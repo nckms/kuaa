@@ -6,6 +6,7 @@ import { env } from '../../lib/env'
 import { prisma } from '../../lib/prisma'
 import type { GeneratedQuestion, QuestionOption } from './quiz.types'
 import { readQuestionMedia } from './questionMedia'
+import { triData } from '../exams/tri'
 
 /** Tópicos "integradores" do ENEM puxam questões dos tópicos específicos equivalentes. */
 export const OFFICIAL_SIBLINGS: Record<string, string[]> = {
@@ -51,7 +52,9 @@ export const OFFICIAL_SIBLINGS: Record<string, string[]> = {
  * - cofenem2021q107: depende de um quadro que a transcrição não tem.
  * - cofenem2021q147 (B = C) e cofenem2023q114 (A = C): a transcrição repete a alternativa correta.
  */
-export const INCONSISTENT_OFFICIAL = ['cofenem2021q165', 'cofenem2019q146', 'cofenem2021q107', 'cofenem2021q147', 'cofenem2023q114']
+export const INCONSISTENT_OFFICIAL = ['cofenem2021q165', 'cofenem2019q146', 'cofenem2021q107', 'cofenem2021q147', 'cofenem2023q114',
+  // Anuladas pelo INEP (gabarito X nos microdados; ver scripts/official/build-tri.py).
+  ...triData().annulled]
 
 export interface OfficialPick extends GeneratedQuestion { officialRefId: string; origin: string | null; year: number | null; difficultySource: string | null }
 

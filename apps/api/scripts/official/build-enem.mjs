@@ -13,6 +13,10 @@ const out = path.resolve(here, '../../prisma/official/enem.json')
 // Figuras já convertidas por convert-images.py (uma por questão; várias figuras e alternativas em imagem viram uma composta).
 const mediaDir = path.resolve(here, '../../../web/public/question-media/enem')
 
+// Gabaritos corrigidos pelo INEP (microdados; ver build-tri.py): a transcrição errava 14 questões.
+const triPath = path.resolve(here, '../../prisma/official/tri.json')
+const keyFixes = fs.existsSync(triPath) ? JSON.parse(fs.readFileSync(triPath, 'utf8')).keyFixes ?? {} : {}
+
 const files = []
 for (const year of fs.readdirSync(path.join(root, 'public')).filter((y) => /^\d{4}$/.test(y))) {
   const dir = path.join(root, 'public', year, 'questions')
@@ -53,7 +57,7 @@ for (const file of files) {
   if (hasImage && !imageUrl) { skippedImages++; continue }
   // Alternativa que só existe como imagem aparece rotulada na figura composta da questão.
   const options = q.alternatives.map((a) => ({
-    id: a.letter, text: clean(a.text) || (a.file && imageUrl ? `Alternativa ${a.letter} (veja na figura)` : ''), isCorrect: a.letter === q.correctAlternative,
+    id: a.letter, text: clean(a.text) || (a.file && imageUrl ? `Alternativa ${a.letter} (veja na figura)` : ''), isCorrect: a.letter === (keyFixes[id] ?? q.correctAlternative),
   }))
   if (options.length !== 5 || options.filter((o) => o.isCorrect).length !== 1 || options.some((o) => !o.text)) continue
   // A imagem é exibida pelo app abaixo do texto; a marcação dela sai do enunciado.

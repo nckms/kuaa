@@ -52,12 +52,23 @@ function Results({ attempt }: { attempt: ExamAttempt }) {
           <div><strong>{total - correct - wrong}</strong><small>em branco</small></div>
         </div>
       </section>
+      {attempt.scores && attempt.scores.length > 0 && (
+        <section className="k-card is-md ex-tri" aria-labelledby="ex-tri-title">
+          <h2 id="ex-tri-title" className="k-h3">Nota estimada (TRI)</h2>
+          <div className="ex-tri-grid">{attempt.scores.map((s) => (
+            <div key={s.area}><small>{s.label}</small><strong>{s.score.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</strong><span>{s.correct} de {s.items} itens</span></div>
+          ))}</div>
+          <p className="k-muted" style={{ fontSize: 13, margin: '10px 0 0' }}>
+            Calculada como o INEP calcula: com os parâmetros oficiais de cada questão desta prova (microdados do ENEM), não só pelo número de acertos. Por isso dois alunos com os mesmos acertos podem ter notas diferentes. É uma estimativa: algumas questões da prova original não estão no Kuaa.
+          </p>
+        </section>
+      )}
       <div className="k-card is-md">
         <div style={{ fontWeight: 600, marginBottom: 10 }}>Por matéria</div>
         <ul className="ex-subjects">{[...bySubject.entries()].sort((a, b) => b[1].total - a[1].total).map(([name, row]) => (
           <li key={name}><span>{name}</span><span className="k-mono">{row.ok}/{row.total}</span></li>
         ))}</ul>
-        <p className="k-muted" style={{ fontSize: 13, margin: '12px 0 0' }}>Contagem de acertos, não é a nota TRI do ENEM.</p>
+        <p className="k-muted" style={{ fontSize: 13, margin: '12px 0 0' }}>Contagem de acertos por matéria.</p>
       </div>
       <section className="k-card is-flush" aria-label="Correção da prova">
         <h2 className="k-h3" style={{ padding: '22px 24px 8px' }}>Correção</h2>

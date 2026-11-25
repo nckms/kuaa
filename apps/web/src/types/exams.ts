@@ -32,5 +32,7 @@ export interface ExamAttempt {
   flagged: string[]
   correct: number | null
   wrong: number | null
+  /** Nota TRI estimada por área (parâmetros oficiais do INEP). */
+  scores?: Array<{ area: 'LC' | 'CH' | 'CN' | 'MT'; label: string; score: number; correct: number; items: number }> | null
   questions: ExamQuestion[]
 }

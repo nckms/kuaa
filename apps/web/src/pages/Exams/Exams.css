@@ -13,3 +13,10 @@
 .ex-explain { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .ex-ai { opacity: .7; }
 .ex-runner-title { padding: 16px 16px 0; margin: 0; }
+.ex-tri { margin-bottom: 16px; }
+.ex-tri h2 { margin: 0 0 10px; }
+.ex-tri-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.ex-tri-grid > div { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 14px; background: var(--k-roxo-soft, #f3e8f6); }
+.ex-tri-grid small { font-size: 13px; color: var(--k-muted); }
+.ex-tri-grid strong { font-family: var(--k-display, inherit); font-size: 30px; letter-spacing: -.02em; color: var(--k-roxo, #531A61); }
+.ex-tri-grid span { font-size: 12px; color: var(--k-muted); }
