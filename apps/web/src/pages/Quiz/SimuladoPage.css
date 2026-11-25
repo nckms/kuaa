@@ -32,7 +32,7 @@
 .sim-review-body p { margin: 0 0 10px; }
 .sim-review-q { font-family: var(--k-read); font-size: 16px; white-space: pre-wrap; }
 
-.sim-exam { display: flex; min-height: 100%; }
+.sim-exam { display: flex; min-height: 100%; flex-shrink: 0; } /* sem encolher: no celular o fim da prova ficava atrás da barra de navegação */
 .sim-exam-main { flex: 1; min-width: 0; }
 .sim-bar { position: sticky; top: 0; z-index: 10; background: rgba(246,244,242,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--k-line); padding: 14px 24px; display: flex; align-items: center; gap: 16px; }
 .sim-bar > .k-mono { font-size: 13px; color: var(--k-muted-2); white-space: nowrap; }

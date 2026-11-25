@@ -70,6 +70,7 @@ model User {
   planGrants PlanGrant[]
   pushSubscriptions PushSubscription[]
   productSignals ProductSignal[]
+  examAttempts  ExamAttempt[]
   emailLogs EmailLog[]
   subscriptions Subscription[]
   studentVerifications StudentVerification[]
@@ -432,4 +433,25 @@ model ProductSignal {
 
   @@unique([userId, kind, periodKey])
   @@index([kind, createdAt])
+}
+
+/// Prova anterior completa (ex.: ENEM 2022, dia 1), feita com as questões oficiais.
+model ExamAttempt {
+  id              String    @id @default(cuid())
+  userId          String
+  exam            String
+  year            Int
+  day             Int
+  language        String?
+  questionIds     Json
+  answers         Json      @default("{}")
+  flagged         Json      @default("[]")
+  durationSeconds Int
+  startedAt       DateTime  @default(now())
+  finishedAt      DateTime?
+  correct         Int?
+  wrong           Int?
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, exam, year, day])
 }

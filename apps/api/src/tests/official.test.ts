@@ -114,9 +114,17 @@ describe('banco de questões oficiais', () => {
     const total = await testPrisma.question.count({ where: { source: 'OFFICIAL' } })
     expect(total).toBeGreaterThan(1500)
     const one = await testPrisma.question.findFirstOrThrow({ where: { source: 'OFFICIAL' } })
-    const other = await testPrisma.topic.findFirstOrThrow({ where: { NOT: { id: one.topicId }, subject: { vestibular: { slug: 'enem' } } } })
+    const current = await testPrisma.topic.findUniqueOrThrow({ where: { id: one.topicId } })
+    const other = await testPrisma.topic.findFirstOrThrow({ where: { NOT: { id: one.topicId }, subjectId: current.subjectId } }) // mesma área
     await testPrisma.question.update({ where: { id: one.id }, data: { explanation: 'Explicação revisada.', explanationByAi: false, topicId: other.id, topicSource: 'ai' } })
     expect(run()).toMatch(/0 novas, 0 atualizadas, \d+ no arquivo, 0 explicações refeitas/)
+    // Questão de Natureza que ficou num tópico de Humanas (erro da base de origem) volta para a fila da IA.
+    const humanas = await testPrisma.topic.findFirstOrThrow({ where: { name: 'População, Migrações e Urbanização', subject: { vestibular: { slug: 'enem' } } } })
+    await testPrisma.question.update({ where: { id: 'cofenem2022q092' }, data: { topicId: humanas.id, topicSource: 'ai' } })
+    run()
+    const fixed = await testPrisma.question.findUniqueOrThrow({ where: { id: 'cofenem2022q092' }, include: { topic: { include: { subject: true } } } })
+    expect(fixed.topicSource).toBeNull()
+    expect(['fisica', 'quimica', 'biologia', 'ciencias-natureza']).toContain(fixed.topic.subject.slug)
     const after = await testPrisma.question.findUniqueOrThrow({ where: { id: one.id } })
     expect(after.explanation).toBe('Explicação revisada.')
     expect(after.topicId).toBe(other.id) // tópico escolhido pela IA não é desfeito

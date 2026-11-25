@@ -16,9 +16,11 @@ import { INDEX_BANDS, indexBand } from '../../utils/kuaaIndex'
 import './SimuladoPage.css'
 
 function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60)
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
   const s = seconds % 60
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  const mmss = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  return h ? `${h}:${mmss}` : mmss
 }
 
 function formatDate(iso: string): string {
@@ -122,10 +124,13 @@ function SimuladoResults({ attempt, result }: { attempt: SimuladoAttempt; result
 
 // ─── Exam ─────────────────────────────────────────────────────────────────────
 
-function SimuladoExam({
+/** Resolução de prova (mapa, marcação, cronômetro, entrega). Também usada nas provas anteriores. */
+export function SimuladoExam({
   attempt, localAnswers, localFlagged, currentIdx, timeLeft, onAnswer, onFlag, onNext, onPrev, onJump, onFinish, isFinishing, isSaving,
+  finishLabel = 'Entregar simulado',
 }: {
-  attempt: SimuladoAttempt
+  attempt: Pick<SimuladoAttempt, 'questions'>
+  finishLabel?: string
   localAnswers: Record<string, string>
   localFlagged: string[]
   currentIdx: number
@@ -164,7 +169,7 @@ function SimuladoExam({
         })}
       </div>
       <div className="sim-summary">{answeredCount} respondidas · {flaggedCount} marcadas · {blank} em branco</div>
-      <button type="button" className="k-btn k-btn-dark is-block" onClick={() => setConfirming(true)} disabled={isFinishing || isSaving}>{isFinishing ? 'Entregando...' : 'Entregar simulado'}</button>
+      <button type="button" className="k-btn k-btn-dark is-block" onClick={() => setConfirming(true)} disabled={isFinishing || isSaving}>{isFinishing ? 'Entregando...' : finishLabel}</button>
     </>
   )
 
