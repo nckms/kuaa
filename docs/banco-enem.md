@@ -2,10 +2,12 @@
 
 ## O que entrou
 
-- **2.526 questões reais do ENEM 2009–2023** (provas do INEP): 1.706 só de
-  texto (fase 1) + 820 com uma figura e alternativas em texto (fase 2). As
-  figuras ficam em `apps/web/public/question-media/enem/` (WebP, ~12 KB cada,
-  geradas por `scripts/official/convert-images.py`). Fonte da transcrição: base aberta enem.dev
+- **2.742 questões reais do ENEM 2009–2023** (provas do INEP), 99,5% da base:
+  1.706 só de texto + 1.036 com figura. Cada questão tem uma figura em
+  `apps/web/public/question-media/enem/` (WebP, 15 MB no total, geradas por
+  `scripts/official/convert-images.py`): várias figuras são empilhadas e
+  alternativas em imagem viram painéis "A)", "B)"... na mesma figura, com as
+  opções "Alternativa A (veja na figura)". Fonte da transcrição: base aberta enem.dev
   (github.com/yunger7/enem-api). Arquivo: `apps/api/prisma/official/enem.json`.
 - Importação automática no pré-deploy (`npm run db:migrate` → `import-official`),
   idempotente: cria as novas, atualiza texto/tópico, **nunca apaga explicação**.
@@ -43,8 +45,7 @@ entre os tópicos da área. Resultado em `Question.topicSource` (`ai` ou
 
 ## Próximas fases
 
-- **Fase 2b:** ~220 questões com várias figuras ou alternativas em imagem
-  (o app ainda mostra uma figura por questão) e 6 sem figura na base.
+- Ficaram de fora 7 questões cuja figura não existe na base de origem.
 - **Fase 3:** Fuvest/Unicamp — não há base aberta estruturada; exigiria extrair
   dos PDFs das bancas.
 

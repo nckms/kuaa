@@ -10,7 +10,7 @@ const root = process.argv[2]
 if (!root) { console.error('Informe o caminho do repositório enem-api'); process.exit(1) }
 const here = path.dirname(new URL(import.meta.url).pathname)
 const out = path.resolve(here, '../../prisma/official/enem.json')
-// Imagens já convertidas por convert-images.py (questões com uma imagem e alternativas em texto).
+// Figuras já convertidas por convert-images.py (uma por questão; várias figuras e alternativas em imagem viram uma composta).
 const mediaDir = path.resolve(here, '../../../web/public/question-media/enem')
 
 const files = []
@@ -38,7 +38,10 @@ for (const file of files) {
   const hasImage = (q.files?.length ?? 0) > 0 || /!\[/.test(q.context ?? '') || q.alternatives.some((a) => a.file)
   const imageUrl = hasImage && fs.existsSync(path.join(mediaDir, `${id}.webp`)) ? `/question-media/enem/${id}.webp` : null
   if (hasImage && !imageUrl) { skippedImages++; continue }
-  const options = q.alternatives.map((a) => ({ id: a.letter, text: clean(a.text), isCorrect: a.letter === q.correctAlternative }))
+  // Alternativa que só existe como imagem aparece rotulada na figura composta da questão.
+  const options = q.alternatives.map((a) => ({
+    id: a.letter, text: clean(a.text) || (a.file && imageUrl ? `Alternativa ${a.letter} (veja na figura)` : ''), isCorrect: a.letter === q.correctAlternative,
+  }))
   if (options.length !== 5 || options.filter((o) => o.isCorrect).length !== 1 || options.some((o) => !o.text)) continue
   // A imagem é exibida pelo app abaixo do texto; a marcação dela sai do enunciado.
   const context = (q.context ?? '').replace(/!\[[^\]]*\]\([^)]*\)/g, '')
