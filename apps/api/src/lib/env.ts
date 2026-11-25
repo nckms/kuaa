@@ -11,6 +11,8 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-3.5-flash-lite'),
   SABIA_MODEL: z.string().default('gemini-3.5-flash-lite'),
+  // Modelos reserva quando o principal der 503/429/indisponível (vazio desliga).
+  GEMINI_FALLBACK_MODELS: z.string().default('gemini-3.1-flash-lite,gemini-3.6-flash'),
   REDIS_URL: z.string().optional(),
   FRONTEND_URL: z.string().optional(),
   // Explicit proxy IPs/CIDRs, never blindly trust all forwarded headers.
