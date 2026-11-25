@@ -14,8 +14,8 @@ export async function recordSignal(userId: string, kind: string, periodKey: stri
 }
 
 /** Cota do gratuito atingida: 1 registro por cota por dia (horário de Brasília). */
-export function recordQuotaHit(userId: string, quota: string): void {
-  void recordSignal(userId, `quota-hit:${quota}`, brtDay().key)
+export async function recordQuotaHit(userId: string, quota: string): Promise<void> {
+  await recordSignal(userId, `quota-hit:${quota}`, brtDay().key)
 }
 
 const InterestSchema = z.object({ source: z.enum(['planos', 'cota-practice', 'cota-sabia', 'cota-essayFeedback', 'cota', 'outro']).default('outro') })

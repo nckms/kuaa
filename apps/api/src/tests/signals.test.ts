@@ -24,7 +24,6 @@ describe('intenção de compra', () => {
       const res = await api.post('/api/v1/sabia/ask').set('Authorization', `Bearer ${s.token}`).send({ message: 'O que é mitose?' })
       expect(res.status).toBe(429)
     }
-    await new Promise((r) => setTimeout(r, 200))
     const rows = await testPrisma.productSignal.findMany({ where: { userId: s.userId } })
     expect(rows.map((r) => r.kind)).toEqual(['quota-hit:sabia'])
   })

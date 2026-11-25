@@ -67,7 +67,7 @@ export function requireQuota(quota: QuotaName): RequestHandler {
       const plan = effectivePlan(user)
       const limit = PLAN_LIMITS[plan][quota]
       if (await usage(req.userId!, quota) >= limit) {
-        if (plan === 'FREE') recordQuotaHit(req.userId!, quota)
+        if (plan === 'FREE') await recordQuotaHit(req.userId!, quota)
         res.status(429).json({ error: MESSAGES[quota](limit, plan), code: 'QUOTA_EXCEEDED', quota, plan, limit,
           upgrade: plan === 'FREE' ? '/planos' : undefined })
         return
