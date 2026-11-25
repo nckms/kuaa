@@ -5,6 +5,7 @@ import { mailDeliveryConfigured } from './lib/mailer'
 import { prisma } from './lib/prisma'
 import { redis } from './lib/redis'
 import { startReminderScheduler } from './modules/engagement/push'
+import { startOfficialClassifier } from './modules/quiz/officialTopics'
 
 const PORT = env.PORT ?? 3333
 
@@ -17,6 +18,7 @@ const server = app.listen(PORT, () => {
   console.log(`🦅 Kuaa API rodando na porta ${PORT}`)
 })
 startReminderScheduler()
+startOfficialClassifier()
 
 let stopping = false
 function shutdown() {

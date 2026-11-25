@@ -36,8 +36,10 @@ substituir a da IA direto no banco (o importador não sobrescreve).
 A base só informa a área (Matemática, Natureza, Humanas, Linguagens, idioma).
 O tópico vem de palavras-chave (`scripts/official/enem-topics.mjs`) dentro da
 área: 665 com confiança alta, o resto baixa (campo `confidence` no JSON).
-Erros de classificação são esperados; corrigir = ajustar palavras-chave e
-rodar `node scripts/official/build-enem.mjs <repo enem-api>` de novo.
+Depois do deploy, a própria API reclassifica em segundo plano cada questão
+com a IA (`modules/quiz/officialTopics.ts`): uma a cada 4 s, escolhendo só
+entre os tópicos da área. Resultado em `Question.topicSource` (`ai` ou
+`keyword`); a reimportação não desfaz a escolha da IA.
 
 ## Próximas fases
 

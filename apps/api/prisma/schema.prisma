@@ -188,6 +188,8 @@ model Question {
   officialRefId         String?
   /// Explicação escrita por IA (questões oficiais não trazem explicação).
   explanationByAi       Boolean        @default(false)
+  /// Como o tópico da questão oficial foi definido: null = palavras-chave; "ai" = classificada pela IA.
+  topicSource           String?
   topic                 Topic          @relation(fields: [topicId], references: [id])
   generatedForSession   QuizSession?   @relation("SessionGeneratedQuestions", fields: [generatedForSessionId], references: [id], onDelete: SetNull)
   answers               UserAnswer[]

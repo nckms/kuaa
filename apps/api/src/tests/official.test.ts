@@ -114,9 +114,12 @@ describe('banco de questões oficiais', () => {
     const total = await testPrisma.question.count({ where: { source: 'OFFICIAL' } })
     expect(total).toBeGreaterThan(1500)
     const one = await testPrisma.question.findFirstOrThrow({ where: { source: 'OFFICIAL' } })
-    await testPrisma.question.update({ where: { id: one.id }, data: { explanation: 'Explicação revisada.', explanationByAi: false } })
+    const other = await testPrisma.topic.findFirstOrThrow({ where: { NOT: { id: one.topicId }, subject: { vestibular: { slug: 'enem' } } } })
+    await testPrisma.question.update({ where: { id: one.id }, data: { explanation: 'Explicação revisada.', explanationByAi: false, topicId: other.id, topicSource: 'ai' } })
     expect(run()).toMatch(/0 novas, 0 atualizadas, \d+ no arquivo, 0 explicações refeitas/)
-    expect((await testPrisma.question.findUniqueOrThrow({ where: { id: one.id } })).explanation).toBe('Explicação revisada.')
+    const after = await testPrisma.question.findUniqueOrThrow({ where: { id: one.id } })
+    expect(after.explanation).toBe('Explicação revisada.')
+    expect(after.topicId).toBe(other.id) // tópico escolhido pela IA não é desfeito
     expect(await testPrisma.question.count({ where: { source: 'OFFICIAL' } })).toBe(total)
   }, 60_000)
 })
@@ -154,5 +157,23 @@ describe('questões oficiais com figura', () => {
       expect(res.body.explanationByAi).toBe(false)
       expect(generateContent).not.toHaveBeenCalled()
     } finally { globalThis.fetch = realFetch }
+  })
+})
+
+describe('classificação de tópico pela IA', () => {
+  it('escolhe só entre os tópicos da área, grava uma vez e a reimportação não desfaz', async () => {
+    const { classifyNextOfficial } = await import('../modules/quiz/officialTopics')
+    await seedOfficial('Razões, Porcentagens e Matemática Financeira', 2, 'cofenem2018q')
+    generateContent.mockResolvedValueOnce({ text: '{"topic":"Funções e Gráficos"}' } as GenResponse)
+    generateContent.mockResolvedValueOnce({ text: '{"topic":"Revolução Francesa"}' } as GenResponse) // fora da lista
+    expect(await classifyNextOfficial()).toBe('classified')
+    expect(await classifyNextOfficial()).toBe('kept')
+    expect(await classifyNextOfficial()).toBe('done')
+    const prompt = String(generateContent.mock.calls[0][0].contents)
+    expect(prompt).toContain('- Funções e Gráficos:')
+    expect(prompt).not.toContain('Cultura, Identidade e Socialização')
+    const [first, second] = await testPrisma.question.findMany({ where: { source: 'OFFICIAL' }, orderBy: { id: 'asc' }, include: { topic: true } })
+    expect(first).toMatchObject({ topicSource: 'ai', topic: { name: 'Funções e Gráficos' } })
+    expect(second).toMatchObject({ topicSource: 'keyword', topic: { name: 'Razões, Porcentagens e Matemática Financeira' } })
   })
 })
