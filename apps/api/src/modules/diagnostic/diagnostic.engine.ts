@@ -21,6 +21,8 @@ export function readDiagnostic(value: unknown): DiagnosticState | null {
   if (!value || typeof value !== 'object' || !('version' in value) || value.version !== 1) return null
   return value as DiagnosticState
 }
+// Diagnósticos antigos guardaram o nome da área sem acento.
+const AREA_NAMES: Record<string, string> = { linguagens: 'Linguagens', matematica: 'Matemática', natureza: 'Ciências da Natureza', humanas: 'Ciências Humanas' }
 export function summarizeDiagnostic(state: DiagnosticState) {
   return state.areas.map((area) => {
     const observations = state.answers.flatMap((answer) => {
@@ -32,7 +34,7 @@ export function summarizeDiagnostic(state: DiagnosticState) {
     const accuracy = observations.length ? correct / observations.length : 0
     const averageDifficulty = observations.length ? observations.reduce((sum, item) => sum + item.question.difficulty, 0) / observations.length : 1
     const targetDifficulty = accuracy < 0.4 ? 1 : accuracy < 0.7 ? 2 : Math.min(3, Math.max(2, Math.round(averageDifficulty + 0.5)))
-    return { key: area.key, name: area.name, answered: observations.length, correct, skipped, targetDifficulty, confidence: 'initial' as const }
+    return { key: area.key, name: AREA_NAMES[area.key] ?? area.name, answered: observations.length, correct, skipped, targetDifficulty, confidence: 'initial' as const }
   })
 }
 export function nextDiagnosticItem(state: DiagnosticState): DiagnosticItem | null {

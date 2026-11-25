@@ -25,7 +25,7 @@ export function assertBrowserOrigin(req: Request): void {
   }
   const origin = req.get('Origin')
   // Custom header plus exact Origin check prevents CSRF, including sibling sites.
-  if (!origin || !allowed.has(origin)) throw makeError('Origem nao autorizada', 403, 'INVALID_ORIGIN')
+  if (!origin || !allowed.has(origin)) throw makeError('Origem não autorizada', 403, 'INVALID_ORIGIN')
 }
 
 export function browserToken(req: Request): string | undefined {
