@@ -14,6 +14,7 @@ export const RegisterSchema = z.object({
     utmMedium: z.string().regex(/^[a-z0-9_.-]{1,40}$/i),
     utmCampaign: z.string().regex(/^[a-z0-9_.-]{1,60}$/i),
     referrer: z.string().regex(/^[a-z0-9.-]{1,80}$/i),
+    invite: z.string().regex(/^[a-z0-9]{6,12}$/i),
   }).partial().strict().optional().catch(undefined),
 })
 

@@ -114,6 +114,8 @@ export default function Register() {
     }
   }
 
+  const invited = Boolean(getAttribution()?.invite)
+
   return (
     <AuthShell
       asideTitle="Seu plano de estudos começa com um diagnóstico rápido."
@@ -123,6 +125,9 @@ export default function Register() {
       title="Crie sua conta"
       subtitle="Leva menos de um minuto."
     >
+      {invited && <p className="k-alert" role="note" style={{ background: '#FFF6DD', borderColor: '#F2D27A', color: '#4A3500', marginBottom: 16 }}>
+        <strong>Você foi convidado por um amigo.</strong> Termine o diagnóstico e vocês dois ganham {7} dias do Kuaa Plus.
+      </p>}
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <label className="k-field">
           <span>Como quer ser chamado?</span>

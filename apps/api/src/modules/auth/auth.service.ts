@@ -7,6 +7,7 @@ import { env } from '../../lib/env'
 import { makeError } from '../../utils/errors'
 import type { PublicUser } from '../../types/index'
 import type { RegisterInput, LoginInput, ResetPasswordInput } from './auth.schemas'
+import { inviterFromCode } from '../engagement/referrals'
 import { requestPasswordReset, resetPassword } from './passwordReset'
 
 const ACCESS_TOKEN_EXPIRES = '15m'
@@ -25,7 +26,7 @@ interface AuthResult extends AuthTokens {
 
 // O que volta ao cliente: sem senha, sem ids internos de pagamento e sem a origem do cadastro.
 function toSafeUser(user: User): PublicUser {
-  const { passwordHash: _, stripeCustomerId: _stripe, signupSource: _source, ...safe } = user
+  const { passwordHash: _, stripeCustomerId: _stripe, signupSource: _source, referredById: _ref, ...safe } = user
   return safe
 }
 
@@ -53,6 +54,8 @@ class AuthService {
     if (existing) throw makeError('E-mail já cadastrado', 409, 'EMAIL_IN_USE')
 
     const passwordHash = await bcrypt.hash(input.password, 12)
+    const { invite, ...source } = input.attribution ?? {}
+    const referredById = await inviterFromCode(invite?.toLowerCase())
 
     const user = await prisma.user.create({
       data: {
@@ -63,9 +66,10 @@ class AuthService {
         city: input.city,
         state: input.state,
         plan: 'FREE',
-        ...(input.attribution && Object.keys(input.attribution).length
-          ? { signupSource: Object.fromEntries(Object.entries(input.attribution).map(([k, v]) => [k, v.toLowerCase()])) }
-          : {}),
+        ...(Object.keys(source).length
+          ? { signupSource: Object.fromEntries(Object.entries(source).map(([k, v]) => [k, v.toLowerCase()])) }
+          : invite ? { signupSource: { ref: 'convite' } } : {}),
+        ...(referredById ? { referredById } : {}),
       },
     })
 

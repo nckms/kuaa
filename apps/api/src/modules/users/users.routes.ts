@@ -7,11 +7,13 @@ import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../middleware/requireAuth'
 import { makeError } from '../../utils/errors'
 import { deleteMyAccount, exportMyData } from './account'
+import { myReferral } from '../engagement/referrals'
 
 export const usersRouter = Router()
 
 usersRouter.get('/me/export', requireAuth, exportMyData)
 usersRouter.delete('/me', requireAuth, deleteMyAccount)
+usersRouter.get('/me/referral', requireAuth, myReferral)
 
 const PreferencesSchema = z.object({
   dailyStudyMinutes: z.number().int().min(5).max(240).default(30),
