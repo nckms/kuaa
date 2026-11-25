@@ -4,7 +4,7 @@ const KEY = 'kuaa_attribution'
 const TTL_MS = 30 * 86_400_000
 const SAFE = /^[a-z0-9_.-]{1,40}$/i
 
-export interface Attribution { ref?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string; referrer?: string }
+export interface Attribution { ref?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string; referrer?: string; invite?: string }
 
 function clean(value: string | null, max = 40): string | undefined {
   const v = value?.trim().toLowerCase().slice(0, max)
@@ -23,6 +23,13 @@ function externalReferrer(): string | undefined {
 export function captureAttribution(search = location.search): void {
   try {
     const params = new URLSearchParams(search)
+    // Convite de amigo vale mesmo se já houver outra origem guardada (é o que dá o bônus).
+    const invite = params.get('convite')?.trim().toLowerCase()
+    if (invite && /^[a-z0-9]{6,12}$/.test(invite)) {
+      const current = getAttribution() ?? {}
+      localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), data: { ...current, invite } }))
+      return
+    }
     const found: Attribution = {
       ref: clean(params.get('ref')), utmSource: clean(params.get('utm_source')),
       utmMedium: clean(params.get('utm_medium')), utmCampaign: clean(params.get('utm_campaign'), 60),

@@ -35,6 +35,11 @@ model User {
   plan           Plan      @default(FREE)
   planExpiresAt  DateTime?
   stripeCustomerId String? @unique
+  /// Código do link de convite ("?convite="), criado sob demanda.
+  referralCode   String?   @unique
+  referredById   String?
+  referredBy     User?     @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals      User[]    @relation("Referrals")
   /// Origem do cadastro (primeiro toque): ref, utm_*, domínio de referência. Sem dados pessoais.
   signupSource   Json?
   xp             Int       @default(0)

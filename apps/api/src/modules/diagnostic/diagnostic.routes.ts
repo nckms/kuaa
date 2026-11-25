@@ -8,6 +8,7 @@ import { makeError } from '../../utils/errors'
 import { getCuratedQuestions } from '../quiz/curatedQuestions'
 import { getQuestionMedia } from '../quiz/questionMedia'
 import { invalidateTrailCache } from '../trail/trail.service'
+import { rewardReferral } from '../engagement/referrals'
 import { nextDiagnosticItem, profileSchema, readDiagnostic, summarizeDiagnostic, type DiagnosticState } from './diagnostic.engine'
 
 export const diagnosticRouter = Router()
@@ -106,6 +107,8 @@ diagnosticRouter.post('/:slug/answer', async (req, res, next) => {
       return state
     })
     await invalidateTrailCache(req.userId!, record.vestibular.slug)
+    // Convite: diagnóstico concluído libera os 7 dias de Plus (idempotente).
+    if (saved.finishedAt) await rewardReferral(req.userId!).catch((error) => console.warn('[Referral]', (error as Error).message))
     res.json(publicState(record, saved))
   } catch (error) { next(error) }
 })

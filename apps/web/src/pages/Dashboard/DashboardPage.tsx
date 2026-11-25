@@ -15,6 +15,7 @@ import './DashboardPage.css'
 import { QuotaNotice } from '../../components/QuotaNotice'
 import InstallAppCard from '../../components/InstallAppCard'
 import ReminderCard from '../../components/ReminderCard'
+import InviteCard from '../../components/InviteCard'
 
 const DAYS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
 const WEEK_TARGET = 5
@@ -204,5 +205,6 @@ export default function DashboardPage() {
         </section>
       </div>
     </div>
+    {diagnostic.data?.status === 'completed' && <div style={{ marginTop: 16 }}><InviteCard /></div>}
   </div></AppLayout>
 }

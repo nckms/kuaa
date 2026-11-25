@@ -29,20 +29,23 @@ export default function TermsPage() {
     <h2>4. Meia para estudantes</h2>
     <p>Estudantes podem pedir o preço de meia enviando um comprovante de matrícula atual (carteirinha estudantil ou declaração da escola). O documento é analisado por uma pessoa e <strong>apagado assim que a análise termina</strong> (ou em até 30 dias, se não for analisado). A aprovação vale por 12 meses. Documento falso leva ao cancelamento do desconto.</p>
 
-    <h2>5. Uso adequado</h2>
+    <h2>5. Convite de amigos</h2>
+    <p>Quando alguém se cadastra pelo seu link de convite e conclui o diagnóstico, cada um de vocês recebe 7 dias de Kuaa Plus, sem cobrança e sem renovação automática. Quem convida recebe o bônus no máximo 5 vezes a cada 30 dias. Contas falsas ou criadas só para ganhar o bônus podem ter o bônus cancelado.</p>
+
+    <h2>6. Uso adequado</h2>
     <ul>
       <li>Não tente burlar limites, acessar dados de outras pessoas, sobrecarregar o serviço ou copiar o acervo em massa.</li>
       <li>Não envie ao Sabiá ou à redação conteúdo ilegal, ofensivo ou dados pessoais de terceiros.</li>
       <li>Contas que violem estes termos podem ser suspensas.</li>
     </ul>
 
-    <h2>6. Conteúdo</h2>
+    <h2>7. Conteúdo</h2>
     <p>Questões e textos do Kuaa são para seu estudo pessoal. Questões de provas oficiais pertencem às respectivas bancas e aparecem com a fonte. As redações que você escreve continuam suas.</p>
 
-    <h2>7. Disponibilidade e responsabilidade</h2>
+    <h2>8. Disponibilidade e responsabilidade</h2>
     <p>Trabalhamos para o Kuaa ficar no ar, mas pode haver instabilidade ou manutenção. Na medida permitida pela lei, não respondemos por decisões de estudo tomadas só com base no conteúdo gerado por IA.</p>
 
-    <h2>8. Mudanças e contato</h2>
+    <h2>9. Mudanças e contato</h2>
     <p>Podemos atualizar estes termos; mudanças relevantes serão avisadas no app ou por e-mail. Dúvidas: {LEGAL.contact}. Vale a lei brasileira.</p>
   </LegalPage>
 }
