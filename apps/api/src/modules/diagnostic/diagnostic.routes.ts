@@ -90,15 +90,15 @@ diagnosticRouter.post('/:slug/profile', async (req, res, next) => {
     const profile = profileSchema.parse(req.body)
     const record = await enrollment(req.userId!, String(req.params.slug))
     if (profile.difficultSubjects.some((id) => !record.vestibular.subjects.some((subject) => subject.id === id))) {
-      throw makeError('Materia invalida para este vestibular.', 400, 'INVALID_SUBJECT')
+      throw makeError('Matéria inválida para este vestibular.', 400, 'INVALID_SUBJECT')
     }
     const user = await prisma.user.findUniqueOrThrow({ where: { id: req.userId! }, select: { preferences: true } })
     const language = (user.preferences as { enemLanguage?: string }).enemLanguage ?? 'ingles'
     const groups = [
       { key: 'linguagens', name: 'Linguagens', slugs: ['linguagens', 'portugues', 'lingua-portuguesa', 'artes', 'educacao-fisica', record.vestibular.slug === 'enem' ? language : 'ingles'] },
-      { key: 'matematica', name: 'Matematica', slugs: ['matematica'] },
-      { key: 'natureza', name: 'Ciencias da Natureza', slugs: ['fisica', 'quimica', 'biologia'] },
-      { key: 'humanas', name: 'Ciencias Humanas', slugs: ['historia', 'geografia', 'filosofia', 'sociologia', 'atualidades'] },
+      { key: 'matematica', name: 'Matemática', slugs: ['matematica'] },
+      { key: 'natureza', name: 'Ciências da Natureza', slugs: ['fisica', 'quimica', 'biologia'] },
+      { key: 'humanas', name: 'Ciências Humanas', slugs: ['historia', 'geografia', 'filosofia', 'sociologia', 'atualidades'] },
     ]
     const areas = groups
       .map((group) => ({ key: group.key, name: group.name,
@@ -116,7 +116,7 @@ diagnosticRouter.post('/:slug/profile', async (req, res, next) => {
     // Questões reais primeiro; as autorais só completam áreas com poucas questões oficiais.
     const pool = [...official, ...curated.filter((q) => official.filter((o) => o.area === q.area).length < 6)]
     if (areas.some((area) => pool.filter((q) => q.area === area.key).length < Math.ceil(12 / areas.length))) {
-      throw makeError('Diagnostico ainda nao disponivel para este vestibular.', 503, 'DIAGNOSTIC_UNAVAILABLE')
+      throw makeError('Diagnóstico ainda não disponível para este vestibular.', 503, 'DIAGNOSTIC_UNAVAILABLE')
     }
     const state: DiagnosticState = { version: 1, profile, areas, pool, answers: [], currentId: null, finishedAt: null }
     state.currentId = nextDiagnosticItem(state)!.id
@@ -142,16 +142,16 @@ diagnosticRouter.post('/:slug/answer', async (req, res, next) => {
       if (!state) throw makeError('Preencha seu perfil primeiro.', 409, 'PROFILE_REQUIRED')
       const previous = state.answers.find((answer) => answer.questionId === input.questionId)
       if (previous) {
-        if (previous.optionId !== input.optionId) throw makeError('Resposta ja registrada.', 409, 'ANSWER_CONFLICT')
+        if (previous.optionId !== input.optionId) throw makeError('Resposta já registrada.', 409, 'ANSWER_CONFLICT')
         return state
       }
-      if (state.finishedAt || state.currentId !== input.questionId) throw makeError('Atualize o diagnostico para continuar.', 409, 'STALE_QUESTION')
+      if (state.finishedAt || state.currentId !== input.questionId) throw makeError('Atualize o diagnóstico para continuar.', 409, 'STALE_QUESTION')
       const question = state.pool.find((q) => q.id === state.currentId)!
-      if (input.optionId !== null && !question.options.some((o) => o.id === input.optionId)) throw makeError('Alternativa invalida.', 400, 'INVALID_OPTION')
+      if (input.optionId !== null && !question.options.some((o) => o.id === input.optionId)) throw makeError('Alternativa inválida.', 400, 'INVALID_OPTION')
       state.answers.push(input)
       state.currentId = nextDiagnosticItem(state)?.id ?? null
       if (state.answers.length === 12) state.finishedAt = new Date().toISOString()
-      if (!state.currentId && !state.finishedAt) throw makeError('Questoes insuficientes.', 503, 'DIAGNOSTIC_UNAVAILABLE')
+      if (!state.currentId && !state.finishedAt) throw makeError('Questões insuficientes.', 503, 'DIAGNOSTIC_UNAVAILABLE')
       await tx.enrollment.update({ where: { id: record.id }, data: { diagnostic: toJson(state) } })
       return state
     })

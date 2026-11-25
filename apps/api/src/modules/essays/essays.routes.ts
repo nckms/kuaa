@@ -25,7 +25,7 @@ async function enrolledExam(userId: string, slug: string) {
 
 async function ownEssay(userId: string, id: string) {
   const essay = await prisma.essayDraft.findUnique({ where: { id }, include: { vestibular: { select: { slug: true } } } })
-  if (!essay || essay.userId !== userId) throw makeError('Redacao nao encontrada.', 404, 'NOT_FOUND')
+  if (!essay || essay.userId !== userId) throw makeError('Redação não encontrada.', 404, 'NOT_FOUND')
   return essay
 }
 
@@ -52,7 +52,7 @@ essaysRouter.post('/', async (req, res, next) => {
     const { vestibularSlug, themeId } = createSchema.parse(req.body)
     const exam = await enrolledExam(req.userId!, vestibularSlug)
     const theme = getEssayTheme(exam.slug, themeId)
-    if (!theme) throw makeError('Proposta nao encontrada.', 404, 'THEME_NOT_FOUND')
+    if (!theme) throw makeError('Proposta não encontrada.', 404, 'THEME_NOT_FOUND')
     const essay = await prisma.essayDraft.create({ data: { userId: req.userId!, vestibularId: exam.id,
       themeId: theme.id, themeTitle: theme.title, prompt: theme.prompt, textType: theme.textType } })
     res.status(201).json(essay)
@@ -70,7 +70,7 @@ essaysRouter.patch('/:id', async (req, res, next) => {
     const saved = await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "EssayDraft" WHERE id = ${essay.id} FOR UPDATE`
       const current = await tx.essayDraft.findUniqueOrThrow({ where: { id: essay.id } })
-      if (current.status !== 'DRAFT') throw makeError('Redacao enviada nao pode ser alterada.', 409, 'ESSAY_SUBMITTED')
+      if (current.status !== 'DRAFT') throw makeError('Redação enviada não pode ser alterada.', 409, 'ESSAY_SUBMITTED')
       return tx.essayDraft.update({ where: { id: essay.id },
         data: { body: input.body, ...(input.selfReview ? { selfReview: input.selfReview } : {}) } })
     })
@@ -88,7 +88,7 @@ essaysRouter.post('/:id/submit', async (req, res, next) => {
       if (current.status === 'SUBMITTED') return current
       const words = current.body.trim().split(/\s+/).filter(Boolean)
       if (current.body.trim().length < 200 || words.length < 30) {
-        throw makeError('Desenvolva mais seu texto antes de enviar (minimo de 30 palavras e 200 caracteres).', 400, 'ESSAY_TOO_SHORT')
+        throw makeError('Desenvolva mais seu texto antes de enviar (mínimo de 30 palavras e 200 caracteres).', 400, 'ESSAY_TOO_SHORT')
       }
       return tx.essayDraft.update({ where: { id: essay.id }, data: { status: 'SUBMITTED', submittedAt: new Date() } })
     })
@@ -100,16 +100,16 @@ essaysRouter.post('/:id/feedback', requireQuota('essayFeedback'), async (req, re
   try {
     z.object({ aiConsent: z.literal(true) }).strict().parse(req.body)
     const essay = await ownEssay(req.userId!, String(req.params.id))
-    if (essay.status !== 'SUBMITTED') throw makeError('Envie sua redacao antes de solicitar analise.', 409, 'ESSAY_DRAFT')
+    if (essay.status !== 'SUBMITTED') throw makeError('Envie sua redação antes de solicitar análise.', 409, 'ESSAY_DRAFT')
     if (essay.feedback) { res.json(essay); return }
-    if (!env.GEMINI_API_KEY?.trim()) throw makeError('Analise por IA indisponivel no momento.', 503, 'AI_UNAVAILABLE')
+    if (!env.GEMINI_API_KEY?.trim()) throw makeError('Análise por IA indisponível no momento.', 503, 'AI_UNAVAILABLE')
     const now = new Date()
     const claimed = await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "EssayDraft" WHERE id = ${essay.id} FOR UPDATE`
       const current = await tx.essayDraft.findUniqueOrThrow({ where: { id: essay.id } })
       if (current.feedback) return false
       if (current.feedbackRequestedAt && now.getTime() - current.feedbackRequestedAt.getTime() < 120_000) {
-        throw makeError('A analise ja esta em andamento.', 409, 'FEEDBACK_PENDING')
+        throw makeError('A análise já está em andamento.', 409, 'FEEDBACK_PENDING')
       }
       await tx.essayDraft.update({ where: { id: essay.id }, data: { feedbackRequestedAt: now, aiConsentAt: now } })
       return true

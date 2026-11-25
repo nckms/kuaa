@@ -79,7 +79,7 @@ async function buildQuestions(vestibularId: string, vestibularName: string, lang
   })).filter((subject) => subject.firstTopic)
 
   if (perSubject.length === 0) {
-    throw makeError('Este vestibular ainda nao possui questoes disponiveis.', 503, 'NO_QUESTIONS')
+    throw makeError('Este vestibular ainda não possui questões disponíveis.', 503, 'NO_QUESTIONS')
   }
 
   const totalWeight = perSubject.reduce((sum, s) => sum + s.weight, 0) || 1
@@ -220,7 +220,7 @@ export async function startOrGetSimulado(vestibularId: string, vestibularName: s
   const enrollment = await prisma.enrollment.findUnique({
     where: { userId_vestibularId: { userId, vestibularId } },
   })
-  if (!enrollment) throw makeError('Voce nao esta matriculado neste vestibular.', 403, 'NOT_ENROLLED')
+  if (!enrollment) throw makeError('Você não está matriculado neste vestibular.', 403, 'NOT_ENROLLED')
   const weekStart = getCurrentWeekStart()
 
   const existing = await prisma.simuladoAttempt.findUnique({
@@ -240,7 +240,7 @@ export async function startOrGetSimulado(vestibularId: string, vestibularName: s
   const questions = await buildQuestions(vestibularId, vestibularName,
     preferences?.enemLanguage === 'espanhol' ? 'espanhol' : 'ingles')
   if (questions.length === 0) {
-    throw makeError('Nao foi possivel preparar todas as questoes. Tente novamente.', 503, 'NO_QUESTIONS')
+    throw makeError('Não foi possível preparar todas as questões. Tente novamente.', 503, 'NO_QUESTIONS')
   }
 
   const created = await prisma.simuladoAttempt.create({
@@ -300,9 +300,9 @@ export async function saveAnswer(
     if (!attempt || attempt.finishedAt) return null
     if (hasExpired(attempt.startedAt)) throw makeError('O tempo do simulado terminou.', 409, 'TIME_EXPIRED')
     const question = (attempt.questions as unknown as StoredQuestion[]).find((q) => q.id === questionId)
-    if (!question) throw makeError('Questao invalida.', 400, 'INVALID_QUESTION')
+    if (!question) throw makeError('Questão inválida.', 400, 'INVALID_QUESTION')
     if (!question.options.some((option) => option.id === optionId)) {
-      throw makeError('Alternativa invalida.', 400, 'INVALID_OPTION')
+      throw makeError('Alternativa inválida.', 400, 'INVALID_OPTION')
     }
     const answers = { ...(attempt.answers as Record<string, string>), [questionId]: optionId }
     await tx.simuladoAttempt.update({ where: { id: attemptId }, data: { answers } })
@@ -316,7 +316,7 @@ export async function toggleFlag(attemptId: string, userId: string, questionId: 
     if (!attempt || attempt.finishedAt) return null
     if (hasExpired(attempt.startedAt)) throw makeError('O tempo do simulado terminou.', 409, 'TIME_EXPIRED')
     if (!(attempt.questions as unknown as StoredQuestion[]).some((q) => q.id === questionId)) {
-      throw makeError('Questao invalida.', 400, 'INVALID_QUESTION')
+      throw makeError('Questão inválida.', 400, 'INVALID_QUESTION')
     }
     const flagged = [...attempt.flagged as string[]]
     const idx = flagged.indexOf(questionId)

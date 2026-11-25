@@ -17,7 +17,7 @@ export const feedbackSchema = z.object({
 export type EssayFeedback = z.infer<typeof feedbackSchema>
 
 export async function generateEssayFeedback(input: { exam: string; theme: string; prompt: string; textType: string; body: string }): Promise<EssayFeedback> {
-  if (!env.GEMINI_API_KEY?.trim()) throw makeError('Analise por IA indisponivel no momento.', 503, 'AI_UNAVAILABLE')
+  if (!env.GEMINI_API_KEY?.trim()) throw makeError('Análise por IA indisponível no momento.', 503, 'AI_UNAVAILABLE')
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 30_000)
   try {
@@ -41,7 +41,7 @@ ${input.body}
   } catch (error) {
     const status = typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : undefined
     console.warn('[EssayFeedback] generation failed', { model: env.SABIA_MODEL, status: status ?? 'timeout-or-invalid' })
-    throw makeError('Nao foi possivel analisar o texto agora. Ele permanece salvo; tente novamente.', 503, 'AI_UNAVAILABLE')
+    throw makeError('Não foi possível analisar o texto agora. Ele permanece salvo; tente novamente.', 503, 'AI_UNAVAILABLE')
   } finally {
     clearTimeout(timer)
   }

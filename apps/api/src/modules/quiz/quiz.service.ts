@@ -246,7 +246,7 @@ async function enqueueQuizGeneration(data: GenerationJobData): Promise<{ id: str
   // Embaralha opções de cada questão — garante distribuição aleatória independente da IA.
   // Questão oficial mantém a ordem da prova (a referência "ENEM 2019 · questão 45" continua batendo).
   const questions = raw.source === 'OFFICIAL' ? raw.questions : raw.questions.map((q) => ({ ...q, options: shuffleOptions(q.options) }))
-  if (!questions.length) throw makeError('Nao ha questoes de reserva para este topico e a IA esta indisponivel. Tente outro topico.', 503, 'NO_QUESTIONS')
+  if (!questions.length) throw makeError('Não há questões de reserva para este tópico e a IA está indisponível. Tente outro tópico.', 503, 'NO_QUESTIONS')
   const target = data.targetDifficulty ?? 1
   const gaps = questions.map((question) => Math.abs(question.difficulty - target))
   const metadata = { ...raw.metadata, deliveredAverageDifficulty: Number((questions.reduce((sum, question) => sum + question.difficulty, 0) / questions.length).toFixed(1)),
@@ -296,11 +296,11 @@ class QuizService {
       const wrongAnswer = await prisma.userAnswer.findFirst({ where: { userId, questionId: sourceQuestionId,
         isCorrect: false, question: { topicId }, session: { finishedAt: { not: null } } },
       include: { question: true } })
-      if (!wrongAnswer) throw makeError('Erro anterior nao encontrado neste topico.', 404, 'WRONG_ANSWER_NOT_FOUND')
+      if (!wrongAnswer) throw makeError('Erro anterior não encontrado neste tópico.', 404, 'WRONG_ANSWER_NOT_FOUND')
       const options = wrongAnswer.question.options as unknown as QuestionOption[]
       const selected = options.find((option) => option.id === wrongAnswer.optionId)
       const correct = options.find((option) => option.isCorrect)
-      if (!selected || !correct) throw makeError('Questao anterior invalida.', 409, 'INVALID_SOURCE_QUESTION')
+      if (!selected || !correct) throw makeError('Questão anterior inválida.', 409, 'INVALID_SOURCE_QUESTION')
       remediation = { sourceQuestionId, questionBody: wrongAnswer.question.body,
         selectedOptionText: selected.text, correctOptionText: correct.text, explanation: wrongAnswer.question.explanation }
     }
@@ -364,7 +364,7 @@ class QuizService {
 
   async getJobStatus(userId: string, _jobId: string, sessionId: string): Promise<{ status: string; sessionId?: string; message?: string }> {
     const session = await prisma.quizSession.findFirst({ where: { id: sessionId, userId } })
-    if (!session) throw makeError('Sessao nao encontrada', 404, 'NOT_FOUND')
+    if (!session) throw makeError('Sessão não encontrada', 404, 'NOT_FOUND')
     const generatedCount = await prisma.question.count({
       where: { generatedForSessionId: sessionId, active: true },
     })
@@ -402,7 +402,7 @@ class QuizService {
     if (session.finishedAt) throw makeError('Sessão já finalizada', 400, 'SESSION_FINISHED')
 
     if (session.generatedQuestions.length === 0) {
-      throw makeError('Questoes ainda nao estao prontas', 409, 'QUESTIONS_NOT_READY')
+      throw makeError('Questões ainda não estão prontas', 409, 'QUESTIONS_NOT_READY')
     }
 
     // Remover isCorrect das options antes de enviar
@@ -470,7 +470,7 @@ class QuizService {
     if (question.topicId !== session.topicId) throw makeError('Questão não pertence a esta sessão', 400, 'INVALID_QUESTION')
 
     if (question.generatedForSessionId !== sessionId) {
-      throw makeError('Questao nao pertence a esta sessao', 400, 'INVALID_QUESTION')
+      throw makeError('Questão não pertence a esta sessão', 400, 'INVALID_QUESTION')
     }
 
     // Verificar resposta
@@ -497,9 +497,9 @@ class QuizService {
       await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`
       await tx.$queryRaw`SELECT id FROM "QuizSession" WHERE id = ${sessionId} FOR UPDATE`
       const locked = await tx.quizSession.findUniqueOrThrow({ where: { id: sessionId } })
-      if (locked.finishedAt) throw makeError('Sessao ja finalizada', 400, 'SESSION_FINISHED')
+      if (locked.finishedAt) throw makeError('Sessão já finalizada', 400, 'SESSION_FINISHED')
       const duplicate = await tx.userAnswer.findFirst({ where: { sessionId, questionId } })
-      if (duplicate) throw makeError('Questao ja respondida', 400, 'ALREADY_ANSWERED')
+      if (duplicate) throw makeError('Questão já respondida', 400, 'ALREADY_ANSWERED')
     const recentAnswers = await tx.userAnswer.findMany({
       where: { userId, sessionId },
       orderBy: { answeredAt: 'desc' },
@@ -789,9 +789,9 @@ class QuizService {
       },
     })
 
-    if (!session) throw makeError('Sessao nao encontrada', 404, 'NOT_FOUND')
+    if (!session) throw makeError('Sessão não encontrada', 404, 'NOT_FOUND')
     if (session.userId !== userId) throw makeError('Acesso negado', 403, 'FORBIDDEN')
-    if (!session.finishedAt) throw makeError('Sessao ainda nao finalizada', 409, 'SESSION_NOT_FINISHED')
+    if (!session.finishedAt) throw makeError('Sessão ainda não finalizada', 409, 'SESSION_NOT_FINISHED')
 
     const totalQuestions = session.generatedQuestions.length || session.correct + session.wrong + session.skipped
     const accuracy = totalQuestions > 0 ? session.correct / totalQuestions : 0

@@ -93,7 +93,7 @@ class AuthService {
   }
 
   async refresh(token: string, rotate = false): Promise<{ accessToken: string; refreshToken?: string }> {
-    if (token.startsWith('sha256:')) throw makeError('Token invalido', 401, 'INVALID_TOKEN')
+    if (token.startsWith('sha256:')) throw makeError('Token inválido', 401, 'INVALID_TOKEN')
     const hash = hashRefreshToken(token)
     return prisma.$transaction(async (tx) => {
       // Existing plaintext sessions remain valid and are upgraded on first use.
@@ -101,7 +101,7 @@ class AuthService {
         where: { token: { in: [hash, token] }, expiresAt: { gt: new Date() } },
         include: { user: true },
       })
-      if (!stored) throw makeError('Token invalido ou expirado', 401, 'INVALID_TOKEN')
+      if (!stored) throw makeError('Token inválido ou expirado', 401, 'INVALID_TOKEN')
       const accessToken = generateAccessToken(stored.user.id, stored.user.email)
       if (rotate) {
         // Rotação com janela curta: o token usado passa a expirar em
