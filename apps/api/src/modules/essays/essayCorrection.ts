@@ -186,7 +186,17 @@ async function history(req: Request, res: Response, next: NextFunction) {
   } catch (err) { next(err) }
 }
 
+// SÓ NO BRANCH DE CALIBRAÇÃO (não mesclar): corrige um texto qualquer com o tema informado.
+async function calibrate(req: Request, res: Response, next: NextFunction) {
+  try {
+    await plusUser(req.userId!)
+    const input = z.object({ theme: z.string(), prompt: z.string(), body: z.string().min(100) }).parse(req.body)
+    res.json(await generateCorrection(input))
+  } catch (err) { next(err) }
+}
+
 export const essayCorrectionRouter = Router()
+essayCorrectionRouter.post('/_calibration', calibrate)
 essayCorrectionRouter.get('/corrections/history', history)
 essayCorrectionRouter.get('/:id/correction', getCorrection)
 essayCorrectionRouter.post('/:id/correction', requestCorrection)
