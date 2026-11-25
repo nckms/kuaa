@@ -13,6 +13,7 @@ import { subjectTheme, subjectThemeByName } from '../../utils/subjectTheme'
 import { formatStudyTime, indexBand, sparkPoints, topicProgressScore } from '../../utils/kuaaIndex'
 import './DashboardPage.css'
 import { QuotaNotice } from '../../components/QuotaNotice'
+import InstallAppCard from '../../components/InstallAppCard'
 
 const DAYS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
 const WEEK_TARGET = 5
@@ -80,6 +81,8 @@ export default function DashboardPage() {
         <span className="k-chip"><i className="bi bi-lightning-charge-fill" style={{ color: 'var(--k-roxo)' }} aria-hidden="true" />{user.xp} XP</span>
       </div>}
     </header>
+
+    <InstallAppCard />
 
     {diagnostic.data && diagnostic.data.status !== 'completed' && (
       <section className="k-card dash-diag" aria-labelledby="diag-reminder">
