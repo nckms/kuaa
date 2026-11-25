@@ -35,6 +35,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # O Railway constrói a API sozinha (apps/api/Dockerfile roda `npm ci` com
+      # apps/api/package-lock.json). Lockfile fora de sincronia derruba o deploy.
+      - name: API lockfile in sync (Railway build)
+        run: |
+          tmp="$(mktemp -d)"
+          cp apps/api/package.json apps/api/package-lock.json "$tmp"/
+          cd "$tmp" && npm ci --dry-run --ignore-scripts --no-audit --no-fund
+
       - name: Build all workspaces
         run: npm run build:all
 
