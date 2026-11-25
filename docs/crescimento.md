@@ -43,6 +43,15 @@ Tom: bastidores honestos, números reais.
 - Pedir em troca: 10 minutos em sala para o diagnóstico e um retorno do professor depois de 2 semanas.
 - Medir a turma separada (domínio de e-mail da escola, se houver, ou lista de contas).
 
+## Canal 4 — Convite entre alunos (no produto, já no ar)
+
+Cada aluno tem um link `/?convite=<código>` no painel ("Estude com um amigo").
+Quando o amigo entra pelo link e **conclui o diagnóstico**, os dois ganham 7
+dias de Plus (quem convida: até 5 bônus por 30 dias). Os cadastros aparecem
+como origem `convite` em `npm run metrics`.
+- Em sala (piloto, Canal 3): pedir para cada aluno convidar um colega de outra turma.
+- Nos posts: "Chama um amigo e ganhem 7 dias do Plus" no fim do vídeo.
+
 ## Kit para micro-influenciadores (5 a 50 mil seguidores de estudo/ENEM)
 
 **Proposta:** pagamento fixo pequeno ou Plus grátis + comissão por assinatura, com link rastreável `kuaa-web.vercel.app/?ref=<nome>` (o `ref` fica salvo no cadastro por 30 dias após o clique e aparece em `npm run metrics`, tabela "Cadastros por origem"). Para posts próprios use `?utm_source=instagram&utm_campaign=<roteiro>`.
