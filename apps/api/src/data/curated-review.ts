@@ -37,6 +37,12 @@ const COMBINATORIA = ['Combinatória e Probabilidade', 'Probabilidade e Estatís
 const VARIACAO = ['Variação Linguística']
 const INTERTEXTO = ['Intertextualidade']
 const INTERNACIONAL = ['Cenário Internacional']
+const TERMO = ['Calor e Termodinâmica', 'Termologia e Óptica']
+const ELETRICIDADE = ['Eletricidade e Magnetismo']
+const ONDAS = ['Ondas, Som e Óptica']
+const FLUIDOS = ['Gravitação, Estática e Fluidos']
+const ESTEQUIO = ['Reações, Estequiometria e Soluções']
+const ATOMO = ['Matéria, Estrutura Atômica e Ligações']
 
 export const reviewQuestions: CuratedQuestion[] = [
   // ── Interpretação de texto ────────────────────────────────────────────────
@@ -486,4 +492,88 @@ export const reviewQuestions: CuratedQuestion[] = [
     'O Conselho de Segurança da ONU é frequentemente criticado por',
     ['concentrar poder de veto em cinco membros permanentes, o que pode travar decisões.', 'não ter nenhum país membro.', 'ser formado só por países da América do Sul.', 'não poder discutir conflitos armados.', 'ter sido extinto em 1991.'],
     'EUA, Rússia, China, Reino Unido e França têm assento permanente e veto. Países como o Brasil defendem reformar o Conselho para refletir melhor o mundo atual.'),
+
+  // ── Calor e termodinâmica ─────────────────────────────────────────────────
+  q('termo-1', TERMO, 1,
+    'Quanto calor é necessário para aquecer 500 g de água de 20 °C para 60 °C? (calor específico da água = 1 cal/g·°C)',
+    ['20 000 cal', '30 000 cal', '10 000 cal', '40 000 cal', '2 000 cal'],
+    'Q = m · c · ΔT = 500 · 1 · (60 − 20) = 500 · 40 = 20 000 cal.'),
+  q('termo-2', TERMO, 2,
+    'Em dias frios, uma maçaneta de metal parece mais fria que uma porta de madeira, embora ambas estejam à mesma temperatura. Isso ocorre porque o metal',
+    ['conduz calor melhor e retira calor da mão mais rapidamente.', 'está de fato a uma temperatura menor.', 'produz frio por reação química.', 'é isolante térmico.', 'reflete o calor do corpo.'],
+    'A sensação de frio depende da rapidez com que o calor sai da pele. Metais são bons condutores térmicos; a madeira é isolante. As temperaturas são iguais.'),
+  q('termo-3', TERMO, 3,
+    'Um motor térmico recebe 1 000 J de calor da fonte quente e rejeita 700 J para a fonte fria em cada ciclo. Seu rendimento é',
+    ['30%', '70%', '43%', '100%', '17%'],
+    'Trabalho = 1000 − 700 = 300 J. Rendimento = trabalho / calor recebido = 300/1000 = 0,30 = 30%.'),
+
+  // ── Eletricidade e magnetismo ─────────────────────────────────────────────
+  q('eletricidade-1', ELETRICIDADE, 1,
+    'Um chuveiro ligado em 220 V é percorrido por uma corrente de 20 A. Sua potência é',
+    ['4 400 W', '240 W', '11 W', '2 200 W', '44 000 W'],
+    'P = U · i = 220 · 20 = 4 400 W.'),
+  q('eletricidade-2', ELETRICIDADE, 2,
+    'Um resistor de 10 Ω é ligado a uma bateria de 12 V. A corrente que o atravessa é',
+    ['1,2 A', '120 A', '0,83 A', '22 A', '2 A'],
+    'Pela lei de Ohm, i = U / R = 12 / 10 = 1,2 A.'),
+  q('eletricidade-3', ELETRICIDADE, 3,
+    'Uma lâmpada de 100 W fica ligada 5 horas por dia durante 30 dias. O consumo de energia no mês é',
+    ['15 kWh', '150 kWh', '1,5 kWh', '500 kWh', '3 kWh'],
+    'E = P · t = 0,1 kW · (5 · 30) h = 0,1 · 150 = 15 kWh.'),
+
+  // ── Ondas, som e óptica ───────────────────────────────────────────────────
+  q('ondas-1', ONDAS, 1,
+    'Uma onda tem frequência de 10 Hz e comprimento de onda de 2 m. Sua velocidade é',
+    ['20 m/s', '5 m/s', '12 m/s', '0,2 m/s', '8 m/s'],
+    'A velocidade de uma onda é o produto do comprimento de onda pela frequência: v = λ · f = 2 · 10 = 20 m/s.'),
+  q('ondas-2', ONDAS, 2,
+    'Vemos o relâmpago antes de ouvir o trovão porque',
+    ['a luz se propaga muito mais rápido que o som no ar.', 'o som é produzido depois da luz.', 'o som não se propaga no ar.', 'a luz precisa de um meio material para se propagar.', 'o trovão é mais fraco que o relâmpago.'],
+    'Os dois surgem quase juntos, mas a luz viaja a cerca de 300 000 km/s e o som a cerca de 340 m/s no ar.'),
+  q('ondas-3', ONDAS, 3,
+    'Um lápis dentro de um copo d\'água parece "quebrado" na superfície. O fenômeno responsável é',
+    ['a refração da luz ao passar da água para o ar.', 'a reflexão total do som.', 'a difração do lápis.', 'a absorção da luz pela água.', 'a interferência de ondas sonoras.'],
+    'Ao mudar de meio, a luz muda de velocidade e de direção (refração). A imagem da parte submersa se forma em posição diferente, dando a impressão de quebra.'),
+
+  // ── Gravitação, estática e fluidos ────────────────────────────────────────
+  q('fluidos-1', FLUIDOS, 1,
+    'Uma pessoa de 600 N está em pé com os dois pés apoiados, ocupando 0,03 m² no total. A pressão sobre o chão é',
+    ['20 000 Pa', '18 Pa', '200 Pa', '1 800 Pa', '600 Pa'],
+    'p = F / A = 600 / 0,03 = 20 000 Pa.'),
+  q('fluidos-2', FLUIDOS, 2,
+    'Um navio de aço flutua, embora o aço seja mais denso que a água, porque',
+    ['o casco desloca um volume de água cujo peso equilibra o peso do navio (empuxo).', 'o aço perde massa na água.', 'a água do mar não exerce força sobre o casco.', 'o navio é mais leve que o ar.', 'a gravidade não atua no mar.'],
+    'Pelo princípio de Arquimedes, o empuxo é igual ao peso do líquido deslocado. O casco oco faz a densidade média do navio (aço + ar) ficar menor que a da água.'),
+  q('fluidos-3', FLUIDOS, 3,
+    'Num mergulho, a cada 10 m de profundidade a pressão aumenta cerca de 1 atm. A 20 m de profundidade, a pressão total sobre o mergulhador é aproximadamente',
+    ['3 atm', '2 atm', '20 atm', '1 atm', '21 atm'],
+    'Pressão total = atmosférica (1 atm) + coluna de água (2 atm para 20 m) = 3 atm.'),
+
+  // ── Reações, estequiometria e soluções ────────────────────────────────────
+  q('estequio-1', ESTEQUIO, 1,
+    'Uma solução tem 20 g de açúcar dissolvidos em 500 mL de solução. Sua concentração é',
+    ['40 g/L', '10 g/L', '25 g/L', '0,04 g/L', '100 g/L'],
+    'C = massa / volume = 20 g / 0,5 L = 40 g/L.'),
+  q('estequio-2', ESTEQUIO, 2,
+    'Na reação 2 H₂ + O₂ → 2 H₂O, quantos mols de água são formados a partir de 4 mols de H₂ (com O₂ suficiente)?',
+    ['4 mol', '2 mol', '8 mol', '1 mol', '6 mol'],
+    'A proporção H₂ : H₂O é 2 : 2 = 1 : 1. Com 4 mol de H₂ formam-se 4 mol de H₂O.'),
+  q('estequio-3', ESTEQUIO, 3,
+    'Ao diluir 100 mL de uma solução de 2 mol/L até o volume de 400 mL, a nova concentração é',
+    ['0,5 mol/L', '8 mol/L', '1 mol/L', '0,2 mol/L', '2 mol/L'],
+    'Na diluição a quantidade de soluto não muda: C₁V₁ = C₂V₂ ⇒ 2 · 100 = C₂ · 400 ⇒ C₂ = 0,5 mol/L.'),
+
+  // ── Matéria, estrutura atômica e ligações ─────────────────────────────────
+  q('atomo-1', ATOMO, 1,
+    'Um átomo neutro tem número atômico 11 e número de massa 23. Ele possui',
+    ['11 prótons, 12 nêutrons e 11 elétrons.', '23 prótons, 11 nêutrons e 23 elétrons.', '11 prótons, 23 nêutrons e 11 elétrons.', '12 prótons, 11 nêutrons e 12 elétrons.', '11 prótons, 11 nêutrons e 12 elétrons.'],
+    'Z = prótons = 11; neutro ⇒ 11 elétrons; nêutrons = A − Z = 23 − 11 = 12.'),
+  q('atomo-2', ATOMO, 2,
+    'O sal de cozinha (NaCl) é formado por ligação iônica porque',
+    ['o sódio tende a perder um elétron e o cloro a ganhar um, formando íons que se atraem.', 'os dois átomos compartilham pares de elétrons igualmente.', 'é formado por dois metais.', 'não há transferência de elétrons.', 'é uma ligação entre moléculas de água.'],
+    'Metal (Na) com baixa energia de ionização e ametal (Cl) com alta afinidade eletrônica: há transferência de elétron, formando Na⁺ e Cl⁻ atraídos eletrostaticamente.'),
+  q('atomo-3', ATOMO, 3,
+    'A água (H₂O) tem ponto de ebulição bem maior do que o esperado para uma molécula tão pequena. Isso se deve principalmente',
+    ['às ligações de hidrogênio entre as moléculas.', 'à ligação iônica entre H e O.', 'à presença de metais na molécula.', 'à ausência de polaridade.', 'ao grande tamanho da molécula.'],
+    'O O é muito eletronegativo e a molécula é polar; o H de uma molécula é atraído pelo O de outra (ligação de hidrogênio). Separar as moléculas exige mais energia.'),
 ]
