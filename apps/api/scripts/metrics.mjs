@@ -2,7 +2,8 @@
 //
 // Uso (PowerShell, DATABASE_URL já definido na sessão, sem colar a URL em logs):
 //   npm run metrics --workspace=apps/api
-//   npm run metrics --workspace=apps/api -- --weeks 12 --exclude-domain kuaa-test.com
+//   npm run metrics --workspace=apps/api -- --weeks 12 --exclude-domain escola.com.br
+//   npm run metrics --workspace=apps/api -- --include-test   (conta também as contas de teste)
 //
 // Roda dentro de uma transação READ ONLY: qualquer escrita acidental falha no
 // próprio Postgres. A saída é só agregada (contagens por semana de cadastro);
@@ -16,6 +17,9 @@ const arg = (name, fallback) => {
 }
 const weeks = Math.min(52, Math.max(1, Number(arg('weeks', '8')) || 8))
 const excluded = args.flatMap((value, i) => (args[i - 1] === '--exclude-domain' ? [value.toLowerCase()] : []))
+// Contas de teste ficam fora por padrão (e-mails com test, teste, example, qa., kuaa-test).
+// Use --include-test para contar todas.
+const TEST_PATTERN = args.includes('--include-test') ? '^$' : '(test|teste|example|qa\\.|kuaa-test)'
 
 const prisma = new PrismaClient()
 
@@ -31,6 +35,7 @@ users AS (
   FROM "User" u, params
   WHERE u."createdAt" >= params.since
     AND NOT (lower(split_part(u.email, '@', 2)) = ANY($2::text[]))
+    AND NOT (lower(u.email) ~ $3)
 ),
 activity AS (
   SELECT "userId", "answeredAt" AS at FROM "UserAnswer"
@@ -70,14 +75,15 @@ const pct = (part, whole) => (whole ? `${Math.round((100 * part) / whole)}%` : '
 try {
   const rows = await prisma.$transaction(async (tx) => {
     await tx.$executeRawUnsafe('SET TRANSACTION READ ONLY')
-    return tx.$queryRawUnsafe(SQL, weeks, excluded)
+    return tx.$queryRawUnsafe(SQL, weeks, excluded, TEST_PATTERN)
   })
   const total = rows.reduce((acc, r) => {
     for (const key of Object.keys(r)) if (key !== 'semana') acc[key] = (acc[key] ?? 0) + r[key]
     return acc
   }, {})
   console.log(`Funil das últimas ${weeks} semanas (cadastro por semana, segunda-feira UTC)` +
-    (excluded.length ? `; excluindo domínios: ${excluded.join(', ')}` : ''))
+    (excluded.length ? `; excluindo domínios: ${excluded.join(', ')}` : '') +
+    (args.includes('--include-test') ? '; incluindo contas de teste' : '; sem contas de teste'))
   console.table(rows.map((r) => ({
     semana: r.semana,
     cadastros: r.cadastros,
