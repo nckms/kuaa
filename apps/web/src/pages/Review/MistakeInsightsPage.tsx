@@ -44,7 +44,7 @@ export default function MistakeInsightsPage() {
         {q.isError && <div className="k-state" role="alert">Não foi possível carregar o Raio-X.</div>}
         {q.data?.kind === 'plus' && (
           <div className="k-card is-md rv-upsell">
-            <p>Você errou <strong>{q.data.wrong}</strong> questões nos últimos 30 dias. O Raio-X mostra o padrão por trás desses erros, por matéria, e monta 3 ações para a sua semana.</p>
+            <p>{q.data.wrong === 0 ? 'Você ainda não errou questões nos últimos 30 dias.' : <>Você errou <strong>{q.data.wrong}</strong> {q.data.wrong === 1 ? 'questão' : 'questões'} nos últimos 30 dias.</>} O Raio-X mostra o padrão por trás desses erros, por matéria, e monta 3 ações para a sua semana.</p>
             <Link to="/planos" className="k-btn k-btn-primary">Conhecer o Kuaa Plus</Link>
           </div>
         )}
