@@ -10,6 +10,7 @@ import { api } from '../../services/api'
 import type { User, UserPreferences } from '../../types/user'
 import './SettingsPage.css'
 import AccountDataSection from '../../components/AccountDataSection'
+import InstallAppCard, { useInstallAvailable } from '../../components/InstallAppCard'
 
 function goalHint(minutes: number) {
   if (minutes <= 15) return 'Leve — ótimo pra criar o hábito.'
@@ -22,6 +23,7 @@ export default function SettingsPage() {
   const { user, updateUser, loadEnrollments, firstVestibularSlug, logout } = useAuthStore()
   const navigate = useNavigate()
   const memberships = useMyEnrollments()
+  const canInstall = useInstallAvailable()
   const catalog = useVestibulares()
   const enroll = useEnroll()
   const [newId, setNewId] = useState('')
@@ -106,6 +108,11 @@ export default function SettingsPage() {
             <button type="button" className="k-btn k-btn-primary is-sm" disabled={busy || minutes === (prefs?.dailyStudyMinutes ?? 30)} onClick={() => save.mutate({ preferences: { dailyStudyMinutes: minutes } })}><i className="bi bi-check-lg" aria-hidden="true" />Salvar meta</button>
           </div>
         </section>
+
+        {canInstall && <section className="k-card is-md st-row st-section-row">
+          <div><h2 className="st-h2">Kuaa no celular</h2><div className="k-muted" style={{ fontSize: 13, marginTop: 4 }}>Instale na tela inicial e abra como um app</div></div>
+          <InstallAppCard compact />
+        </section>}
 
         <section className="k-card is-md st-row st-section-row">
           <div><h2 className="st-h2">Língua estrangeira no ENEM</h2><div className="k-muted" style={{ fontSize: 13, marginTop: 4 }}>Usada nos simulados e na trilha de Linguagens</div></div>
