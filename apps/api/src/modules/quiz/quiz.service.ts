@@ -50,23 +50,38 @@ function describeGeminiError(err: unknown): string {
   return err.message.slice(0, 100)
 }
 
+// Quando o acervo tem questões para o tópico, o aluno não espera mais que isso
+// pela IA (p90 em produção ~7 s). Sem acervo, a IA é a única opção: espera 24 s.
+export const AI_SOFT_DEADLINE_MS = 8_000
+const AI_HARD_DEADLINE_MS = 24_000
+// Depois de 503/timeout do Gemini, as próximas gerações vão direto ao acervo por
+// um tempo, em vez de cada aluno pagar a mesma espera durante a instabilidade.
+export const AI_COOLDOWN_MS = 120_000
+let aiCooldownUntil = 0
+export function resetAiCooldown(): void { aiCooldownUntil = 0 }
+
 async function generateQuestions(data: GenerationJobData): Promise<GenerationResult> {
+  const startedAt = Date.now()
   const hasApiKey = !!env.GEMINI_API_KEY?.trim()
   const references = selectReferences(data)
   const optionCount = data.vestibularSlug === 'unicamp' ? 4 : 5
   const requiresChart = getCuratedQuestions(data.topicName).some((question) => question.visual)
   const metadata = { promptVersion: PROMPT_VERSION, referenceIds: references.map((ref) => ref.id), model: env.GEMINI_MODEL, targetDifficulty: data.targetDifficulty ?? 1 }
+  const curated = generateFallbackQuestions(data)
   const fallback = (reason: string): GenerationResult => ({
-    questions: generateFallbackQuestions(data).map((question) => ({
+    questions: curated.map((question) => ({
       ...question,
       options: optionCount === 4
         ? question.options.filter((option, index) => option.isCorrect || index !== question.options.findIndex((item) => !item.isCorrect))
         : question.options,
     })),
-    source: 'CURATED', metadata: { ...metadata, source: 'CURATED', fallbackReason: reason },
+    source: 'CURATED', metadata: { ...metadata, source: 'CURATED', fallbackReason: reason, generationMs: Date.now() - startedAt },
   })
 
   if (!hasApiKey) return fallback('AI_NOT_CONFIGURED')
+  if (data.preferCurated && curated.length >= Math.min(3, data.questionCount)) return fallback('INSTANT_FIRST_PRACTICE')
+  if (curated.length && Date.now() < aiCooldownUntil) return fallback('AI_COOLDOWN')
+  const deadlineMs = curated.length ? AI_SOFT_DEADLINE_MS : AI_HARD_DEADLINE_MS
 
   const systemPrompt = `Voce e um professor especialista em vestibulares brasileiros.
 Gere questoes de multipla escolha no padrao do vestibular solicitado.
@@ -114,7 +129,7 @@ Crie uma NOVA situacao que avalie o mesmo raciocinio, sem copiar numeros, enunci
 
   let timer: ReturnType<typeof setTimeout> | undefined
   const absoluteDeadline = new Promise<never>((_, reject) =>
-    { timer = setTimeout(() => reject(new Error('Gemini timeout absoluto (24s)')), 24_000) },
+    { timer = setTimeout(() => reject(new Error(`Gemini timeout absoluto (${deadlineMs / 1000}s)`)), deadlineMs) },
   )
 
   const RETRY_BACKOFF_MS = [500, 1000]
@@ -144,13 +159,14 @@ Crie uma NOVA situacao que avalie o mesmo raciocinio, sem copiar numeros, enunci
       if (questions.some((question) => recentBodies.has(question.body.trim().toLowerCase()))) {
         throw new Error('Generated questions repeat recent history')
       }
-      return { questions, source: 'AI_GENERATED', metadata: { ...metadata, source: 'AI_GENERATED' } }
+      return { questions, source: 'AI_GENERATED', metadata: { ...metadata, source: 'AI_GENERATED', generationMs: Date.now() - startedAt } }
     } catch (err) {
       const isAbsoluteTimeout = err instanceof Error && err.message.startsWith('Gemini timeout absoluto')
       const is503 = isGemini503(err)
 
       if (isAbsoluteTimeout) {
-        console.warn('[QuizService] Gemini timeout absoluto (24s), usando fallback')
+        console.warn(`[QuizService] Gemini timeout absoluto (${deadlineMs / 1000}s), usando fallback`)
+        aiCooldownUntil = Date.now() + AI_COOLDOWN_MS
         break
       }
 
@@ -161,6 +177,7 @@ Crie uma NOVA situacao que avalie o mesmo raciocinio, sem copiar numeros, enunci
         continue
       }
 
+      if (is503) aiCooldownUntil = Date.now() + AI_COOLDOWN_MS
       const label = is503
         ? `503 UNAVAILABLE após ${attempt} tentativa(s)`
         : describeGeminiError(err)
@@ -291,6 +308,9 @@ class QuizService {
       orderBy: { createdAt: 'desc' }, take: 50, select: { body: true },
     })
 
+    // A primeira prática é o momento em que mais alunos desistem: sai do acervo na hora.
+    const isFirstPractice = !sourceQuestionId && (await prisma.quizSession.count({ where: { userId } })) === 0
+
     // Criar sessão
     const session = await prisma.quizSession.create({
       data: { userId, topicId },
@@ -312,6 +332,7 @@ class QuizService {
       recentQuestionBodies: recentQuestions.map((question) => question.body),
       questionCount: count,
       remediation,
+      preferCurated: isFirstPractice,
     }
 
     let job: { id: string }

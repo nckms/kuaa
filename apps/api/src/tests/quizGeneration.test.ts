@@ -30,6 +30,21 @@ const start = (sourceQuestionId?: string) => api.post('/api/v1/quiz/generate').s
   .send({ topicId, count: 3, ...(sourceQuestionId ? { sourceQuestionId } : {}) })
 
 describe('few-shot integrado ao quiz (provedor simulado)', () => {
+  it('primeira pratica do aluno sai do acervo na hora, sem esperar a IA', async () => {
+    generateContent.mockClear()
+    // Tópico com acervo suficiente (o primeiro da Unicamp tem poucas questões na faixa).
+    const trail = await api.get('/api/v1/trail/unicamp').set('Authorization', `Bearer ${token}`)
+    const rich = trail.body.subjects.flatMap((s: { topics: Array<{ id: string; name: string }> }) => s.topics)
+      .find((t: { name: string }) => /Probabilidade|Funções/.test(t.name))
+    await testPrisma.userTopicProgress.upsert({ where: { userId_topicId: { userId, topicId: rich.id } }, update: { unlocked: true }, create: { userId, topicId: rich.id, unlocked: true } })
+    const created = await api.post('/api/v1/quiz/generate').set('Authorization', `Bearer ${token}`).send({ topicId: rich.id, count: 3 })
+    expect(created.status).toBe(201)
+    expect(generateContent).not.toHaveBeenCalled()
+    const session = await api.get(`/api/v1/quiz/${created.body.sessionId}`).set('Authorization', `Bearer ${token}`)
+    expect(session.body.generation).toMatchObject({ source: 'CURATED', fallbackReason: 'INSTANT_FIRST_PRACTICE' })
+    expect(session.body.questions.length).toBeGreaterThan(0)
+    await api.post(`/api/v1/quiz/${created.body.sessionId}/finish`).set('Authorization', `Bearer ${token}`)
+  })
   it('envia exemplos, valida e grava origem IA sem vazar o gabarito', async () => {
     const questions = Array.from({ length: 3 }, (_, index) => ({
       body: `Qual e o dobro do numero ${index + 3}?`,
@@ -122,4 +137,33 @@ describe('few-shot integrado ao quiz (provedor simulado)', () => {
     expect(session.body.generation.deliveredCount).toBe(session.body.questions.length)
     await testPrisma.userTopicProgress.update({ where: { userId_topicId: { userId, topicId } }, data: { masteryLevel: 0 } })
   })
+})
+
+describe('pratica instantanea quando a IA esta instavel', () => {
+  it('apos 503 do Gemini serve o acervo e as proximas sessoes nem esperam a IA', async () => {
+    const { resetAiCooldown } = await import('../modules/quiz/quiz.service')
+    resetAiCooldown()
+    generateContent.mockClear()
+    generateContent.mockRejectedValue(Object.assign(new Error('503 UNAVAILABLE: model overloaded'), { status: 503 }))
+    try {
+      const first = await start()
+      expect(first.status).toBe(201)
+      const calls = generateContent.mock.calls.length
+      expect(calls).toBeGreaterThan(0)
+      const firstSession = await api.get(`/api/v1/quiz/${first.body.sessionId}`).set('Authorization', `Bearer ${token}`)
+      expect(firstSession.body.generation).toMatchObject({ source: 'CURATED' })
+      expect(typeof firstSession.body.generation.generationMs).toBe('number')
+      const started = Date.now()
+      const second = await start()
+      expect(second.status).toBe(201)
+      expect(Date.now() - started).toBeLessThan(2000)
+      expect(generateContent.mock.calls.length).toBe(calls)
+      const session = await api.get(`/api/v1/quiz/${second.body.sessionId}`).set('Authorization', `Bearer ${token}`)
+      expect(session.body.generation).toMatchObject({ source: 'CURATED', fallbackReason: 'AI_COOLDOWN' })
+      expect(session.body.questions.length).toBeGreaterThan(0)
+    } finally {
+      generateContent.mockReset()
+      resetAiCooldown()
+    }
+  }, 20_000)
 })
