@@ -14,6 +14,7 @@ import { invalidateTrailCache, trailService } from '../trail/trail.service'
 import { getStudyGuide } from '../study/guides'
 import { captureSnapshot } from '../index/index.service'
 import { buildFewShotContext, selectReferences, validateGeneratedQuestions, generationResponseSchema, PROMPT_VERSION } from './fewShot'
+import { ensureOfficialExplanation, pickOfficial, prefetchExplanations, withTimeout } from './official'
 import { getQuestionMedia, readQuestionMedia } from './questionMedia'
 
 /** Fisher-Yates shuffle das opções de uma questão.
@@ -29,9 +30,10 @@ export function shuffleOptions<T extends { id: string; isCorrect: boolean }>(opt
   return arr.map((opt, i) => ({ ...opt, id: letters[i] ?? opt.id }))
 }
 
+type ServedQuestion = ReturnType<typeof generateFallbackQuestions>[number] & { officialRefId?: string; origin?: string | null; year?: number | null }
 interface GenerationResult {
-  questions: ReturnType<typeof generateFallbackQuestions>
-  source: 'AI_GENERATED' | 'CURATED'
+  questions: ServedQuestion[]
+  source: 'AI_GENERATED' | 'CURATED' | 'OFFICIAL'
   metadata: Prisma.InputJsonObject
 }
 
@@ -78,6 +80,11 @@ async function generateQuestions(data: GenerationJobData): Promise<GenerationRes
     source: 'CURATED', metadata: { ...metadata, source: 'CURATED', fallbackReason: reason, generationMs: Date.now() - startedAt },
   })
 
+  // Banco de questões reais primeiro: a prática usa questão oficial sempre que houver.
+  const official = await pickOfficial(data.userId, data.topicName, data.questionCount)
+  if (official.length >= Math.min(3, data.questionCount)) {
+    return { questions: official, source: 'OFFICIAL', metadata: { ...metadata, source: 'OFFICIAL', generationMs: Date.now() - startedAt } }
+  }
   if (!hasApiKey) return fallback('AI_NOT_CONFIGURED')
   if (data.preferCurated && curated.length >= Math.min(3, data.questionCount)) return fallback('INSTANT_FIRST_PRACTICE')
   if (curated.length && Date.now() < aiCooldownUntil) return fallback('AI_COOLDOWN')
@@ -194,7 +201,7 @@ Crie uma NOVA situacao que avalie o mesmo raciocinio, sem copiar numeros, enunci
 async function persistGeneratedQuestions(
   sessionId: string,
   topicId: string,
-  questions: ReturnType<typeof generateFallbackQuestions>,
+  questions: ServedQuestion[],
   source: GenerationResult['source'],
   metadata: Prisma.InputJsonObject,
 ): Promise<void> {
@@ -207,8 +214,12 @@ async function persistGeneratedQuestions(
       media: getQuestionMedia(q),
       options: q.options as unknown as Prisma.InputJsonValue,
       explanation: q.explanation,
+      explanationByAi: Boolean(q.officialRefId && q.explanation),
       difficulty: q.difficulty,
       source,
+      officialRefId: q.officialRefId ?? null,
+      origin: q.origin ?? null,
+      year: q.year ?? null,
     })),
   }), prisma.quizSession.update({ where: { id: sessionId }, data: { generationMetadata: metadata } })])
 }
@@ -231,8 +242,9 @@ async function getRedisValue(key: string): Promise<string | null> {
 
 async function enqueueQuizGeneration(data: GenerationJobData): Promise<{ id: string }> {
   const raw = await generateQuestions(data)
-  // Embaralha opções de cada questão — garante distribuição aleatória independente da IA
-  const questions = raw.questions.map((q) => ({ ...q, options: shuffleOptions(q.options) }))
+  // Embaralha opções de cada questão — garante distribuição aleatória independente da IA.
+  // Questão oficial mantém a ordem da prova (a referência "ENEM 2019 · questão 45" continua batendo).
+  const questions = raw.source === 'OFFICIAL' ? raw.questions : raw.questions.map((q) => ({ ...q, options: shuffleOptions(q.options) }))
   if (!questions.length) throw makeError('Nao ha questoes de reserva para este topico e a IA esta indisponivel. Tente outro topico.', 503, 'NO_QUESTIONS')
   const target = data.targetDifficulty ?? 1
   const gaps = questions.map((question) => Math.abs(question.difficulty - target))
@@ -242,6 +254,7 @@ async function enqueueQuizGeneration(data: GenerationJobData): Promise<{ id: str
     ...(data.remediation ? { remediationSourceQuestionId: data.remediation.sourceQuestionId } : {}) }
   await persistGeneratedQuestions(data.sessionId, data.topicId, questions, raw.source, metadata)
   await markSessionReady(data.sessionId)
+  if (raw.source === 'OFFICIAL') prefetchExplanations(questions.filter((q) => !q.explanation && q.officialRefId).map((q) => q.officialRefId!))
   return { id: `sync-${data.sessionId}` }
 }
 
@@ -400,6 +413,7 @@ class QuizService {
         ...readQuestionMedia(q.imageUrl, q.media),
         options: opts.map(({ id, text }) => ({ id, text })),
         difficulty: q.difficulty,
+        origin: q.source === 'OFFICIAL' ? q.origin : null,
       }
     })
 
@@ -464,6 +478,14 @@ class QuizService {
 
     const isCorrect = selectedOption.isCorrect
     const correctOption = options.find((o) => o.isCorrect)!
+    // Questão oficial sem explicação ainda: espera a IA por até 9 s; senão informa o gabarito.
+    let explanation = question.explanation
+    let explanationByAi = question.explanationByAi
+    if (question.source === 'OFFICIAL' && !explanation.trim()) {
+      explanation = await withTimeout(ensureOfficialExplanation(question.officialRefId ?? question.id), 9_000, '')
+      explanationByAi = Boolean(explanation)
+      explanation ||= `Gabarito oficial: alternativa ${correctOption.id}. A explicação desta questão ainda está sendo preparada e aparece na revisão da sessão.`
+    }
 
     // Calcular XP (verificar streak de 3 corretas)
     let xpDelta = 0
@@ -525,7 +547,9 @@ class QuizService {
       isCorrect,
       selectedOptionId: optionId,
       correctOptionId: correctOption.id,
-      explanation: question.explanation,
+      explanation,
+      explanationByAi,
+      origin: question.source === 'OFFICIAL' ? question.origin : null,
       xpDelta,
       heartsRemaining: Math.max(0, user.hearts),
       masteryLevel: progress?.masteryLevel ?? 0,

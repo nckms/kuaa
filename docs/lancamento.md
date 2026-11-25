@@ -25,4 +25,5 @@ Estado em 25/11/2026: código em produção; venda **desligada** (sem chaves Str
 - [ ] Revisão por advogado (menores, LGPD, documento de estudante, renovação automática, arrependimento de 7 dias).
 - [ ] Preencher em `apps/web/src/pages/Legal/LegalPage.tsx` (`LEGAL`): responsável (nome/CPF ou CNPJ do MEI) e e-mail de contato público; tirar o aviso de versão preliminar depois da revisão.
 - [x] Exportar dados e excluir conta em Configurações (LGPD art. 18).
+- [ ] Revisão jurídica do uso das provas do ENEM com textos de terceiros (ver `docs/banco-enem.md`).
 - [ ] `npm run metrics` como linha de base.

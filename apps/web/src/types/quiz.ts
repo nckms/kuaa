@@ -23,10 +23,12 @@ export interface QuizQuestion extends QuestionMediaData {
   body: string
   options: QuizOption[]
   difficulty: number
+  /** Questão real de prova, ex.: "ENEM 2019 · questão 45". */
+  origin?: string | null
 }
 
 export interface QuizGeneration {
-  source: 'AI_GENERATED' | 'CURATED'
+  source: 'AI_GENERATED' | 'CURATED' | 'OFFICIAL'
   promptVersion?: string
   referenceIds?: string[]
   targetDifficulty?: number | null
@@ -56,6 +58,8 @@ export interface AnswerResult {
   selectedOptionId: string
   correctOptionId: string
   explanation: string
+  explanationByAi?: boolean
+  origin?: string | null
   xpDelta: number
   heartsRemaining: number
   masteryLevel: number

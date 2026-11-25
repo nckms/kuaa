@@ -184,11 +184,17 @@ model Question {
   active                Boolean        @default(true)
   createdAt             DateTime       @default(now())
   generatedForSessionId String?
+  /// Cópia de sessão de uma questão oficial: id da questão oficial de origem.
+  officialRefId         String?
+  /// Explicação escrita por IA (questões oficiais não trazem explicação).
+  explanationByAi       Boolean        @default(false)
   topic                 Topic          @relation(fields: [topicId], references: [id])
   generatedForSession   QuizSession?   @relation("SessionGeneratedQuestions", fields: [generatedForSessionId], references: [id], onDelete: SetNull)
   answers               UserAnswer[]
 
   @@index([generatedForSessionId])
+  @@index([officialRefId])
+  @@index([source, topicId])
 }
 
 model Enrollment {
