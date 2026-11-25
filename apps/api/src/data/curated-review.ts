@@ -43,6 +43,19 @@ const ONDAS = ['Ondas, Som e Óptica']
 const FLUIDOS = ['Gravitação, Estática e Fluidos']
 const ESTEQUIO = ['Reações, Estequiometria e Soluções']
 const ATOMO = ['Matéria, Estrutura Atômica e Ligações']
+const COLONIAL = ['Brasil Colonial e Imperial']
+const MEDIEVAL = ['Mundo Medieval e Moderno']
+const REVOLUCOES = ['Revoluções, Industrialização e Imperialismo']
+const CONTEMPORANEO = ['República, Guerras e Mundo Contemporâneo']
+const FISIOLOGIA = ['Fisiologia Humana e Saúde']
+const EVOLUCAO = ['Genética, Evolução e Biotecnologia']
+const DIVERSIDADE = ['Diversidade, Botânica e Zoologia']
+const URBANIZACAO = ['População, Migrações e Urbanização']
+const AGRARIO = ['Espaço Agrário, Indústria e Trabalho']
+const ENERGIA_AMB = ['Energia, Ambiente e Desenvolvimento']
+const ORGANICA = ['Carbono, Polímeros e Química Ambiental']
+const ELETROQUIMICA = ['Eletroquímica e Radioatividade']
+const CINETICA = ['Energia, Cinética e Equilíbrio Químico']
 
 export const reviewQuestions: CuratedQuestion[] = [
   // ── Interpretação de texto ────────────────────────────────────────────────
@@ -576,4 +589,186 @@ export const reviewQuestions: CuratedQuestion[] = [
     'A água (H₂O) tem ponto de ebulição bem maior do que o esperado para uma molécula tão pequena. Isso se deve principalmente',
     ['às ligações de hidrogênio entre as moléculas.', 'à ligação iônica entre H e O.', 'à presença de metais na molécula.', 'à ausência de polaridade.', 'ao grande tamanho da molécula.'],
     'O O é muito eletronegativo e a molécula é polar; o H de uma molécula é atraído pelo O de outra (ligação de hidrogênio). Separar as moléculas exige mais energia.'),
+
+  // ── Brasil colonial e imperial ────────────────────────────────────────────
+  q('colonial-1', COLONIAL, 1,
+    'A principal atividade econômica do litoral nordestino nos séculos XVI e XVII foi',
+    ['a produção de açúcar em engenhos, com mão de obra escravizada.', 'a mineração de ouro.', 'o cultivo de café no Vale do Paraíba.', 'a extração de borracha.', 'a industrialização têxtil.'],
+    'Os engenhos de açúcar de Pernambuco e da Bahia, baseados no latifúndio, na monocultura e na escravidão africana, foram o centro da economia colonial antes da mineração.'),
+  q('colonial-2', COLONIAL, 2,
+    'A Independência do Brasil (1822) diferiu de muitas independências hispano-americanas porque',
+    ['manteve a monarquia, a unidade territorial e a escravidão.', 'instituiu imediatamente a república.', 'aboliu a escravidão no mesmo ano.', 'dividiu o território em vários países.', 'foi conduzida por camponeses indígenas.'],
+    'Com D. Pedro I à frente, a ruptura preservou a monarquia (agora brasileira), a unidade do território e a estrutura escravista, interesses da elite agrária.'),
+  q('colonial-3', COLONIAL, 3,
+    'A Lei Áurea (1888) aboliu a escravidão no Brasil, mas é criticada por',
+    ['não prever terra, educação ou indenização para os libertos, mantendo sua exclusão social.', 'ter sido assinada antes da Lei do Ventre Livre.', 'só valer para a província de São Paulo.', 'ter restabelecido o tráfico negreiro.', 'ter sido revogada no ano seguinte.'],
+    'A lei, de dois artigos, extinguiu a escravidão sem políticas de integração. Os libertos ficaram sem acesso à terra e a direitos, o que marca desigualdades até hoje.'),
+
+  // ── Mundo medieval e moderno ──────────────────────────────────────────────
+  q('medieval-1', MEDIEVAL, 1,
+    'No feudalismo europeu, a relação entre suserano e vassalo baseava-se',
+    ['na troca de terra (feudo) por fidelidade e ajuda militar.', 'em salários pagos em moeda.', 'em eleições periódicas.', 'no comércio marítimo com a Ásia.', 'em contratos industriais.'],
+    'O suserano concedia um feudo e proteção; o vassalo devia lealdade e serviço militar. A economia era agrária e as relações, pessoais.'),
+  q('medieval-2', MEDIEVAL, 2,
+    'A Reforma Protestante, iniciada por Lutero em 1517, criticava principalmente',
+    ['a venda de indulgências e a autoridade do papa.', 'a invenção da imprensa.', 'as Grandes Navegações.', 'a existência de reis na Europa.', 'o uso do latim na ciência.'],
+    'As 95 teses denunciavam a venda de indulgências; Lutero defendia a salvação pela fé e a leitura da Bíblia pelos fiéis, rompendo com a autoridade papal.'),
+  q('medieval-3', MEDIEVAL, 3,
+    'O Absolutismo monárquico, como o de Luís XIV na França, caracterizava-se por',
+    ['concentração do poder no rei, justificada muitas vezes pelo direito divino.', 'separação entre os três poderes.', 'governo exercido por assembleias populares.', 'ausência de exército permanente.', 'fim dos privilégios da nobreza.'],
+    'O rei concentrava funções de governo, legislação e justiça; teóricos como Bossuet defendiam que o poder real vinha de Deus. A separação de poderes é proposta iluminista posterior.'),
+
+  // ── Revoluções e industrialização ─────────────────────────────────────────
+  q('revolucoes-1', REVOLUCOES, 1,
+    'A Revolução Industrial começou na Inglaterra no século XVIII e teve como marca',
+    ['a mecanização da produção, com máquinas a vapor e fábricas.', 'o fim do trabalho assalariado.', 'a volta ao artesanato doméstico.', 'a proibição do uso de carvão.', 'a independência das colônias espanholas.'],
+    'Máquinas a vapor, fábricas e trabalho assalariado concentrado nas cidades substituíram a produção artesanal e manufatureira.'),
+  q('revolucoes-2', REVOLUCOES, 2,
+    'O lema "Liberdade, Igualdade, Fraternidade" e a Declaração dos Direitos do Homem e do Cidadão (1789) estão ligados',
+    ['à Revolução Francesa.', 'à Revolução Russa.', 'à Independência do Brasil.', 'à Revolução Industrial.', 'à Reforma Protestante.'],
+    'A Revolução Francesa derrubou o Antigo Regime e difundiu ideais iluministas de direitos e soberania popular.'),
+  q('revolucoes-3', REVOLUCOES, 3,
+    'O neocolonialismo do século XIX, com a partilha da África na Conferência de Berlim (1884–1885), foi motivado sobretudo',
+    ['pela busca de matérias-primas e mercados pelas potências industrializadas.', 'pelo desejo de pôr fim à industrialização europeia.', 'pela demanda dos povos africanos por fronteiras europeias.', 'pela falta de carvão na Europa.', 'por acordos de livre comércio entre países africanos.'],
+    'A indústria europeia precisava de matérias-primas, mercados e áreas de investimento. As fronteiras foram traçadas sem considerar os povos locais, com efeitos até hoje.'),
+
+  // ── República, guerras e mundo contemporâneo ──────────────────────────────
+  q('contemporaneo-1', CONTEMPORANEO, 1,
+    'A crise de 1929, iniciada com a quebra da Bolsa de Nova York, levou',
+    ['a uma grande depressão econômica, com desemprego em massa em vários países.', 'ao fim imediato do capitalismo.', 'ao aumento das exportações de café brasileiro.', 'à criação do euro.', 'ao início da Guerra Fria.'],
+    'A crise espalhou falências e desemprego. No Brasil, derrubou o preço do café e contribuiu para o fim da Primeira República.'),
+  q('contemporaneo-2', CONTEMPORANEO, 2,
+    'Regimes totalitários como o nazismo e o fascismo, no período entre guerras, tinham em comum',
+    ['partido único, culto ao líder, censura e perseguição a opositores.', 'eleições livres e imprensa independente.', 'defesa do internacionalismo operário.', 'redução do poder do Estado.', 'tolerância às minorias.'],
+    'Esses regimes eliminaram a oposição, controlaram a imprensa e a educação e usaram propaganda e violência. O nazismo acrescentou o racismo de Estado, que levou ao Holocausto.'),
+  q('contemporaneo-3', CONTEMPORANEO, 3,
+    'A queda do Muro de Berlim, em 1989, simbolizou',
+    ['o colapso dos regimes socialistas do Leste Europeu e o fim da Guerra Fria.', 'o início da Segunda Guerra Mundial.', 'a divisão da Alemanha em dois países.', 'a criação da ONU.', 'a independência dos EUA.'],
+    'O muro dividia Berlim desde 1961. Sua queda antecedeu a reunificação alemã (1990) e a dissolução da URSS (1991).'),
+
+  // ── Fisiologia humana ─────────────────────────────────────────────────────
+  q('fisiologia-1', FISIOLOGIA, 1,
+    'A principal função das hemácias (glóbulos vermelhos) é',
+    ['transportar oxigênio dos pulmões para os tecidos.', 'combater infecções.', 'coagular o sangue.', 'produzir hormônios.', 'digerir gorduras.'],
+    'A hemoglobina das hemácias se liga ao oxigênio. Defesa é papel dos leucócitos; coagulação, das plaquetas.'),
+  q('fisiologia-2', FISIOLOGIA, 2,
+    'A insulina, produzida pelo pâncreas, atua',
+    ['facilitando a entrada de glicose nas células e reduzindo a glicemia.', 'aumentando a glicose no sangue.', 'digerindo proteínas no estômago.', 'transportando oxigênio.', 'produzindo anticorpos.'],
+    'Depois das refeições, a insulina estimula a captação de glicose por células como as musculares e as do fígado, baixando a glicose no sangue.'),
+  q('fisiologia-3', FISIOLOGIA, 3,
+    'Vacinas protegem contra doenças porque',
+    ['estimulam o sistema imune a produzir anticorpos e células de memória sem causar a doença.', 'contêm anticorpos prontos que duram para sempre.', 'matam diretamente todos os vírus do corpo.', 'são antibióticos de efeito prolongado.', 'impedem a pessoa de entrar em contato com o agente.'],
+    'A vacina é imunização ativa: apresenta antígenos (atenuados, inativados ou instruções genéticas) e gera memória imunológica. Soro é que traz anticorpos prontos (imunização passiva).'),
+
+  // ── Genética e evolução ───────────────────────────────────────────────────
+  q('evolucao-1', EVOLUCAO, 1,
+    'Segundo a teoria de Darwin, a seleção natural explica a evolução porque',
+    ['indivíduos com características mais vantajosas no ambiente tendem a sobreviver e deixar mais descendentes.', 'os organismos mudam de propósito para se adaptar.', 'características adquiridas em vida são sempre herdadas.', 'todas as espécies foram criadas iguais e nunca mudam.', 'o ambiente não influencia a sobrevivência.'],
+    'Há variação entre indivíduos; as variantes mais favoráveis aumentam de frequência ao longo das gerações. A herança de caracteres adquiridos é ideia de Lamarck.'),
+  q('evolucao-2', EVOLUCAO, 2,
+    'O uso excessivo de antibióticos favorece bactérias resistentes porque',
+    ['elimina as sensíveis e as resistentes que já existiam sobrevivem e se multiplicam.', 'o antibiótico ensina as bactérias a resistir.', 'as bactérias resistentes surgem para se defender do remédio.', 'o antibiótico aumenta a imunidade das bactérias.', 'bactérias não sofrem seleção natural.'],
+    'É seleção natural: mutações de resistência surgem ao acaso; o antibiótico mata as sensíveis e deixa espaço para as resistentes, que passam a predominar.'),
+  q('evolucao-3', EVOLUCAO, 3,
+    'Um alimento transgênico é aquele que',
+    ['recebeu gene de outra espécie por técnicas de engenharia genética.', 'foi cultivado sem agrotóxicos.', 'é sempre de origem animal.', 'passou por seleção artificial tradicional apenas.', 'não possui DNA.'],
+    'Transgênicos têm DNA de outra espécie inserido em laboratório (ex.: gene de bactéria em plantas). Seleção artificial tradicional não envolve essa transferência.'),
+
+  // ── Diversidade, botânica e zoologia ──────────────────────────────────────
+  q('diversidade-1', DIVERSIDADE, 1,
+    'Na fotossíntese, as plantas usam luz, gás carbônico e água para produzir',
+    ['glicose e oxigênio.', 'proteínas e gás carbônico.', 'água e nitrogênio.', 'álcool e gás carbônico.', 'amido e metano.'],
+    '6 CO₂ + 6 H₂O + luz → C₆H₁₂O₆ + 6 O₂. A energia luminosa é armazenada na glicose, e o oxigênio é liberado.'),
+  q('diversidade-2', DIVERSIDADE, 2,
+    'Os anfíbios, como sapos e rãs, dependem da água principalmente porque',
+    ['a fecundação e o desenvolvimento das larvas ocorrem em meio aquático, e a pele precisa ficar úmida.', 'respiram apenas por guelras durante toda a vida.', 'não conseguem andar em terra.', 'são todos marinhos.', 'botam ovos com casca resistente.'],
+    'Os ovos sem casca e os girinos se desenvolvem na água; a pele fina participa da respiração e resseca facilmente. Ovos com casca são dos répteis e das aves.'),
+  q('diversidade-3', DIVERSIDADE, 3,
+    'Fungos diferem das plantas porque',
+    ['são heterótrofos e não fazem fotossíntese.', 'possuem clorofila.', 'não têm células.', 'são todos microscópicos.', 'produzem sementes.'],
+    'Fungos obtêm nutrientes por absorção (decompõem matéria orgânica ou parasitam); sua parede celular é de quitina, não de celulose.'),
+
+  // ── População, migrações e urbanização ────────────────────────────────────
+  q('urbanizacao-1', URBANIZACAO, 1,
+    'O êxodo rural no Brasil, intenso entre as décadas de 1950 e 1980, foi',
+    ['a migração em massa do campo para as cidades.', 'a saída de brasileiros para o exterior.', 'a volta da população urbana para o campo.', 'a ocupação planejada da Amazônia apenas.', 'a fundação de Brasília.'],
+    'A mecanização do campo, a concentração de terras e a industrialização urbana atraíram milhões para as cidades, acelerando a urbanização.'),
+  q('urbanizacao-2', URBANIZACAO, 2,
+    'A queda da taxa de fecundidade no Brasil nas últimas décadas está associada a',
+    ['urbanização, maior escolaridade e inserção das mulheres no mercado de trabalho.', 'aumento da população rural.', 'proibição de métodos contraceptivos.', 'redução da expectativa de vida.', 'aumento da mortalidade infantil.'],
+    'Com urbanização, acesso a contraceptivos, mais estudo e trabalho feminino, as famílias passaram a ter menos filhos; hoje a taxa está abaixo do nível de reposição.'),
+  q('urbanizacao-3', URBANIZACAO, 3,
+    'A "conurbação" é o fenômeno em que',
+    ['cidades vizinhas crescem até suas manchas urbanas se unirem.', 'uma cidade perde população para o campo.', 'um bairro é tombado como patrimônio.', 'a população migra para outro país.', 'uma cidade é dividida em duas.'],
+    'Na conurbação, o crescimento horizontal une municípios (como na Grande São Paulo), criando problemas comuns de transporte, saneamento e gestão.'),
+
+  // ── Espaço agrário e indústria ────────────────────────────────────────────
+  q('agrario-1', AGRARIO, 2,
+    'O agronegócio brasileiro é muito competitivo em commodities como soja, mas recebe críticas por',
+    ['concentração de terras e avanço sobre áreas de vegetação nativa.', 'ter baixa produtividade.', 'não exportar nada.', 'usar apenas mão de obra familiar.', 'produzir somente alimentos para o mercado interno.'],
+    'A alta produtividade convive com concentração fundiária, conflitos no campo e pressão sobre Cerrado e Amazônia.'),
+  q('agrario-2', AGRARIO, 1,
+    'A maior parte dos alimentos que chegam à mesa dos brasileiros, como feijão, mandioca e hortaliças, tem participação importante',
+    ['da agricultura familiar.', 'apenas da importação.', 'da indústria automobilística.', 'exclusivamente de grandes latifúndios de soja.', 'da pesca em alto-mar.'],
+    'Segundo os censos agropecuários, a agricultura familiar responde por grande parte da produção de alimentos básicos, embora ocupe menor área.'),
+  q('agrario-3', AGRARIO, 3,
+    'A desconcentração industrial no Brasil a partir dos anos 1990 se explica, em parte, por',
+    ['incentivos fiscais de outros estados e menores custos de mão de obra e terra fora do eixo Rio–São Paulo.', 'proibição de indústrias em São Paulo.', 'fim do transporte rodoviário.', 'falta de energia em todo o país.', 'retorno das fábricas para a Europa.'],
+    'A "guerra fiscal", custos menores e melhor infraestrutura levaram fábricas para o interior e outras regiões, embora a Região Concentrada ainda lidere.'),
+
+  // ── Energia, ambiente e desenvolvimento ───────────────────────────────────
+  q('energia-amb-1', ENERGIA_AMB, 1,
+    'A principal fonte de geração de energia elétrica no Brasil é',
+    ['a hidrelétrica.', 'a nuclear.', 'o carvão mineral.', 'o petróleo.', 'a geotérmica.'],
+    'A matriz elétrica brasileira é majoritariamente hidráulica, com crescimento de eólica e solar. Por isso é considerada relativamente limpa.'),
+  q('energia-amb-2', ENERGIA_AMB, 2,
+    'Uma vantagem e uma desvantagem da energia eólica são, respectivamente,',
+    ['ser renovável e depender da regularidade dos ventos.', 'emitir muito CO₂ e ser barata.', 'ser não renovável e intermitente.', 'gerar lixo radioativo e ser renovável.', 'não ocupar área e emitir enxofre.'],
+    'O vento é renovável e não emite gases na geração, mas varia ao longo do tempo (intermitência) e exige locais favoráveis, como o litoral do Nordeste.'),
+  q('energia-amb-3', ENERGIA_AMB, 3,
+    'O conceito de "desenvolvimento sustentável" propõe',
+    ['atender às necessidades do presente sem comprometer as gerações futuras.', 'parar todo crescimento econômico.', 'explorar os recursos o mais rápido possível.', 'proibir qualquer uso de recursos naturais.', 'priorizar apenas o lucro das empresas.'],
+    'Definido no Relatório Brundtland (1987), busca equilibrar economia, sociedade e ambiente ao longo do tempo.'),
+
+  // ── Química orgânica e ambiental ──────────────────────────────────────────
+  q('organica-1', ORGANICA, 1,
+    'O etanol usado como combustível no Brasil é produzido principalmente a partir',
+    ['da fermentação do caldo de cana-de-açúcar.', 'do refino do petróleo.', 'da mineração de carvão.', 'da destilação do ar.', 'da queima de madeira.'],
+    'Leveduras fermentam os açúcares da cana, produzindo etanol, que é então destilado. Por vir de planta, é um biocombustível renovável.'),
+  q('organica-2', ORGANICA, 2,
+    'Plásticos comuns, como sacolas de polietileno, causam problema ambiental porque',
+    ['são polímeros que demoram muito para se degradar na natureza.', 'se dissolvem rapidamente na água.', 'são feitos de metais pesados.', 'não contêm carbono.', 'são todos biodegradáveis em poucos dias.'],
+    'O polietileno é um polímero longo e estável, pouco degradado por microrganismos; acumula-se e se fragmenta em microplásticos.'),
+  q('organica-3', ORGANICA, 3,
+    'A chuva ácida está relacionada à emissão de',
+    ['óxidos de enxofre e de nitrogênio, que formam ácidos na atmosfera.', 'gás oxigênio pelas plantas.', 'vapor de água dos oceanos.', 'gás hélio.', 'cloreto de sódio.'],
+    'SO₂ e NOₓ, de combustíveis fósseis e indústrias, reagem com a água formando ácidos sulfúrico e nítrico, que danificam florestas, rios e construções.'),
+
+  // ── Eletroquímica e radioatividade ────────────────────────────────────────
+  q('eletroquimica-1', ELETROQUIMICA, 1,
+    'Em uma pilha, a energia química é convertida em',
+    ['energia elétrica, por meio de reações de oxirredução.', 'energia nuclear.', 'energia luminosa apenas.', 'calor, sem produzir corrente.', 'energia gravitacional.'],
+    'Na pilha, uma espécie se oxida (perde elétrons) e outra se reduz (ganha); o fluxo de elétrons pelo circuito externo é a corrente elétrica.'),
+  q('eletroquimica-2', ELETROQUIMICA, 2,
+    'Na eletrólise, ao contrário da pilha,',
+    ['usa-se energia elétrica para provocar uma reação química não espontânea.', 'produz-se energia elétrica de forma espontânea.', 'não há transferência de elétrons.', 'só se usam gases nobres.', 'a matéria é destruída.'],
+    'A eletrólise força reações não espontâneas com corrente externa, como na obtenção de alumínio e na galvanoplastia.'),
+  q('eletroquimica-3', ELETROQUIMICA, 3,
+    'Um material radioativo tem meia-vida de 8 dias. De uma amostra de 80 g, quanto restará após 24 dias?',
+    ['10 g', '20 g', '40 g', '26,7 g', '0 g'],
+    '24 dias = 3 meias-vidas: 80 → 40 → 20 → 10 g.'),
+
+  // ── Energia, cinética e equilíbrio ────────────────────────────────────────
+  q('cinetica-1', CINETICA, 1,
+    'Guardar alimentos na geladeira faz com que estraguem mais devagar porque',
+    ['a temperatura mais baixa diminui a velocidade das reações e a ação de microrganismos.', 'o frio destrói todas as bactérias.', 'a geladeira aumenta a pressão sobre o alimento.', 'o alimento perde toda a água.', 'o frio acelera as reações químicas.'],
+    'Temperatura menor significa menos colisões efetivas entre partículas: reações (inclusive as de microrganismos) ficam mais lentas. O frio não esteriliza.'),
+  q('cinetica-2', CINETICA, 2,
+    'Um comprimido efervescente dissolve mais rápido quando triturado porque',
+    ['aumenta a superfície de contato com a água.', 'aumenta a massa do comprimido.', 'diminui a temperatura da água.', 'retira o catalisador.', 'impede a liberação de gás.'],
+    'Com mais área exposta, há mais colisões entre os reagentes e a água ao mesmo tempo, e a reação fica mais rápida.'),
+  q('cinetica-3', CINETICA, 3,
+    'Uma reação que libera calor para o ambiente é chamada de',
+    ['exotérmica, com variação de entalpia negativa (ΔH < 0).', 'endotérmica, com ΔH > 0.', 'exotérmica, com ΔH > 0.', 'isotérmica, sem troca de calor.', 'endotérmica, com ΔH < 0.'],
+    'Na reação exotérmica a energia dos produtos é menor que a dos reagentes; a diferença sai como calor, e ΔH é negativo (ex.: combustão).'),
 ]
