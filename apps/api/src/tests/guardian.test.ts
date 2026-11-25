@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { api, registerAndLogin } from './helpers/api'
 import { testPrisma, truncateUserData } from './helpers/truncate'
 import { memoryOutbox } from '../lib/mailer'
-import { brtMonth, previousBrtMonth, runGuardianReports } from '../modules/engagement/guardian'
+import { brtMonth, previousBrtMonth, runGuardianReports, sendPendingInvites } from '../modules/engagement/guardian'
 
 beforeEach(async () => { await truncateUserData(); memoryOutbox.length = 0 })
 
@@ -79,5 +79,14 @@ describe('responsável com resumo mensal', () => {
     expect((await api.delete('/api/v1/guardian').set('Authorization', auth)).status).toBe(204)
     expect(await testPrisma.guardian.count()).toBe(0)
     expect((await api.post('/api/v1/guardian/confirm').send({ token: 'x'.repeat(43) })).status).toBe(400)
+  })
+
+  it('convite que não saiu (e-mail desligado no cadastro) sai depois com link novo', async () => {
+    const s = await registerAndLogin('guardian_pending')
+    await testPrisma.guardian.create({ data: { userId: s.userId, email: 'avo@example.com', confirmTokenHash: 'antigo' } })
+    expect(await sendPendingInvites()).toBe(1)
+    expect(await sendPendingInvites()).toBe(0)
+    const token = linkToken(memoryOutbox[0]!.text, 'confirmar')
+    expect((await api.post('/api/v1/guardian/confirm').send({ token })).status).toBe(200)
   })
 })

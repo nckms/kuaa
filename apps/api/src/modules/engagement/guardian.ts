@@ -159,9 +159,10 @@ async function setGuardian(req: Request, res: Response, next: NextFunction) {
     const current = await prisma.guardian.findUnique({ where: { userId } })
     if (current && Date.now() - current.updatedAt.getTime() < 60_000) throw makeError('Espere um minuto antes de mudar o responsável de novo.', 429, 'TOO_SOON')
     const token = crypto.randomBytes(32).toString('base64url')
-    const data = { email, confirmTokenHash: hash(token), confirmedAt: null, unsubscribedAt: null }
+    const data = { email, confirmTokenHash: hash(token), confirmedAt: null, unsubscribedAt: null, inviteSentAt: null }
     await prisma.guardian.upsert({ where: { userId }, create: { userId, ...data }, update: data })
     const sent = await sendMail({ to: email, ...buildConfirmEmail(user.name, `${appUrl()}/responsavel#confirmar=${token}`) })
+    if (sent) await prisma.guardian.update({ where: { userId }, data: { inviteSentAt: new Date() } })
     res.json({ guardian: { email, status: 'pending', confirmedAt: null }, confirmationSent: sent })
   } catch (err) { next(err) }
 }
@@ -177,7 +178,7 @@ async function confirmGuardian(req: Request, res: Response, next: NextFunction) 
   try {
     const { token } = z.object({ token: z.string().min(20).max(200) }).parse(req.body)
     const g = await prisma.guardian.findUnique({ where: { confirmTokenHash: hash(token) }, include: { user: { select: { name: true } } } })
-    if (!g || g.unsubscribedAt || (!g.confirmedAt && Date.now() - g.updatedAt.getTime() > CONFIRM_TTL_MS)) {
+    if (!g || g.unsubscribedAt || (!g.confirmedAt && Date.now() - (g.inviteSentAt ?? g.updatedAt).getTime() > CONFIRM_TTL_MS)) {
       throw makeError('Link inválido ou expirado. Peça ao aluno para cadastrar o e-mail de novo.', 400, 'INVALID_TOKEN')
     }
     if (!g.confirmedAt) await prisma.guardian.update({ where: { id: g.id }, data: { confirmedAt: new Date() } })
@@ -193,6 +194,21 @@ async function unsubscribeGuardian(req: Request, res: Response, next: NextFuncti
     await prisma.guardian.updateMany({ where: { id, unsubscribedAt: null }, data: { unsubscribedAt: new Date() } })
     res.json({ ok: true })
   } catch (err) { next(err) }
+}
+
+/** Convites que não saíram (envio desligado na hora do cadastro): gera novo link e envia. */
+export async function sendPendingInvites(): Promise<number> {
+  const pending = await prisma.guardian.findMany({ where: { inviteSentAt: null, confirmedAt: null, unsubscribedAt: null }, include: { user: { select: { name: true } } }, take: 200 })
+  let sent = 0
+  for (const g of pending) {
+    const token = crypto.randomBytes(32).toString('base64url')
+    await prisma.guardian.update({ where: { id: g.id }, data: { confirmTokenHash: hash(token) } })
+    if (await sendMail({ to: g.email, ...buildConfirmEmail(g.user.name, `${appUrl()}/responsavel#confirmar=${token}`) })) {
+      await prisma.guardian.update({ where: { id: g.id }, data: { inviteSentAt: new Date() } })
+      sent++
+    }
+  }
+  return sent
 }
 
 export interface GuardianRunResult { eligible: number; sent: number; skippedAlreadySent: number; failed: number }
@@ -228,6 +244,8 @@ export async function runGuardianReports(options: { dryRun: boolean; now?: Date 
 export function startGuardianScheduler(): NodeJS.Timeout | null {
   if (env.NODE_ENV === 'test' || !mailDeliveryConfigured()) return null
   const tick = () => {
+    sendPendingInvites().then((n) => { if (n) console.log('[Guardian] convites pendentes enviados', n) })
+      .catch((error) => console.warn('[Guardian] falha nos convites', (error as Error).message))
     const local = new Date(Date.now() - BRT_OFFSET_MS)
     if (local.getUTCDate() !== 1 || local.getUTCHours() < 10) return
     runGuardianReports({ dryRun: false }).then((r) => { if (r.eligible) console.log('[Guardian] resumo mensal', JSON.stringify(r)) })
