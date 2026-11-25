@@ -11,6 +11,7 @@ import type { GenerateInput, AnswerInput } from './quiz.schemas'
 import type { AnswerResult, SessionSummary, AchievementData, QuestionOption, ReviewQuestion, GenerationJobData } from './quiz.types'
 import { generateCuratedQuestions as generateFallbackQuestions, getCuratedQuestions } from './curatedQuestions'
 import { invalidateTrailCache, trailService } from '../trail/trail.service'
+import { recordReviewAnswer } from '../review/review'
 import { getStudyGuide } from '../study/guides'
 import { captureSnapshot } from '../index/index.service'
 import { buildFewShotContext, selectReferences, validateGeneratedQuestions, generationResponseSchema, PROMPT_VERSION } from './fewShot'
@@ -543,6 +544,10 @@ class QuizService {
       where: { userId_topicId: { userId, topicId: session.topicId } },
     })
 
+    // Caderno de erros: erro entra, acerto em revisão avança. Não derruba a resposta se falhar.
+    const reviewKeys = (session.generationMetadata as { reviewKeys?: Record<string, string> } | null)?.reviewKeys
+    await recordReviewAnswer(userId, question, isCorrect, reviewKeys).catch((error) => console.warn('[Review]', (error as Error).message))
+
     await invalidateTrailCache(userId, session.topic.subject.vestibular.slug)
 
     return {
@@ -615,6 +620,8 @@ class QuizService {
     const newMasteryLevel = performance.summary.newLevel
     const completed = (progress?.completed ?? false) || newMasteryLevel >= 3
 
+    // Revisão do caderno de erros não mexe na trilha (o tópico pode nem estar liberado).
+    if (!session.isReview) {
     // Atualizar progresso do tópico
     await tx.userTopicProgress.update({
       where: { userId_topicId: { userId, topicId: session.topicId } },
@@ -644,6 +651,7 @@ class QuizService {
           update: { unlocked: true },
         })
       }
+    }
     }
 
     // Verificar achievements

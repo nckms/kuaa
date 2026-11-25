@@ -19,6 +19,7 @@ import { billingRouter } from '../modules/billing/billing.routes'
 import { adminStudentsRouter, studentsRouter } from '../modules/students/students'
 import { pushRouter } from '../modules/engagement/push.routes'
 import { examsRouter } from '../modules/exams/exams'
+import { reviewRouter } from '../modules/review/review'
 import { redis } from '../lib/redis'
 
 export const router = Router()
@@ -65,3 +66,4 @@ router.use('/study', studyRouter)
 router.use('/essays', essaysRouter)
 router.use('/push', pushRouter)
 router.use('/exams', examsRouter)
+router.use('/review', reviewRouter)

@@ -6,6 +6,7 @@ import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../middleware/requireAuth'
+import { recordExamMistakes } from '../review/review'
 import { makeError } from '../../utils/errors'
 import { readQuestionMedia } from '../quiz/questionMedia'
 import { ensureOfficialExplanation, withTimeout } from '../quiz/official'
@@ -100,14 +101,16 @@ async function loadAttempt(id: string, userId: string) {
 }
 
 async function finish(id: string, userId: string) {
-  return prisma.$transaction(async (tx) => {
+  const mistakes: { value?: { questions: { id: string; topicId: string; options: unknown }[]; answers: Record<string, string> } } = {}
+  const result = await prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "ExamAttempt" WHERE id = ${id} AND "userId" = ${userId} FOR UPDATE`
     const attempt = await tx.examAttempt.findFirst({ where: { id, userId } })
     if (!attempt) throw makeError('Prova não encontrada.', 404, 'NOT_FOUND')
     if (attempt.finishedAt) return attempt
     const ids = attempt.questionIds as string[]
     const answers = attempt.answers as Record<string, string>
-    const questions = await tx.question.findMany({ where: { id: { in: ids } }, select: { id: true, options: true } })
+    const questions = await tx.question.findMany({ where: { id: { in: ids } }, select: { id: true, options: true, topicId: true } })
+    mistakes.value = { questions, answers }
     let correct = 0
     let wrong = 0
     for (const q of questions) {
@@ -119,6 +122,11 @@ async function finish(id: string, userId: string) {
     const finishedAt = new Date(Math.min(Date.now(), attempt.startedAt.getTime() + attempt.durationSeconds * 1000))
     return tx.examAttempt.update({ where: { id }, data: { finishedAt, correct, wrong } })
   })
+  // Erros da prova entram no caderno de erros (fora da transação: falha aqui não desfaz a entrega).
+  if (mistakes.value) {
+    await recordExamMistakes(userId, mistakes.value.questions, mistakes.value.answers).catch((error) => console.warn('[Review] prova:', (error as Error).message))
+  }
+  return result
 }
 
 /**

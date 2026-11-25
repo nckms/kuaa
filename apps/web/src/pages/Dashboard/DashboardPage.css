@@ -67,3 +67,10 @@
 
 .dash-provas-link { display: inline-flex; align-items: center; gap: 8px; color: #E8DFEA; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
 .dash-provas-link:hover { color: #fff; }
+
+.dash-review { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; margin-bottom: 16px; }
+.dash-review > .bi-arrow-repeat { font-size: 22px; color: var(--k-roxo, #531A61); }
+.dash-review span { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.dash-review small { color: var(--k-muted); font-size: 13px; }
+.dash-review.is-due { background: #FFF4D6; border-color: #F2D27A; }
+.dash-review.is-due > .bi-arrow-repeat { color: #7A5A00; }

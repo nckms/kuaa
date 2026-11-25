@@ -32,6 +32,7 @@ import SettingsPage from './pages/Settings/SettingsPage'
 import EvaluationPage from './pages/Evaluation/EvaluationPage'
 import StudyPage from './pages/Study/StudyPage'
 import ExamsPage from './pages/Exams/ExamsPage'
+import ErrorNotebookPage from './pages/Review/ErrorNotebookPage'
 import ExamAttemptPage from './pages/Exams/ExamAttemptPage'
 import EssayPage from './pages/Essay/EssayPage'
 
@@ -114,6 +115,7 @@ function AppRoutes() {
         <Route path="/indice" element={<IndicePage />} />
         <Route path="/simulado" element={<SimuladoPage />} />
         <Route path="/provas" element={<ExamsPage />} />
+        <Route path="/erros" element={<ErrorNotebookPage />} />
         <Route path="/provas/:id" element={<ExamAttemptPage />} />
         <Route path="/sabia" element={<SabiaPage />} />
       </Route>
