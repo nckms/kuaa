@@ -56,6 +56,15 @@ const ENERGIA_AMB = ['Energia, Ambiente e Desenvolvimento']
 const ORGANICA = ['Carbono, Polímeros e Química Ambiental']
 const ELETROQUIMICA = ['Eletroquímica e Radioatividade']
 const CINETICA = ['Energia, Cinética e Equilíbrio Químico']
+const FILO_CONHEC = ['Conhecimento, Lógica e Ciência']
+const FILO_POLITICA = ['Filosofia Política e Direitos']
+const FILO_ETICA = ['Ética, Liberdade e Estética']
+const SOC_CULTURA = ['Cultura, Identidade e Socialização']
+const SOC_TRABALHO = ['Trabalho, Desigualdade e Estratificação']
+const SOC_PODER = ['Poder, Cidadania e Movimentos Sociais']
+const ING_LEITURA = ['Leitura e Inferência em Inglês']
+const ING_VOCAB = ['Vocabulário e Recursos Linguísticos em Inglês']
+const ING_CULTURA = ['Cultura e Discursos em Inglês']
 
 export const reviewQuestions: CuratedQuestion[] = [
   // ── Interpretação de texto ────────────────────────────────────────────────
@@ -771,4 +780,130 @@ export const reviewQuestions: CuratedQuestion[] = [
     'Uma reação que libera calor para o ambiente é chamada de',
     ['exotérmica, com variação de entalpia negativa (ΔH < 0).', 'endotérmica, com ΔH > 0.', 'exotérmica, com ΔH > 0.', 'isotérmica, sem troca de calor.', 'endotérmica, com ΔH < 0.'],
     'Na reação exotérmica a energia dos produtos é menor que a dos reagentes; a diferença sai como calor, e ΔH é negativo (ex.: combustão).'),
+
+  // ── Filosofia: conhecimento, lógica e ciência ─────────────────────────────
+  q('filo-conhec-1', FILO_CONHEC, 1,
+    'A frase "Penso, logo existo", de Descartes, expressa a ideia de que',
+    ['mesmo duvidando de tudo, não se pode duvidar de que existe quem pensa.', 'só existe aquilo que pode ser tocado.', 'o pensamento é uma ilusão dos sentidos.', 'a experiência sensível é a única fonte de verdade.', 'nada pode ser conhecido.'],
+    'Pela dúvida metódica, Descartes questiona tudo; o próprio ato de duvidar prova a existência do sujeito pensante, primeira certeza do racionalismo.'),
+  q('filo-conhec-2', FILO_CONHEC, 2,
+    'Considere: "Todo mamífero é vertebrado. A baleia é mamífero. Logo, a baleia é vertebrada." Esse raciocínio é',
+    ['uma dedução válida (silogismo).', 'uma indução por amostragem.', 'uma falácia de autoridade.', 'um argumento circular.', 'uma analogia.'],
+    'Das premissas gerais se chega necessariamente à conclusão particular: é dedução. Se as premissas são verdadeiras, a conclusão também é.'),
+  q('filo-conhec-3', FILO_CONHEC, 3,
+    'Para Karl Popper, uma teoria é científica quando',
+    ['pode, em princípio, ser refutada por observações ou experimentos (falseabilidade).', 'é aceita pela maioria das pessoas.', 'nunca pode ser contestada.', 'foi proposta por uma autoridade.', 'explica qualquer resultado possível.'],
+    'Teorias científicas fazem previsões arriscadas que poderiam se mostrar falsas. Uma teoria que se ajusta a qualquer resultado não é testável.'),
+
+  // ── Filosofia política e direitos ─────────────────────────────────────────
+  q('filo-politica-1', FILO_POLITICA, 1,
+    'Montesquieu é conhecido por defender',
+    ['a separação dos poderes em Legislativo, Executivo e Judiciário.', 'o poder absoluto dos reis.', 'o fim de todas as leis.', 'a ditadura do proletariado.', 'o voto apenas dos nobres.'],
+    'Em "O Espírito das Leis", Montesquieu propõe dividir o poder para que um limite o outro e impedir a tirania.'),
+  q('filo-politica-2', FILO_POLITICA, 2,
+    'Para Thomas Hobbes, os indivíduos aceitam um Estado forte (o Leviatã) porque',
+    ['no estado de natureza haveria uma "guerra de todos contra todos" e o medo da morte violenta.', 'os seres humanos são naturalmente bons e cooperativos.', 'o Estado é criado por vontade divina.', 'desejam abolir a propriedade privada.', 'querem viver sem regras.'],
+    'Hobbes descreve um estado de natureza inseguro; pelo contrato social, as pessoas cedem liberdade ao soberano em troca de paz e segurança.'),
+  q('filo-politica-3', FILO_POLITICA, 3,
+    'Ao contrário de Hobbes, John Locke defendia que o governo',
+    ['existe para proteger direitos naturais (vida, liberdade e propriedade) e pode ser derrubado se os violar.', 'deve ter poder ilimitado e irrevogável.', 'não precisa do consentimento dos governados.', 'deve abolir a propriedade privada.', 'é sempre ilegítimo.'],
+    'Para Locke, os direitos naturais vêm antes do Estado; se o governo os desrespeita, o povo tem direito de resistência — ideia central do liberalismo.'),
+
+  // ── Ética, liberdade e estética ───────────────────────────────────────────
+  q('filo-etica-1', FILO_ETICA, 1,
+    'A ética utilitarista avalia uma ação como correta quando ela',
+    ['produz o maior bem-estar para o maior número de pessoas.', 'segue a tradição, sem exceções.', 'beneficia apenas quem a pratica.', 'é ordenada por uma autoridade.', 'causa sofrimento a todos igualmente.'],
+    'Bentham e Mill julgam ações pelas consequências: a melhor é a que maximiza a felicidade geral.'),
+  q('filo-etica-2', FILO_ETICA, 2,
+    'Para Kant, uma ação tem valor moral quando',
+    ['é feita por dever, seguindo uma regra que se poderia querer como lei universal.', 'gera lucro para quem age.', 'é aprovada pela maioria.', 'resulta sempre em felicidade.', 'é feita por medo de punição.'],
+    'O imperativo categórico pede agir segundo máximas universalizáveis e tratar as pessoas sempre como fins, nunca apenas como meios.'),
+  q('filo-etica-3', FILO_ETICA, 3,
+    'Para Sartre, "o ser humano está condenado a ser livre". Isso significa que',
+    ['não há natureza humana fixa: cada um se define por suas escolhas e é responsável por elas.', 'a liberdade é uma ilusão.', 'o destino de cada pessoa já está escrito.', 'só os governantes são livres.', 'escolher é proibido.'],
+    'No existencialismo, "a existência precede a essência": não escolher também é uma escolha, e a responsabilidade não pode ser transferida.'),
+
+  // ── Sociologia: cultura e socialização ────────────────────────────────────
+  q('soc-cultura-1', SOC_CULTURA, 1,
+    'Etnocentrismo é',
+    ['julgar outras culturas tomando a própria como padrão de certo e superior.', 'estudar várias culturas com respeito.', 'defender a diversidade cultural.', 'aprender um idioma estrangeiro.', 'viver em outro país.'],
+    'O etnocentrismo hierarquiza culturas a partir da própria. O relativismo cultural, ao contrário, busca compreender cada cultura em seu contexto.'),
+  q('soc-cultura-2', SOC_CULTURA, 2,
+    'A família, a escola e os amigos são considerados agentes de socialização porque',
+    ['transmitem normas, valores e comportamentos ao indivíduo.', 'produzem bens industriais.', 'definem a genética das pessoas.', 'substituem o Estado.', 'impedem a convivência social.'],
+    'Socialização é o processo pelo qual aprendemos a viver em sociedade; família e escola são agentes primários e secundários importantes.'),
+  q('soc-cultura-3', SOC_CULTURA, 3,
+    'A "indústria cultural", conceito de Adorno e Horkheimer, critica',
+    ['a produção padronizada de cultura como mercadoria, voltada ao consumo em massa.', 'a existência de museus públicos.', 'o ensino de arte nas escolas.', 'as tradições populares.', 'o uso de instrumentos musicais.'],
+    'Para a Escola de Frankfurt, a cultura de massa produzida em série tende a padronizar gostos e reduzir a reflexão crítica.'),
+
+  // ── Trabalho e desigualdade ───────────────────────────────────────────────
+  q('soc-trabalho-1', SOC_TRABALHO, 1,
+    'Para Karl Marx, a "mais-valia" é',
+    ['o valor produzido pelo trabalhador além do que recebe como salário, apropriado pelo capitalista.', 'o imposto pago ao governo.', 'o salário mínimo.', 'o valor das matérias-primas.', 'o lucro dos trabalhadores.'],
+    'O trabalhador produz mais valor do que o salário que recebe; essa diferença é a base do lucro na análise marxista.'),
+  q('soc-trabalho-2', SOC_TRABALHO, 2,
+    'A "uberização" do trabalho refere-se a',
+    ['relações de trabalho por aplicativos, com renda variável e poucas garantias trabalhistas.', 'aumento de empregos com carteira assinada.', 'fim do uso da internet no trabalho.', 'trabalho exclusivamente rural.', 'redução da jornada com salário garantido.'],
+    'O termo descreve trabalhadores conectados a plataformas, geralmente sem vínculo formal, que assumem custos e riscos da atividade.'),
+  q('soc-trabalho-3', SOC_TRABALHO, 3,
+    'A mobilidade social é baixa quando',
+    ['a posição social dos filhos depende fortemente da renda e da escolaridade dos pais.', 'todos têm as mesmas oportunidades.', 'a educação pública é de alta qualidade para todos.', 'não existem desigualdades.', 'a renda muda muito de uma geração para outra.'],
+    'Com baixa mobilidade, a origem familiar determina o destino das pessoas, e as desigualdades se reproduzem entre gerações.'),
+
+  // ── Poder, cidadania e movimentos sociais ─────────────────────────────────
+  q('soc-poder-1', SOC_PODER, 1,
+    'Segundo T. H. Marshall, a cidadania moderna reúne direitos',
+    ['civis, políticos e sociais.', 'apenas econômicos.', 'somente religiosos.', 'exclusivos de proprietários.', 'militares e nobiliárquicos.'],
+    'Marshall descreve direitos civis (liberdades individuais), políticos (votar e ser votado) e sociais (educação, saúde, previdência).'),
+  q('soc-poder-2', SOC_PODER, 2,
+    'Para Max Weber, a dominação "legal-racional" baseia-se',
+    ['em regras impessoais e na burocracia.', 'na tradição herdada dos antepassados.', 'no carisma extraordinário de um líder.', 'na força física apenas.', 'em revelações religiosas.'],
+    'Weber distingue dominação tradicional, carismática e legal-racional; a última apoia-se em leis e cargos, típica do Estado moderno.'),
+  q('soc-poder-3', SOC_PODER, 3,
+    'Movimentos sociais como o feminista e o negro contribuíram para',
+    ['ampliar direitos e dar visibilidade a desigualdades antes pouco reconhecidas.', 'reduzir a participação política da população.', 'acabar com o voto.', 'impedir mudanças nas leis.', 'concentrar o poder em um único partido.'],
+    'Pela mobilização coletiva, esses movimentos levaram demandas ao debate público e conquistaram mudanças legais, como leis contra a violência doméstica e o racismo.'),
+
+  // ── Inglês: leitura e inferência ──────────────────────────────────────────
+  q('ing-leitura-1', ING_LEITURA, 1,
+    'Read: "The library will be closed on Monday due to maintenance. Online services will remain available." According to the text,',
+    ['students can still use online services on Monday.', 'the library will close permanently.', 'online services will stop on Monday.', 'the library opens only on Mondays.', 'maintenance happens every day.'],
+    '"Will remain available" significa "continuarão disponíveis": só o prédio fecha na segunda-feira.'),
+  q('ing-leitura-2', ING_LEITURA, 2,
+    'Read: "Although the app is free, users pay with their data." The author suggests that',
+    ['the app has a hidden cost: personal information.', 'the app is expensive.', 'users are paid to use the app.', 'the app does not collect any data.', 'data is always free and useless.'],
+    '"Although" (embora) introduz um contraste: grátis em dinheiro, mas o usuário "paga" com seus dados.'),
+  q('ing-leitura-3', ING_LEITURA, 3,
+    'Read: "Experts warn that heat waves, once rare, are becoming the new normal." The phrase "the new normal" means that heat waves',
+    ['are becoming common and expected.', 'have disappeared.', 'are still very rare.', 'are good for health.', 'happen only in winter.'],
+    '"Once rare" (antes raras) e "the new normal" indicam que o fenômeno passou a ser frequente e esperado.'),
+
+  // ── Inglês: vocabulário ───────────────────────────────────────────────────
+  q('ing-vocab-1', ING_VOCAB, 1,
+    'In "She pretended to be asleep", the verb "pretended" means',
+    ['fingiu.', 'pretendeu (teve a intenção).', 'preferiu.', 'precisou.', 'prometeu.'],
+    '"To pretend" é falso cognato: significa fingir. "Pretender" (ter intenção) em inglês é "to intend".'),
+  q('ing-vocab-2', ING_VOCAB, 2,
+    'In "Actually, I prefer tea", the word "actually" means',
+    ['na verdade.', 'atualmente.', 'exatamente agora.', 'raramente.', 'felizmente.'],
+    '"Actually" é falso cognato: significa "na verdade". "Atualmente" em inglês é "currently" ou "nowadays".'),
+  q('ing-vocab-3', ING_VOCAB, 3,
+    'In "If I had studied more, I would have passed the test", the speaker',
+    ['did not study enough and did not pass.', 'studied a lot and passed.', 'will study tomorrow.', 'always passes tests.', 'is studying right now.'],
+    'É uma condicional do passado (third conditional): fala de algo que não aconteceu. Ele não estudou o suficiente e não passou.'),
+
+  // ── Inglês: cultura e discursos ───────────────────────────────────────────
+  q('ing-cultura-1', ING_CULTURA, 1,
+    'A sign in a park says: "Please keep off the grass." The sign asks people to',
+    ['not walk on the grass.', 'cut the grass.', 'water the grass.', 'sit on the grass.', 'buy grass.'],
+    '"Keep off" significa "manter-se fora / não pisar". É um aviso comum em parques.'),
+  q('ing-cultura-2', ING_CULTURA, 2,
+    'In a campaign slogan, "Reduce, Reuse, Recycle", the message focuses on',
+    ['less waste and more sustainable consumption.', 'buying more products.', 'increasing pollution.', 'using disposable items.', 'saving money in a bank.'],
+    'Os três verbos formam os "3 Rs" da sustentabilidade: reduzir, reutilizar e reciclar.'),
+  q('ing-cultura-3', ING_CULTURA, 3,
+    'In the poem line "I, too, sing America", Langston Hughes, an African American poet, expresses',
+    ['the claim that Black Americans are also part of the nation and its identity.', 'a wish to leave America.', 'a song about another country.', 'support for segregation.', 'indifference to his country.'],
+    'Hughes, da Harlem Renaissance, afirma o pertencimento dos afro-americanos à nação, contra a exclusão e a segregação.'),
 ]
