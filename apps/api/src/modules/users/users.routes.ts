@@ -22,6 +22,10 @@ const PreferencesSchema = z.object({
   enemLanguage: z.enum(['ingles', 'espanhol']).default('ingles'),
   weeklyEmail: z.boolean().default(true),
   pushReminders: z.boolean().default(true),
+  /** Data da prova (plano até a prova). Ausente = data estimada. */
+  examDate: z.string().regex(/^20\d{2}-\d{2}-\d{2}$/).optional(),
+  /** Meta de nota por área (plano até a prova). */
+  targetScore: z.number().int().min(300).max(1000).optional(),
 })
 
 function preferencesWithDefaults(value: unknown) {

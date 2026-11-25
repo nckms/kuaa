@@ -50,6 +50,7 @@ export default function AppLayout({ children, rightSidebar }: Props) {
     trilha: { key: 'trilha', label: 'Minha trilha', icon: 'bi-signpost-split', href: trailHref, match: ['/trilha', '/estudar', '/revisao'] },
     simulado: { key: 'simulado', label: 'Simulado', icon: 'bi-clipboard-check', href: '/simulado', match: ['/simulado'] },
     provas: { key: 'provas', label: 'Provas anteriores', icon: 'bi-journal-text', href: '/provas', match: ['/provas'], badge: 'Novo' },
+    plano: { key: 'plano', label: 'Plano até a prova', icon: 'bi-calendar-check', href: '/plano', match: ['/plano'], badge: 'Plus' },
     erros: { key: 'erros', label: 'Meus erros', icon: 'bi-arrow-repeat', href: '/erros', match: ['/erros'], badge: 'Novo' },
     sabia: { key: 'sabia', label: 'Sabiá IA', icon: 'bi-stars', href: '/sabia', match: ['/sabia'] },
     redacao: { key: 'redacao', label: 'Redação', icon: 'bi-pen', href: essayHref, match: ['/redacao'] },
@@ -59,11 +60,11 @@ export default function AppLayout({ children, rightSidebar }: Props) {
     config: { key: 'config', label: 'Configurações', icon: 'bi-gear', href: '/configuracoes', match: ['/configuracoes', '/avaliacao'] },
   }
   const groups = [
-    [items.painel, items.trilha, items.erros, items.simulado, items.provas, items.sabia, items.redacao],
+    [items.painel, items.trilha, items.plano, items.erros, items.simulado, items.provas, items.sabia, items.redacao],
     [items.indice, items.ranking],
     [items.perfil, items.config],
   ] as NavItem[][]
-  const moreItems = [items.erros, items.provas, items.indice, items.redacao, items.ranking, items.perfil, items.config] as NavItem[]
+  const moreItems = [items.plano, items.erros, items.provas, items.indice, items.redacao, items.ranking, items.perfil, items.config] as NavItem[]
   const bottomItems = [
     { ...items.trilha!, label: 'Trilha' },
     items.painel!,
