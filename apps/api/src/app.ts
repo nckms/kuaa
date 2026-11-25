@@ -8,6 +8,7 @@ import { errorHandler } from './middleware/errorHandler'
 import { env } from './lib/env'
 import crypto from 'node:crypto'
 import { stripeWebhook } from './modules/billing/billing'
+import { studentUploadHandlers } from './modules/students/students'
 
 const app = express()
 app.disable('x-powered-by')
@@ -66,6 +67,8 @@ if (env.NODE_ENV !== 'test') {
 
 // Webhook da Stripe precisa do corpo cru para validar a assinatura.
 app.post('/api/v1/billing/webhook', express.raw({ type: 'application/json', limit: '1mb' }), stripeWebhook)
+// Envio de documento de estudante: corpo maior só nesta rota.
+app.post('/api/v1/students/verification', ...studentUploadHandlers)
 app.use(express.json())
 app.use('/api/v1', router)
 app.use(errorHandler)

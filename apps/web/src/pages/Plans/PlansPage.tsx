@@ -1,21 +1,23 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth.store'
 import './PlansPage.css'
 
 const SUPPORT_EMAIL = (import.meta.env.VITE_SUPPORT_EMAIL as string | undefined)?.trim() || ''
-export const PLUS_PRICE = 'R$ 99'
-export const PLUS_UNTIL = '31/12/2027'
 
 interface PlanSummary {
   plan: 'FREE' | 'PLUS'
   expiresAt: string | null
   quotas: Array<{ name: 'practice' | 'sabia' | 'essayFeedback'; period: 'day' | 'month'; limit: number; used: number }>
 }
-const QUOTA_LABEL = { practice: 'Práticas', sabia: 'Perguntas ao Sabiá', essayFeedback: 'Análises de redação' }
+interface BillingConfig { enabled: boolean; prices?: { full: number; student: number } }
+interface MySubscription { status: string; priceKind: 'FULL' | 'STUDENT'; currentPeriodEnd: string | null; cancelAtPeriodEnd: boolean }
+interface StudentStatus { eligible: boolean; last: { status: string; submittedAt: string; expiresAt: string | null; rejectReason: string | null } | null }
 
+const QUOTA_LABEL = { practice: 'Práticas', sabia: 'Perguntas ao Sabiá', essayFeedback: 'Análises de redação' }
 const ROWS: Array<[string, string, string]> = [
   ['Diagnóstico e trilha adaptativa', 'Incluído', 'Incluído'],
   ['Explicação de todo erro', 'Sempre', 'Sempre'],
@@ -24,30 +26,70 @@ const ROWS: Array<[string, string, string]> = [
   ['Perguntas ao Sabiá', '15 por dia', '100 por dia'],
   ['Análise de redação por IA', '2 por mês', '15 por mês'],
 ]
+const brl = (cents: number) => (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+const date = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '')
+const apiError = (err: unknown, fallback: string) =>
+  (axios.isAxiosError(err) && typeof err.response?.data?.error === 'string' ? err.response.data.error : fallback)
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
 
 export default function PlansPage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const email = useAuthStore((state) => state.user?.email)
+  const queryClient = useQueryClient()
   const [params] = useSearchParams()
   const purchase = params.get('compra')
   const [adult, setAdult] = useState(false)
-  const config = useQuery({
-    queryKey: ['billing', 'config'],
-    queryFn: async () => (await api.get<{ enabled: boolean }>('/billing/config')).data,
-  })
+  const [file, setFile] = useState<File | null>(null)
+  const [consent, setConsent] = useState(false)
+
+  const config = useQuery({ queryKey: ['billing', 'config'], queryFn: async () => (await api.get<BillingConfig>('/billing/config')).data })
   const summary = useQuery({
     queryKey: ['user', 'plan'],
     queryFn: async () => (await api.get<PlanSummary>('/users/me/plan')).data,
     enabled: isAuthenticated,
-    // Depois de pagar (Pix confirma em instantes), consulta até o Plus aparecer.
+    // Depois de assinar, consulta até a confirmação chegar (Pix leva instantes).
     refetchInterval: (query) => (purchase === 'ok' && query.state.data?.plan !== 'PLUS' ? 4000 : false),
+  })
+  const subscription = useQuery({
+    queryKey: ['billing', 'subscription'],
+    queryFn: async () => (await api.get<MySubscription | null>('/billing/subscription')).data,
+    enabled: isAuthenticated,
+    refetchInterval: purchase === 'ok' ? 4000 : false,
+  })
+  const student = useQuery({
+    queryKey: ['students', 'verification'],
+    queryFn: async () => (await api.get<StudentStatus>('/students/verification')).data,
+    enabled: isAuthenticated,
   })
   const checkout = useMutation({
     mutationFn: async () => (await api.post<{ url: string }>('/billing/checkout', { adultConfirmed: true })).data,
     onSuccess: ({ url }) => { window.location.assign(url) },
   })
+  const portal = useMutation({
+    mutationFn: async () => (await api.post<{ url: string }>('/billing/portal')).data,
+    onSuccess: ({ url }) => { window.location.assign(url) },
+  })
+  const upload = useMutation({
+    mutationFn: async () => {
+      if (!file) throw new Error('Escolha um arquivo.')
+      if (file.size > 4 * 1024 * 1024) throw new Error('Arquivo maior que 4 MB.')
+      return (await api.post('/students/verification', { fileBase64: await readAsDataUrl(file), consent: true })).data
+    },
+    onSuccess: () => { setFile(null); setConsent(false); void queryClient.invalidateQueries({ queryKey: ['students'] }) },
+  })
+
+  const prices = config.data?.prices
   const isPlus = summary.data?.plan === 'PLUS'
-  const expires = summary.data?.expiresAt ? new Date(summary.data.expiresAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : null
+  const sub = subscription.data
+  const hasSubscription = Boolean(sub && ['active', 'trialing', 'past_due'].includes(sub.status))
+  const studentPrice = student.data?.eligible
 
   return (
     <div className="kp">
@@ -60,13 +102,22 @@ export default function PlansPage() {
         <h1>Planos</h1>
         <p className="kp-lead">O gratuito já tem o essencial para estudar: diagnóstico, trilha e explicação de todo erro. O Plus aumenta o volume de prática e de IA para quem estuda todo dia.</p>
 
-        {purchase === 'ok' && !isPlus && <p className="kp-banner" role="status">Pagamento enviado. Assim que a confirmação chegar (no Pix leva poucos instantes), seu Plus aparece aqui.</p>}
+        {purchase === 'ok' && !isPlus && <p className="kp-banner" role="status">Assinatura enviada. Assim que o banco confirmar (no Pix leva instantes), seu Plus aparece aqui.</p>}
         {purchase === 'ok' && isPlus && <p className="kp-banner is-ok" role="status">Tudo certo: seu Kuaa Plus está ativo.</p>}
-        {purchase === 'cancelada' && <p className="kp-banner" role="status">O pagamento não foi concluído. Nada foi cobrado.</p>}
+        {purchase === 'cancelada' && <p className="kp-banner" role="status">A assinatura não foi concluída. Nada foi cobrado.</p>}
 
         {summary.data && (
           <section className="kp-current" aria-label="Seu plano">
-            <p><strong>Seu plano: {isPlus ? 'Kuaa Plus' : 'Gratuito'}</strong>{isPlus && expires ? ` · válido até ${expires}` : ''}</p>
+            <p><strong>Seu plano: {isPlus ? 'Kuaa Plus' : 'Gratuito'}</strong></p>
+            {hasSubscription && sub && (
+              <p className="kp-sub">
+                {sub.status === 'past_due' ? 'Pagamento da renovação pendente. ' : ''}
+                {sub.cancelAtPeriodEnd
+                  ? `Assinatura cancelada: o Plus continua até ${date(sub.currentPeriodEnd)}.`
+                  : `Renova em ${date(sub.currentPeriodEnd)}${sub.priceKind === 'STUDENT' ? ' com preço de estudante' : ''}.`}
+                {' '}<button type="button" className="kp-linkbtn" onClick={() => portal.mutate()} disabled={portal.isPending}>Gerenciar ou cancelar</button>
+              </p>
+            )}
             <ul>
               {summary.data.quotas.map((quota) => (
                 <li key={quota.name}>
@@ -88,10 +139,13 @@ export default function PlansPage() {
           </section>
           <section className="kp-card is-plus" aria-labelledby="kp-plus">
             <h2 id="kp-plus">Kuaa Plus</h2>
-            <p className="kp-price">{PLUS_PRICE} <small>à vista</small></p>
-            <p className="kp-note">Acesso até {PLUS_UNTIL}. Pagamento único, sem renovação automática.</p>
-            {isPlus ? <p className="kp-ok">Seu Plus está ativo.</p>
-              : !config.data?.enabled ? <p className="kp-soon">A venda abre em breve.</p>
+            <p className="kp-price">{prices ? brl(studentPrice ? prices.student : prices.full) : 'R$ 29,90'} <small>por mês</small></p>
+            <p className="kp-note">
+              {studentPrice ? 'Preço de estudante aplicado. ' : `Estudante paga meia: ${prices ? brl(prices.student) : 'R$ 14,95'}/mês. `}
+              Paga com Pix Automático, sem cartão. Cancele quando quiser.
+            </p>
+            {isPlus && hasSubscription ? <p className="kp-ok">Sua assinatura está ativa.</p>
+              : !config.data?.enabled ? <p className="kp-soon">As assinaturas abrem em breve.</p>
                 : !isAuthenticated ? <Link to="/cadastro" className="kp-btn">Criar conta para assinar<i className="bi bi-arrow-right" aria-hidden="true" /></Link>
                   : <form className="kp-buy" onSubmit={(event) => { event.preventDefault(); if (adult) checkout.mutate() }}>
                     <label className="kp-check">
@@ -99,12 +153,39 @@ export default function PlansPage() {
                       <span>Sou maior de 18 anos ou responsável pelo estudante.</span>
                     </label>
                     <button type="submit" className="kp-btn" disabled={!adult || checkout.isPending}>
-                      {checkout.isPending ? 'Abrindo pagamento…' : 'Pagar com Pix ou cartão'}<i className="bi bi-lock" aria-hidden="true" />
+                      {checkout.isPending ? 'Abrindo pagamento…' : 'Assinar com Pix'}<i className="bi bi-lock" aria-hidden="true" />
                     </button>
-                    {checkout.isError && <p role="alert" className="kp-err">Não foi possível abrir o pagamento. Tente de novo em instantes.</p>}
+                    <p className="kp-fine">Você autoriza uma vez no app do seu banco. Antes de cada mês, o banco avisa o valor e você pode cancelar por lá ou aqui.</p>
+                    {checkout.isError && <p role="alert" className="kp-err">{apiError(checkout.error, 'Não foi possível abrir o pagamento. Tente de novo em instantes.')}</p>}
                   </form>}
           </section>
         </div>
+
+        {isAuthenticated && config.data?.enabled && !hasSubscription && (
+          <section className="kp-student" aria-labelledby="kp-student-title">
+            <h2 id="kp-student-title">Meia para estudante</h2>
+            {student.data?.eligible ? (
+              <p className="kp-ok-dark">Meia aprovada até {date(student.data.last?.expiresAt)}. O preço de estudante já aparece na assinatura.</p>
+            ) : student.data?.last?.status === 'PENDING' ? (
+              <p>Recebemos seu documento em {date(student.data.last.submittedAt)}. A análise sai em até 2 dias úteis.</p>
+            ) : (
+              <form className="kp-upload" onSubmit={(event) => { event.preventDefault(); if (file && consent) upload.mutate() }}>
+                {student.data?.last?.status === 'REJECTED' && <p className="kp-err-dark" role="alert">Documento recusado: {student.data.last.rejectReason}</p>}
+                <p>Envie uma foto da carteirinha de estudante ou da declaração de matrícula deste ano (JPG, PNG ou PDF, até 4 MB).</p>
+                <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" aria-label="Documento de estudante"
+                  onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+                <label className="kp-check is-dark">
+                  <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+                  <span>Autorizo o uso desta imagem só para conferir a matrícula. Ela é apagada assim que a análise termina.</span>
+                </label>
+                <button type="submit" className="kp-btn is-outline" disabled={!file || !consent || upload.isPending}>
+                  {upload.isPending ? 'Enviando…' : 'Enviar para análise'}
+                </button>
+                {upload.isError && <p className="kp-err-dark" role="alert">{apiError(upload.error, upload.error instanceof Error ? upload.error.message : 'Não foi possível enviar.')}</p>}
+              </form>
+            )}
+          </section>
+        )}
 
         <table className="kp-table">
           <caption className="kp-sr">Comparação entre os planos</caption>
@@ -113,14 +194,16 @@ export default function PlansPage() {
         </table>
 
         <section className="kp-faq" aria-labelledby="kp-faq-title">
-          <h2 id="kp-faq-title">Antes de comprar</h2>
+          <h2 id="kp-faq-title">Antes de assinar</h2>
           <dl>
-            <dt>Como o Plus é liberado?</dt>
-            <dd>Automaticamente, na conta{isAuthenticated && email ? ` ${email}` : ' em que você estiver logado'}, assim que o pagamento é confirmado. No cartão é na hora; no Pix, poucos instantes depois de pagar. O pagamento é processado pela Stripe; o Kuaa não vê os dados do seu cartão.</dd>
-            <dt>Quem pode comprar?</dt>
+            <dt>Preciso de cartão?</dt>
+            <dd>Não. A assinatura usa Pix Automático: você autoriza uma vez no app do banco e a mensalidade é debitada sozinha, com aviso do banco antes de cada cobrança.</dd>
+            <dt>Como cancelo?</dt>
+            <dd>Em "Gerenciar ou cancelar", aqui nesta página, ou no app do seu banco. O Plus continua até o fim do mês já pago.</dd>
+            <dt>Quem pode assinar?</dt>
             <dd>Maiores de 18 anos ou o responsável pelo estudante.</dd>
             <dt>E se eu me arrepender?</dt>
-            <dd>Você pode pedir o reembolso integral em até 7 dias após a compra.{SUPPORT_EMAIL && <> Escreva para <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</>}</dd>
+            <dd>Você pode pedir o reembolso integral da primeira mensalidade em até 7 dias.{SUPPORT_EMAIL && <> Escreva para <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</>}</dd>
             <dt>O Kuaa garante aprovação?</dt>
             <dd>Não. O Kuaa organiza o que estudar e explica seus erros; o resultado depende do seu estudo.</dd>
           </dl>

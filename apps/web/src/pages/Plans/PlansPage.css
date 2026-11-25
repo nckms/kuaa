@@ -52,3 +52,25 @@
 .kp-err { margin: 0; color: #FFE7EE; font-size: 14px; }
 .kp-banner { margin: 20px 0 0; padding: 14px 16px; border-radius: 14px; background: #FFF6D6; color: var(--kp-roxo-deep); font-weight: 600; }
 .kp-banner.is-ok { background: #E7F6EC; color: #14532D; }
+.kp-sub { margin: 6px 0 0 !important; font-size: 15px; }
+.kp-linkbtn { background: none; border: 0; padding: 6px 2px; color: var(--kp-roxo); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.kp-linkbtn:focus-visible { outline: 3px solid var(--kp-roxo); outline-offset: 2px; border-radius: 6px; }
+.kp-fine { margin: 0; font-size: 13px; line-height: 1.45; color: #EFE4F2; max-width: 40ch; }
+.kp-student { margin-top: 24px; padding: 20px; border-radius: 18px; background: #fff; border: 1px solid var(--kp-line); }
+.kp-student h2 { margin: 0 0 8px; font-family: var(--k-display); font-size: 20px; color: var(--kp-roxo); }
+.kp-student p { margin: 8px 0; line-height: 1.5; }
+.kp-upload { display: grid; gap: 12px; justify-items: start; }
+.kp-upload input[type=file] { font: inherit; max-width: 100%; }
+.kp-check.is-dark input { accent-color: var(--kp-roxo); }
+.kp-ok-dark { color: #14532D; font-weight: 600; }
+.kp-err-dark { color: var(--kp-vinho); font-weight: 600; }
+.kp-student .kp-btn { margin-top: 0; border: 0; cursor: pointer; font: inherit; font-weight: 700; }
+.kp-student .kp-btn.is-outline { border: 2px solid var(--kp-roxo); }
+.kp-student .kp-btn:disabled { opacity: .55; cursor: not-allowed; }
+.kp-upload { justify-items: stretch; }
+.kp-upload > button, .kp-upload > input[type=file] { justify-self: start; }
+.kp-upload p, .kp-upload label { min-width: 0; overflow-wrap: anywhere; }
+.kp-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 8px; }
+.kp-price small { white-space: nowrap; }
+.kp-upload, .kp-buy { grid-template-columns: minmax(0, 1fr); }
+.kp-student { min-width: 0; overflow-wrap: anywhere; }

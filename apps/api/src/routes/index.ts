@@ -16,6 +16,7 @@ import { studyRouter } from '../modules/study/study.routes'
 import { essaysRouter } from '../modules/essays/essays.routes'
 import { prisma } from '../lib/prisma'
 import { billingRouter } from '../modules/billing/billing.routes'
+import { adminStudentsRouter, studentsRouter } from '../modules/students/students'
 import { redis } from '../lib/redis'
 
 export const router = Router()
@@ -46,6 +47,8 @@ router.get('/ping', (_req, res) => {
 router.use('/auth', authRouter)
 router.use('/users', usersRouter)
 router.use('/billing', billingRouter)
+router.use('/students', studentsRouter)
+router.use('/admin/student-verifications', adminStudentsRouter)
 router.use('/vestibulares', vestibularesRouter)
 router.use('/enrollments', enrollmentsRouter)
 router.use('/trail', trailRouter)
