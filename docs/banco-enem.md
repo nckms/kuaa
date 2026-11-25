@@ -33,9 +33,19 @@ gabarito oficial". Se a IA não responder em 9 s, o aluno vê o gabarito oficial
 e a explicação aparece na revisão. Explicação revisada por professor pode
 substituir a da IA direto no banco (o importador não sobrescreve).
 
+## Provas anteriores (`/provas`)
+
+Prova completa de cada ano (dia 1 ou 2), na ordem oficial, com o tempo e as
+áreas de cada época (até 2016: dia 1 = Humanas + Natureza, 4h30; dia 2 =
+Linguagens + Matemática, 5h30; 2009 com Natureza antes de Humanas; de 2017 em
+diante: dia 1 = Linguagens + Humanas, 5h30; dia 2 = Natureza + Matemática, 5h).
+Idioma conforme a preferência do aluno. Correção com gabarito oficial e
+explicação sob demanda. Não altera o Índice Kuaa. Redação não incluída.
+
 ## Classificação por tópico
 
-A base só informa a área (Matemática, Natureza, Humanas, Linguagens, idioma).
+A área vem da posição oficial da questão na prova (o campo da base errava em
+~150 questões, por exemplo Biologia marcada como Humanas). A base só informa a área (Matemática, Natureza, Humanas, Linguagens, idioma).
 O tópico vem de palavras-chave (`scripts/official/enem-topics.mjs`) dentro da
 área: 665 com confiança alta, o resto baixa (campo `confidence` no JSON).
 Depois do deploy, a própria API reclassifica em segundo plano cada questão

@@ -24,6 +24,19 @@ for (const year of fs.readdirSync(path.join(root, 'public')).filter((y) => /^\d{
 }
 
 // Texto puro: a base vem em markdown leve (negrito, itálico com _ ou *); o app mostra texto simples.
+/**
+ * Área pela posição oficial da questão na prova (o campo "discipline" da base
+ * erra em ~150 questões). 2017+: Linguagens 1–45, Humanas 46–90, Natureza
+ * 91–135, Matemática 136–180. 2010–2016: Humanas 1–45, Natureza 46–90,
+ * Linguagens 91–135, Matemática 136–180. 2009: Natureza 1–45, Humanas 46–90.
+ */
+export function officialArea(year, number) {
+  const blocks = year >= 2017 ? ['linguagens', 'ciencias-humanas', 'ciencias-natureza', 'matematica']
+    : year === 2009 ? ['ciencias-natureza', 'ciencias-humanas', 'linguagens', 'matematica']
+      : ['ciencias-humanas', 'ciencias-natureza', 'linguagens', 'matematica']
+  return blocks[Math.min(3, Math.floor((number - 1) / 45))]
+}
+
 const clean = (text) => (text ?? '').replace(/\r/g, '')
   .replace(/\*\*([^*]+?)\*\*/g, '$1').replace(/__([^_]+?)__/g, '$1')
   .replace(/(^|[\s(])\*([^*\n]+?)\*(?=[\s).,;:!?]|$)/g, '$1$2').replace(/(^|[\s(])_([^_\n]+?)_(?=[\s).,;:!?]|$)/g, '$1$2')
@@ -47,13 +60,14 @@ for (const file of files) {
   const context = (q.context ?? '').replace(/!\[[^\]]*\]\([^)]*\)/g, '')
   const body = [clean(context), clean(q.alternativesIntroduction)].filter(Boolean).join('\n\n')
   if (body.length < 20) continue
-  const topic = classify({ discipline: q.discipline, language: q.language, text: `${body}\n${options.map((o) => o.text).join('\n')}` })
+  const area = q.language ? q.language : officialArea(q.year, q.index)
+  const topic = classify({ discipline: officialArea(q.year, q.index), language: q.language, text: `${body}\n${options.map((o) => o.text).join('\n')}` })
   if (!topic) continue
   items.push({
     // Id compatível com a validação cuid das rotas (começa com "c", sem hífen) e estável entre importações.
     id,
     ...(imageUrl ? { imageUrl } : {}),
-    year: q.year, number: q.index, language: q.language ?? null, discipline: q.discipline,
+    year: q.year, number: q.index, language: q.language ?? null, area,
     topic: topic.topic, confidence: topic.confidence,
     body, options,
   })

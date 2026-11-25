@@ -1,0 +1,15 @@
+.ex-note { font-size: 13px; margin: -4px 0 18px; }
+.ex-year { margin: 20px 0 8px; }
+.ex-year h2 { margin: 0 0 10px; }
+.ex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.ex-card { display: flex; flex-direction: column; gap: 6px; }
+.ex-card-head { display: flex; flex-direction: column; }
+.ex-card-head small { color: var(--k-muted); font-size: 13px; }
+.ex-card-meta, .ex-card-last { margin: 0; font-size: 13px; color: var(--k-muted); }
+.ex-card .k-btn { align-self: flex-start; margin-top: 6px; }
+.ex-subjects { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ex-subjects li { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.ex-of { font-size: .45em; opacity: .7; }
+.ex-explain { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ex-ai { opacity: .7; }
+.ex-runner-title { padding: 16px 16px 0; margin: 0; }

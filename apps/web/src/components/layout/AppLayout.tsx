@@ -48,7 +48,8 @@ export default function AppLayout({ children, rightSidebar }: Props) {
   const items: Record<string, NavItem> = {
     painel: { key: 'painel', label: 'Início', icon: 'bi-house', href: '/dashboard', match: ['/dashboard'] },
     trilha: { key: 'trilha', label: 'Minha trilha', icon: 'bi-signpost-split', href: trailHref, match: ['/trilha', '/estudar', '/revisao'] },
-    simulado: { key: 'simulado', label: 'Simulado', icon: 'bi-clipboard-check', href: '/simulado', match: ['/simulado'], badge: 'Novo' },
+    simulado: { key: 'simulado', label: 'Simulado', icon: 'bi-clipboard-check', href: '/simulado', match: ['/simulado'] },
+    provas: { key: 'provas', label: 'Provas anteriores', icon: 'bi-journal-text', href: '/provas', match: ['/provas'], badge: 'Novo' },
     sabia: { key: 'sabia', label: 'Sabiá IA', icon: 'bi-stars', href: '/sabia', match: ['/sabia'] },
     redacao: { key: 'redacao', label: 'Redação', icon: 'bi-pen', href: essayHref, match: ['/redacao'] },
     indice: { key: 'indice', label: 'Índice Kuaa', icon: 'bi-speedometer2', href: '/indice', match: ['/indice'] },
@@ -57,11 +58,11 @@ export default function AppLayout({ children, rightSidebar }: Props) {
     config: { key: 'config', label: 'Configurações', icon: 'bi-gear', href: '/configuracoes', match: ['/configuracoes', '/avaliacao'] },
   }
   const groups = [
-    [items.painel, items.trilha, items.simulado, items.sabia, items.redacao],
+    [items.painel, items.trilha, items.simulado, items.provas, items.sabia, items.redacao],
     [items.indice, items.ranking],
     [items.perfil, items.config],
   ] as NavItem[][]
-  const moreItems = [items.indice, items.redacao, items.ranking, items.perfil, items.config] as NavItem[]
+  const moreItems = [items.provas, items.indice, items.redacao, items.ranking, items.perfil, items.config] as NavItem[]
   const bottomItems = [
     { ...items.trilha!, label: 'Trilha' },
     items.painel!,

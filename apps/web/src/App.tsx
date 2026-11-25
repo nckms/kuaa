@@ -31,6 +31,8 @@ import SabiaPage from './pages/Sabia/SabiaPage'
 import SettingsPage from './pages/Settings/SettingsPage'
 import EvaluationPage from './pages/Evaluation/EvaluationPage'
 import StudyPage from './pages/Study/StudyPage'
+import ExamsPage from './pages/Exams/ExamsPage'
+import ExamAttemptPage from './pages/Exams/ExamAttemptPage'
 import EssayPage from './pages/Essay/EssayPage'
 
 function TrailIndex() {
@@ -111,6 +113,8 @@ function AppRoutes() {
         <Route path="/ranking" element={<RankingPage />} />
         <Route path="/indice" element={<IndicePage />} />
         <Route path="/simulado" element={<SimuladoPage />} />
+        <Route path="/provas" element={<ExamsPage />} />
+        <Route path="/provas/:id" element={<ExamAttemptPage />} />
         <Route path="/sabia" element={<SabiaPage />} />
       </Route>
 
