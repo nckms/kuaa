@@ -32,7 +32,7 @@ export default function SecondPhaseQuestionPage() {
   const [answer, setAnswer] = useState('')
   const [showExpected, setShowExpected] = useState(false)
   const expected = useQuery({ queryKey: ['second-phase-expected', id], enabled: showExpected,
-    queryFn: async () => (await api.get<{ expected: string; criteria: string; source: string }>(`/second-phase/${id}/expected`)).data })
+    queryFn: async () => (await api.get<{ expected: string; expectedImageUrl?: string; criteria: string; source: string }>(`/second-phase/${id}/expected`)).data })
   const send = useMutation({
     mutationFn: async () => (await api.post<{ attempt: Attempt }>(`/second-phase/${id}/answer`, { answer })).data,
     onSuccess: () => { setShowExpected(true); void qc.invalidateQueries({ queryKey: ['second-phase'] }) },
@@ -61,7 +61,10 @@ export default function SecondPhaseQuestionPage() {
           {err && err.code !== 'PLUS_REQUIRED' && <p className="k-alert" role="alert">{err.error ?? 'Não foi possível corrigir agora.'}</p>}
           {send.data && <Result attempt={send.data.attempt} />}
           {showExpected && expected.data && <section className="k-card is-md sp2-expected" aria-label="Resposta esperada">
-            <h2 className="k-h3">Resposta esperada</h2><p className="sp2-pre">{expected.data.expected}</p>
+            <h2 className="k-h3">Resposta esperada</h2>
+            {expected.data.expectedImageUrl
+              ? <QuestionMedia imageUrl={expected.data.expectedImageUrl} imageAlt={`Resposta esperada: ${expected.data.expected.slice(0, 1500)}`} />
+              : <p className="sp2-pre">{expected.data.expected}</p>}
             {expected.data.criteria && <><h3>Considerações da banca</h3><p className="sp2-pre">{expected.data.criteria}</p></>}
             <small className="k-muted">Fonte: {expected.data.source}.</small>
           </section>}
