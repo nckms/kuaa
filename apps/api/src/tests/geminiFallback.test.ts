@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { isTransientModelError, withModelFallback } from '../lib/gemini'
+import { isTransientModelError, QUOTA_COOLDOWN_MS, withModelFallback } from '../lib/gemini'
 
 type Fn = Parameters<typeof withModelFallback>[0]
 const overloaded = () => Object.assign(new Error('{"error":{"code":503,"message":"This model is currently experiencing high demand.","status":"UNAVAILABLE"}}'), { status: 503 })
@@ -32,5 +32,26 @@ describe('modelo reserva do Gemini', () => {
     const busy = vi.fn(async () => { throw overloaded() })
     await expect(withModelFallback(busy as unknown as Fn, ['r1', 'r2'])({ model: 'p', contents: 'x' })).rejects.toMatchObject({ status: 503 })
     expect(busy).toHaveBeenCalledTimes(3)
+  })
+
+  it('cota esgotada: pula o modelo por 10 min; todos sem cota falha sem chamar o provedor; depois volta a tentar', async () => {
+    let t = 0
+    const quota = () => Object.assign(new Error('You exceeded your current quota'), { status: 429 })
+    const calls: string[] = []
+    const raw = vi.fn(async (p: { model: string }) => { calls.push(p.model); if (p.model === 'principal') throw quota(); return { text: p.model } })
+    const generate = withModelFallback(raw as unknown as Fn, ['reserva'], () => undefined, () => t)
+    expect((await generate({ model: 'principal', contents: 'x' })).text).toBe('reserva')
+    expect((await generate({ model: 'principal', contents: 'x' })).text).toBe('reserva')
+    expect(calls).toEqual(['principal', 'reserva', 'reserva'])
+    t = QUOTA_COOLDOWN_MS + 1
+    await generate({ model: 'principal', contents: 'x' })
+    expect(calls.slice(3)).toEqual(['principal', 'reserva'])
+
+    const none = vi.fn(async () => { throw quota() })
+    const g2 = withModelFallback(none as unknown as Fn, ['r1'], () => undefined, () => 0)
+    await expect(g2({ model: 'p', contents: 'x' })).rejects.toMatchObject({ status: 429 })
+    expect(none).toHaveBeenCalledTimes(2)
+    await expect(g2({ model: 'p', contents: 'x' })).rejects.toMatchObject({ status: 429 })
+    expect(none).toHaveBeenCalledTimes(2)
   })
 })
