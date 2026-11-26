@@ -43,7 +43,7 @@ async function officialPool(record: Enrollment, areas: DiagnosticArea[]): Promis
   if (!owner.size) return []
   const rows = await prisma.question.findMany({
     where: { source: 'OFFICIAL', generatedForSessionId: null, officialRefId: null, active: true, id: { notIn: INCONSISTENT_OFFICIAL }, topic: { name: { in: [...owner.keys()] } } },
-    select: { body: true, options: true, difficulty: true, difficultySource: true, origin: true, imageUrl: true, media: true, topic: { select: { name: true } } },
+    select: { id: true, body: true, options: true, difficulty: true, difficultySource: true, origin: true, imageUrl: true, media: true, topic: { select: { name: true } } },
   })
   // Diagnóstico curto: prefere enunciados de leitura rápida. Não prioriza as já classificadas
   // porque o classificador vai em ordem de ano e isso deixaria o diagnóstico só com provas antigas.
@@ -60,7 +60,8 @@ async function officialPool(record: Enrollment, areas: DiagnosticArea[]): Promis
     return picked.map((q) => {
       const where = owner.get(q.topic.name)!
       const options = q.options as unknown as QuestionOption[]
-      return { id: randomUUID(), body: q.body, explanation: '', origin: q.origin, ...where,
+      // officialRefId: a questão do banco (o Índice usa os parâmetros TRI dela).
+      return { id: randomUUID(), officialRefId: q.id, body: q.body, explanation: '', origin: q.origin, ...where,
         difficulty: toDiagnosticDifficulty(q.difficulty, q.difficultySource),
         // Questão do ENEM fica com as 5 alternativas originais, também na Unicamp: tirar uma
         // deixava buraco nas letras e a correta na primeira posição em 40% das vezes.

@@ -65,10 +65,20 @@ export async function collectTriResponses(userId: string, vestibularId: string):
   const diag = readDiagnostic(enrollment?.diagnostic)
   if (diag) {
     const at = diag.finishedAt ? new Date(diag.finishedAt) : enrollment!.enrolledAt
-    for (const answer of diag.answers) {
+    const answered = diag.answers.flatMap((answer) => {
       const q = diag.pool.find((item) => item.id === answer.questionId)
-      if (!q || !answer.optionId || !params[q.id]) continue
-      all.push({ id: q.id, correct: Boolean(q.options.find((o) => o.id === answer.optionId)?.isCorrect), at })
+      return q && answer.optionId ? [{ q, optionId: answer.optionId }] : []
+    })
+    // Diagnósticos antigos não guardaram o id da questão oficial: acha pelo enunciado, que é cópia exata.
+    const missing = answered.filter(({ q }) => !q.officialRefId).map(({ q }) => q.body)
+    const byBody = missing.length ? new Map((await prisma.question.findMany({
+      where: { body: { in: missing }, source: 'OFFICIAL', officialRefId: null, generatedForSessionId: null },
+      select: { id: true, body: true },
+    })).map((q) => [q.body, q.id])) : new Map<string, string>()
+    for (const { q, optionId } of answered) {
+      const id = q.officialRefId ?? byBody.get(q.body)
+      if (!id || !params[id]) continue
+      all.push({ id, correct: Boolean(q.options.find((o) => o.id === optionId)?.isCorrect), at })
     }
   }
   const first = new Map<string, TriResponse>()
