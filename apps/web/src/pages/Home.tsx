@@ -80,7 +80,7 @@ export default function Home() {
             ))}
           </ol>
           <p className="kl-note">
-            O Sabiá, assistente de IA, tira dúvidas sem entregar a resposta pronta. O Índice Kuaa (300 a 1000) resume seu desempenho nas atividades do Kuaa. Não é nota do vestibular nem previsão de aprovação.
+            O Sabiá, assistente de IA, tira dúvidas sem entregar a resposta pronta. O Índice Kuaa estima sua nota do ENEM em cada área pela TRI, com os parâmetros oficiais do INEP, a partir das questões que você resolve. Não é a nota oficial nem previsão de aprovação.
           </p>
         </section>
 

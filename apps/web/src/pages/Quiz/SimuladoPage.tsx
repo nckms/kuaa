@@ -37,7 +37,7 @@ function SimuladoIntro({ vestibularName, onStart, isStarting }: { vestibularName
     <div className="k-page is-narrow">
       <p className="k-eyebrow">{exam} · Semana atual</p>
       <h1 className="sim-title">Simulado semanal</h1>
-      <p className="sim-lead">Questões no estilo {exam}, cronometradas. O resultado vira nota de 300 a 1000 e atualiza seu Índice Kuaa. Não é prova oficial.</p>
+      <p className="sim-lead">Questões no estilo {exam}, cronometradas. O resultado vira nota de 300 a 1000, e as questões oficiais do simulado entram no seu Índice Kuaa. Não é prova oficial.</p>
       <div className="k-grid sim-facts" style={{ ['--min' as string]: '160px' }}>
         {[
           { icon: 'bi-list-check', v: 'Até 30', l: 'questões' },
