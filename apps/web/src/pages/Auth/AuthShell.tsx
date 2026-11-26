@@ -21,7 +21,7 @@ export default function AuthShell({ asideTitle, asideText, backTo = '/', backLab
   return (
     <div className="auth-shell">
       <aside className="auth-aside">
-        <Link to="/" aria-label="Kuaa, início"><img src="/brand/wordmark-w.png" alt="Kuaa" className="auth-aside-wordmark" /></Link>
+        <Link to="/" aria-label="Kuaa, início"><img src="/brand/wordmark-w.webp" alt="Kuaa" className="auth-aside-wordmark" /></Link>
         <div className="auth-aside-body">
           <KuaaMascotLogo size={120} radius={30} className="auth-aside-owl" />
           <h2>{asideTitle}</h2>

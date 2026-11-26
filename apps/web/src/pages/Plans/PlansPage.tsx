@@ -106,7 +106,7 @@ export default function PlansPage() {
   return (
     <div className="kp">
       <header className="kp-top">
-        <Link to="/" className="kp-brand" aria-label="Kuaa, início"><img src="/brand/wordmark-w.png" alt="Kuaa" /></Link>
+        <Link to="/" className="kp-brand" aria-label="Kuaa, início"><img src="/brand/wordmark-w.webp" alt="Kuaa" /></Link>
         {isAuthenticated ? <Link to="/dashboard" className="kp-login">Voltar ao painel</Link> : <Link to="/entrar" className="kp-login">Entrar</Link>}
       </header>
 

@@ -12,7 +12,7 @@ export const LEGAL = {
 export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
   return <div className="legal">
     <header className="legal-top">
-      <Link to="/"><img src="/brand/wordmark-t.png" alt="Kuaa" height={28} /></Link>
+      <Link to="/"><img src="/brand/wordmark-t.webp" alt="Kuaa" height={28} /></Link>
       <nav><Link to="/termos">Termos</Link><Link to="/privacidade">Privacidade</Link><Link to="/planos">Planos</Link></nav>
     </header>
     <main className="legal-main">

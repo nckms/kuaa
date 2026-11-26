@@ -209,7 +209,7 @@ function Diagnostic({ slug }: { slug: string }) {
 
   return <main className="diag-page">
     <header className="diag-top">
-      <img src="/brand/wordmark-t.png" alt="Kuaa" />
+      <img src="/brand/wordmark-t.webp" alt="Kuaa" />
       <ol className="diag-steps" aria-label="Etapas do diagnóstico">
         {['Perfil', 'Questões', 'Resultado'].map((label, index) => <li key={label} className={index <= phase ? 'is-done' : ''} aria-current={index === phase ? 'step' : undefined}><span />{label}</li>)}
       </ol>
