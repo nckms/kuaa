@@ -37,3 +37,4 @@ apps/api/prisma/dev.db-journal
 
 .vercel
 .env*
+apps/web/e2e/out/
