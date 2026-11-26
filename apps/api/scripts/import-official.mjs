@@ -47,7 +47,8 @@ async function main() {
       // Gabarito corrigido (INEP): a explicação antiga defendia a alternativa errada e é refeita.
       const correctOf = (opts) => (Array.isArray(opts) ? opts.find((o) => o.isCorrect)?.id : undefined)
       const keyChanged = cur && correctOf(cur.options) !== correctOf(q.options)
-      if (cur && (keyChanged || (!keepTopic && cur.topicId !== topicId.get(q.topic)) || cur.body !== q.body || cur.imageUrl !== (q.imageUrl ?? null) || (wrongArea && cur.topicSource))) {
+      const optionsChanged = cur && JSON.stringify((cur.options ?? []).map((o) => o.text)) !== JSON.stringify(q.options.map((o) => o.text))
+      if (cur && (keyChanged || optionsChanged || (!keepTopic && cur.topicId !== topicId.get(q.topic)) || cur.body !== q.body || cur.imageUrl !== (q.imageUrl ?? null) || (wrongArea && cur.topicSource))) {
         await prisma.question.update({ where: { id: q.id }, data: { ...(keepTopic ? {} : { topicId: topicId.get(q.topic), ...(wrongArea ? { topicSource: null } : {}) }), body: q.body, options: q.options, origin: origin(q), imageUrl: q.imageUrl ?? null, media: media(q),
           ...(keyChanged ? { explanation: '', explanationByAi: false } : {}) } })
         updated++
