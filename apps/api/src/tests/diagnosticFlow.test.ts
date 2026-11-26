@@ -43,7 +43,7 @@ describe('diagnostico inicial', () => {
     expect(initialDifficulty(record.diagnostic, subject.id)).toBeGreaterThanOrEqual(1)
     const trail = await api.get('/api/v1/trail/enem').set('Authorization', authorization)
     expect(trail.status).toBe(200)
-    expect(trail.body.recommendation.reason).toContain('diagnostico')
+    expect(trail.body.recommendation.reason).toContain('diagnóstico')
     expect((await api.get(path).set('Authorization', authorization)).body.status).toBe('completed')
   })
   it('usa um resultado forte para aumentar a dificuldade da primeira pratica', async () => {

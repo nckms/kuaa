@@ -70,7 +70,7 @@ describe('adaptive pure', () => {
     const fast = topic('fast', answers(5, false))
     const slow = topic('slow', answers(5, false, 0, 2, 900000))
     expect(recommendTopic([fast, slow])?.topicId).toBe('slow')
-    expect(recommendTopic([fast, slow])?.reason).toContain('mais tempo')
+    expect(recommendTopic([fast, slow])?.reason).toContain('com calma')
   })
   it('keeps all tied simulado timestamps and does not invent answer timing', () => {
     const evidence = answers(15, false).map((answer) => ({ ...answer, answeredAt: now, timeSpentMs: null }))

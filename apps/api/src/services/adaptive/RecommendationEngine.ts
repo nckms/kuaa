@@ -81,7 +81,7 @@ export function recommendTopic(topics: Candidate[]): Recommendation | null {
       topicId: topic.id,
       kind: 'reinforcement',
       targetDifficulty: getTargetDifficulty(topic.progress.masteryLevel, a),
-      reason: `${Math.round(a.recentAccuracy! * 100)}% de acerto nas ${a.recentAnswersCount} respostas recentes, com dificuldade media ${a.recentAverageDifficulty!.toFixed(1)}. Reforce este topico${slow ? ' com mais tempo para resolver e revisar os erros' : ' antes de avancar'}.`,
+      reason: `Você acertou ${Math.round(a.recentAccuracy! * 100)}% nas ${a.recentAnswersCount} últimas questões deste tópico. Reforce ${slow ? 'com calma, revisando os erros,' : 'aqui'} antes de avançar.`,
     }
   }
   const next = topics.find((topic) => topic.progress.unlocked && !topic.progress.completed)
@@ -91,9 +91,9 @@ export function recommendTopic(topics: Candidate[]): Recommendation | null {
     kind: next.activity.recentAnswersCount ? 'continue' : 'advance',
     targetDifficulty: getTargetDifficulty(next.progress.masteryLevel, next.activity, next.initialDifficulty),
     reason: next.activity.recentAnswersCount
-      ? 'Continue este topico para consolidar o aprendizado; ainda nao ha evidencia recente suficiente de necessidade de reforco.'
+      ? 'Continue neste tópico para consolidar o que você já aprendeu.'
       : next.initialDifficulty != null
-        ? 'Ponto de partida sugerido pelo diagnostico da area. Esta estimativa e provisoria; suas praticas vao refina-la.'
-        : 'Proximo topico disponivel na sua trilha. Comece para avaliar seu conhecimento.',
+        ? 'Ponto de partida sugerido pelo seu diagnóstico. Ele se ajusta conforme você pratica.'
+        : 'Próximo tópico da sua trilha. Comece para ver como você está.',
   }
 }
