@@ -84,9 +84,9 @@ export default function StudyPlanPage() {
             <h2 id="sp-areas" className="k-h3">Áreas, da mais fraca para a mais forte</h2>
             <ul className="sp-areas">{p.areas.map((a) => (
               <li key={a.area}><span>{a.label}</span>
-                <span>{a.score != null ? `${a.score.toLocaleString('pt-BR')} (TRI)` : a.accuracy != null ? `${a.accuracy}% de acerto` : 'sem dados'}{a.target && a.score != null ? ` · meta ${a.target}${a.score < a.target ? ` (faltam ${Math.round(a.target - a.score)})` : ' ✓'}` : ''}</span></li>
+                <span>{a.score != null ? `${Math.round(a.score).toLocaleString('pt-BR')} (TRI)` : a.accuracy != null ? `${a.accuracy}% de acerto` : 'sem dados'}{a.target && a.score != null ? ` · meta ${a.target}${a.score < a.target ? ` (faltam ${Math.round(a.target - a.score)})` : ' ✓'}` : ''}</span></li>
             ))}</ul>
-            {!p.areas.some((a) => a.score != null) && <p className="k-muted" style={{ fontSize: 13 }}>Faça uma <Link to="/provas">prova anterior completa</Link> para o plano usar sua nota TRI por área.</p>}
+            {!p.areas.some((a) => a.score != null) && <p className="k-muted" style={{ fontSize: 13 }}>Com 10 questões oficiais numa área (trilha, simulado ou <Link to="/provas">prova anterior</Link>), o plano passa a usar sua nota TRI dela, a mesma do <Link to="/indice">Índice Kuaa</Link>.</p>}
           </section>
         </>}
       </div>
