@@ -46,7 +46,7 @@ export default function Home() {
           </div>
 
           <div className="kl-art">
-          <img className="kl-owl" src="/brand/owl-light.png" alt="Sabiá, a mascote do Kuaa" />
+          <img className="kl-owl" src="/brand/owl-light.webp" width={330} height={470} alt="Sabiá, a mascote do Kuaa" />
           <figure className="kl-sheet" aria-labelledby="kl-sheet-cap">
             <div className="kl-sheet-head">
               <span>Sua trilha</span>
