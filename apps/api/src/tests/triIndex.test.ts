@@ -81,3 +81,26 @@ describe('Índice TRI com o banco (fontes e primeira resposta)', () => {
     expect(res.body.tri.overall).toBeNull()
   })
 })
+
+describe('Índice TRI: diagnóstico', () => {
+  it('conta as questões do diagnóstico, pelo id oficial (novos) ou pelo enunciado (antigos)', async () => {
+    const { registerAndLogin } = await import('./helpers/api')
+    const { testPrisma, truncateUserData } = await import('./helpers/truncate')
+    const { collectTriResponses } = await import('../modules/index/triIndex')
+    await truncateUserData()
+    const s = await registerAndLogin('tri_diag')
+    const enem = await testPrisma.vestibular.findFirstOrThrow({ where: { slug: 'enem' } })
+    const topic = await testPrisma.topic.findFirstOrThrow({ where: { subject: { vestibularId: enem.id } } })
+    const opts = ['A', 'B', 'C', 'D', 'E'].map((o) => ({ id: o, text: o, isCorrect: o === 'B' }))
+    for (const id of ['cofenem2023q140', 'cofenem2023q141']) {
+      await testPrisma.question.upsert({ where: { id }, update: { body: `Enunciado ${id}` }, create: { id, topicId: topic.id, source: 'OFFICIAL', year: 2023, body: `Enunciado ${id}`, explanation: '', difficulty: 3, options: opts } })
+    }
+    const item = (id: string, extra: object) => ({ id, topicId: topic.id, subjectId: topic.subjectId, subjectName: 'X', area: 'matematica', body: '', explanation: '', difficulty: 3, options: opts, ...extra })
+    const diagnostic = { version: 1, profile: {}, areas: [], currentId: null, finishedAt: '2026-11-20T10:00:00.000Z',
+      pool: [item('u1', { officialRefId: 'cofenem2023q140' }), item('u2', { body: 'Enunciado cofenem2023q141' }), item('u3', { body: 'questão autoral' })],
+      answers: [{ questionId: 'u1', optionId: 'B' }, { questionId: 'u2', optionId: 'A' }, { questionId: 'u3', optionId: 'B' }] }
+    await testPrisma.enrollment.upsert({ where: { userId_vestibularId: { userId: s.userId, vestibularId: enem.id } }, update: { diagnostic }, create: { userId: s.userId, vestibularId: enem.id, diagnostic } })
+    const responses = (await collectTriResponses(s.userId, enem.id)).sort((a, b) => a.id.localeCompare(b.id))
+    expect(responses.map((r) => [r.id, r.correct])).toEqual([['cofenem2023q140', true], ['cofenem2023q141', false]])
+  })
+})
