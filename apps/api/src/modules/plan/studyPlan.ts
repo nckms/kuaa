@@ -8,6 +8,7 @@ import { requireAuth } from '../../middleware/requireAuth'
 import { makeError } from '../../utils/errors'
 import { effectivePlan } from '../plans/entitlements'
 import { trailService } from '../trail/trail.service'
+import { getTriIndex } from '../index/triIndex'
 
 const DAY = 86_400_000
 const BRT = 3 * 3600_000
@@ -54,9 +55,14 @@ export async function buildPlan(userId: string, slug: string, now = new Date()) 
   const budget = prefs.dailyStudyMinutes ?? 30
   const trail = await trailService.getTrail(userId, slug)
 
-  // Pontos fracos por área: nota TRI mais recente; sem prova feita, acerto na trilha.
+  // Pontos fracos por área: nota TRI do Índice (todas as questões oficiais respondidas, a partir de 10 por
+  // área); sem isso, a da última prova anterior completa; sem nenhuma, o acerto na trilha.
   const latestExam = await prisma.examAttempt.findFirst({ where: { userId, finishedAt: { not: null } }, orderBy: { finishedAt: 'desc' }, select: { scores: true } })
   const tri = new Map(((latestExam?.scores as Array<{ area: Area; score: number }> | null) ?? []).map((s) => [s.area, s.score]))
+  if (slug === 'enem') {
+    const vestibular = await prisma.vestibular.findUnique({ where: { slug }, select: { id: true } })
+    if (vestibular) for (const a of (await getTriIndex(userId, vestibular.id, now)).areas) if (a.score != null) tri.set(a.area, a.score)
+  }
   const acc = new Map<Area, { ok: number; total: number }>()
   for (const s of trail.subjects) {
     const area = AREA_OF_SUBJECT[s.slug]
