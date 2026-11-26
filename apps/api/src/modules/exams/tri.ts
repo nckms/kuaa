@@ -26,6 +26,23 @@ export function triData(): TriFile {
 
 const QUAD = Array.from({ length: 121 }, (_, k) => -4 + (8 * k) / 120)
 
+/** Proficiência (theta) por EAP e desvio-padrão da posteriori (incerteza da estimativa). */
+export function eapPosterior(items: Array<{ a: number; b: number; c: number; correct: boolean }>): { theta: number; sd: number } {
+  const logPost = QUAD.map((q) => -0.5 * q * q)
+  for (const it of items) {
+    for (let k = 0; k < QUAD.length; k++) {
+      const p = it.c + (1 - it.c) / (1 + Math.exp(-it.a * (QUAD[k]! - it.b)))
+      logPost[k]! += Math.log(it.correct ? p : 1 - p)
+    }
+  }
+  const max = Math.max(...logPost)
+  const w = logPost.map((l) => Math.exp(l - max))
+  const sum = w.reduce((s, x) => s + x, 0)
+  const theta = w.reduce((s, x, k) => s + x * QUAD[k]!, 0) / sum
+  const variance = w.reduce((s, x, k) => s + x * (QUAD[k]! - theta) ** 2, 0) / sum
+  return { theta, sd: Math.sqrt(variance) }
+}
+
 /** Proficiência (theta) por EAP: média da posteriori numa grade de -4 a 4. */
 export function eapTheta(items: Array<{ a: number; b: number; c: number; correct: boolean }>): number {
   const logPost = QUAD.map((q) => -0.5 * q * q)

@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const { user, firstVestibularSlug, enrollments } = useAuthStore()
   const { data: trail, isLoading, isError, refetch } = useTrail(firstVestibularSlug ?? '')
   const { data: indexData } = useIndex(firstVestibularSlug ?? '')
+  const tri = indexData?.tri ?? null
   const simulado = useCurrentSimulado(firstVestibularSlug ?? '')
   const review = useReviewOverview()
   // Muitos alunos escolhiam a prova e nunca faziam o diagnóstico. Enquanto
@@ -164,6 +165,16 @@ export default function DashboardPage() {
       </section>
       <section className="k-card dash-index" aria-labelledby="index-title">
         <div className="dash-card-top"><h3 id="index-title" className="k-h3">Índice Kuaa</h3><Link to="/indice" className="k-link-btn" style={{ fontSize: 13 }}>Detalhes<i className="bi bi-arrow-up-right" aria-hidden="true" /></Link></div>
+        {tri ? <>
+          <div className="dash-index-score">
+            <strong className="k-num">{tri.overall != null ? Math.round(tri.overall) : '—'}</strong>
+            {tri.delta7d != null && tri.delta7d !== 0 && <span style={{ color: tri.delta7d > 0 ? 'var(--k-verde)' : 'var(--k-vinho)' }}>{tri.delta7d > 0 ? '↑' : '↓'} {Math.abs(Math.round(tri.delta7d))} em 7 dias</span>}
+          </div>
+          {tri.history.length >= 2
+            ? <svg viewBox="0 0 280 70" width="100%" height="70" preserveAspectRatio="none" aria-hidden="true"><polyline points={sparkPoints(tri.history.map((p) => p.score), 280, 70)} fill="none" stroke="var(--k-roxo)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" /></svg>
+            : <p className="k-muted" style={{ fontSize: 13, margin: 0 }}>{tri.overall != null ? 'O gráfico aparece quando sua média existir em dois meses.' : `Faltam ${tri.areas.reduce((s, a) => s + a.needed, 0)} questões oficiais para calcular sua nota estimada no ENEM.`}</p>}
+          <div className="dash-index-foot"><span>Nota estimada · escala do ENEM (TRI)</span></div>
+        </> : <>
         <div className="dash-index-score">
           <strong className="k-num">{hasIndex ? indexData!.score : '—'}</strong>
           {hasIndex && indexData!.delta7d !== 0 && <span style={{ color: indexData!.delta7d > 0 ? 'var(--k-verde)' : 'var(--k-vinho)' }}>{indexData!.delta7d > 0 ? '↑' : '↓'} {Math.abs(indexData!.delta7d)} em 7 dias</span>}
@@ -172,6 +183,7 @@ export default function DashboardPage() {
           ? <svg viewBox="0 0 280 70" width="100%" height="70" preserveAspectRatio="none" aria-hidden="true"><polyline points={sparkPoints(history, 280, 70)} fill="none" stroke="var(--k-roxo)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" /></svg>
           : <p className="k-muted" style={{ fontSize: 13, margin: 0 }}>{hasIndex ? 'O gráfico aparece após dois meses de atividade.' : 'Responda questões para ver seu índice.'}</p>}
         {hasIndex && band && <div className="dash-index-foot"><span>Faixa {band.name}</span>{band.next && <span>Faltam {band.next.from - indexData!.score} pts p/ {band.next.name}</span>}</div>}
+        </>}
       </section>
     </div>
 
