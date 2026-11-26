@@ -43,7 +43,7 @@ export default function StudentReviewPage() {
   return (
     <div className="kp">
       <header className="kp-top">
-        <Link to="/" className="kp-brand" aria-label="Kuaa, início"><img src="/brand/wordmark-w.png" alt="Kuaa" /></Link>
+        <Link to="/" className="kp-brand" aria-label="Kuaa, início"><img src="/brand/wordmark-w.webp" alt="Kuaa" /></Link>
         <Link to="/dashboard" className="kp-login">Painel</Link>
       </header>
       <main className="kp-main">

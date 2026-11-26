@@ -25,7 +25,7 @@ export default function Home() {
   return (
     <div className="kl">
       <header className="kl-top">
-        <Link to="/" className="kl-brand" aria-label="Kuaa, início"><img src="/brand/wordmark-w.png" alt="Kuaa" /></Link>
+        <Link to="/" className="kl-brand" aria-label="Kuaa, início"><img src="/brand/wordmark-w.webp" alt="Kuaa" /></Link>
         {isAuthenticated
           ? <Link to={trailHref} className="kl-login">Minha trilha</Link>
           : <Link to="/entrar" className="kl-login">Entrar</Link>}
@@ -91,7 +91,7 @@ export default function Home() {
       </main>
 
       <footer className="kl-foot">
-        <img src="/brand/wordmark-t.png" alt="Kuaa" />
+        <img src="/brand/wordmark-t.webp" alt="Kuaa" />
         <Link to="/planos" className="kl-foot-link">Planos</Link>
         <Link to="/termos" className="kl-foot-link">Termos</Link>
         <Link to="/privacidade" className="kl-foot-link">Privacidade</Link>

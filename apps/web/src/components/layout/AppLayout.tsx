@@ -82,7 +82,7 @@ export default function AppLayout({ children, rightSidebar }: Props) {
         <aside className="kuaa-sidebar" aria-label="Menu principal">
           <Link className="kuaa-sidebar-brand" to="/dashboard" aria-label="Kuaa: ir para o início">
             <KuaaMascotLogo size={34} radius={10} />
-            <img className="kuaa-wordmark" src="/brand/wordmark-w.png" alt="Kuaa" />
+            <img className="kuaa-wordmark" src="/brand/wordmark-w.webp" alt="Kuaa" />
           </Link>
           <nav className="kuaa-sidebar-nav" aria-label="Navegação principal">
             {groups.map((group, index) => (
@@ -108,7 +108,7 @@ export default function AppLayout({ children, rightSidebar }: Props) {
 
         <main className="app-main-content" id="main-content">
           <div className="kuaa-mobile-top">
-            <Link to="/dashboard" aria-label="Kuaa: ir para o início"><img src="/brand/wordmark-t.png" alt="Kuaa" /></Link>
+            <Link to="/dashboard" aria-label="Kuaa: ir para o início"><img src="/brand/wordmark-t.webp" alt="Kuaa" /></Link>
             <Link to="/perfil" className="kuaa-mobile-avatar" aria-label="Perfil">{initial}</Link>
           </div>
           {children}
