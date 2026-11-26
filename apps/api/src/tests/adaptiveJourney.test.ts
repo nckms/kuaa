@@ -122,7 +122,7 @@ describe('jornada adaptativa (provedor de IA simulado)', () => {
     topicId = before.recommendation.topicId
     const diagnosticTarget = before.recommendation.targetDifficulty as number
     expect(diagnosticTarget).toBeGreaterThanOrEqual(2)
-    expect(before.recommendation.reason).toContain('diagnostico')
+    expect(before.recommendation.reason).toContain('diagnóstico')
 
     const calls = generateContent.mock.calls.length
     const first = await practise(3, 0)
