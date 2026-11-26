@@ -31,12 +31,24 @@ const byId = (id: string) => secondPhaseQuestions().find((q) => q.id === id)
 export const expectedImageUrl = (q: SecondPhaseQuestion) => `/question-media/2fase/${q.id}-resposta.webp`
 export const CORRECTIONS_PER_DAY = 20
 
+const VERDICTS = ['correta', 'parcial', 'incorreta', 'em branco'] as const
+/** A IA às vezes escreve "correto", "Incorreto", "parcialmente correta", "branco": aceita as variações. */
+export function normalizeVerdict(v: unknown, score?: number, max?: number): (typeof VERDICTS)[number] {
+  const t = String(v ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+  if (/branco|vazi|nao respond/.test(t)) return 'em branco'
+  if (/parcial/.test(t)) return 'parcial'
+  if (/^(in|errad)/.test(t)) return 'incorreta'
+  if (/^(corret|cert)/.test(t)) return 'correta'
+  if (typeof score === 'number' && typeof max === 'number') return score <= 0 ? 'incorreta' : score >= max ? 'correta' : 'parcial'
+  return 'parcial'
+}
+
 const resultSchema = z.object({
   items: z.array(z.object({
     item: z.string().min(1).max(5),
     score: z.number().min(0).max(10),
     max: z.number().min(0.5).max(10),
-    verdict: z.enum(['correta', 'parcial', 'incorreta', 'em branco']),
+    verdict: z.enum(VERDICTS),
     feedback: z.string().min(5).max(800),
   })).min(1).max(8),
   summary: z.string().min(5).max(800),
@@ -44,7 +56,11 @@ const resultSchema = z.object({
 export type SecondPhaseResult = z.infer<typeof resultSchema>
 
 export function normalizeResult(raw: unknown): SecondPhaseResult & { score: number; maxScore: number } {
-  const parsed = resultSchema.parse(raw)
+  const r = raw as { items?: Array<Record<string, unknown>> }
+  if (r && Array.isArray(r.items)) {
+    r.items = r.items.map((i) => ({ ...i, item: String(i.item ?? '').slice(0, 5), verdict: normalizeVerdict(i.verdict, Number(i.score), Number(i.max)) }))
+  }
+  const parsed = resultSchema.parse(r)
   const items = parsed.items.map((i) => ({ ...i, score: Math.min(i.score, i.max) }))
   return { ...parsed, items, score: items.reduce((s, i) => s + i.score, 0), maxScore: items.reduce((s, i) => s + i.max, 0) }
 }
