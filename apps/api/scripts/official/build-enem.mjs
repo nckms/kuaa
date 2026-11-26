@@ -55,9 +55,17 @@ for (const file of files) {
   const hasImage = (q.files?.length ?? 0) > 0 || /!\[/.test(q.context ?? '') || q.alternatives.some((a) => a.file)
   const imageUrl = hasImage && fs.existsSync(path.join(mediaDir, `${id}.webp`)) ? `/question-media/enem/${id}.webp` : null
   if (hasImage && !imageUrl) { skippedImages++; continue }
+  // A fonte às vezes repete a letra no texto ("D eleva o pH..."). B, C e D não são palavras; "E" só
+  // quando as outras alternativas começam com maiúscula ("E o CDB" vira "O CDB"). Fórmulas ("C = 4Q") ficam.
+  const capsOthers = q.alternatives.filter((a) => a.letter !== 'E').every((a) => /^[A-ZÀ-Ú0-9"“(]/.test(clean(a.text) || 'X'))
+  const stripOwnLetter = (letter, text) => {
+    if (!('BCD'.includes(letter) || (letter === 'E' && capsOthers))) return text
+    const t = text.replace(new RegExp(`^${letter}\\s+(?=[a-zà-ú]|R\\$)`), '')
+    return t === text ? text : t.charAt(0).toUpperCase() + t.slice(1)
+  }
   // Alternativa que só existe como imagem aparece rotulada na figura composta da questão.
   const options = q.alternatives.map((a) => ({
-    id: a.letter, text: clean(a.text) || (a.file && imageUrl ? `Alternativa ${a.letter} (veja na figura)` : ''), isCorrect: a.letter === (keyFixes[id] ?? q.correctAlternative),
+    id: a.letter, text: stripOwnLetter(a.letter, clean(a.text)) || (a.file && imageUrl ? `Alternativa ${a.letter} (veja na figura)` : ''), isCorrect: a.letter === (keyFixes[id] ?? q.correctAlternative),
   }))
   if (options.length !== 5 || options.filter((o) => o.isCorrect).length !== 1 || options.some((o) => !o.text)) continue
   // A imagem é exibida pelo app abaixo do texto; a marcação dela sai do enunciado.
