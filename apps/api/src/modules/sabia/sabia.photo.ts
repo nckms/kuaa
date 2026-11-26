@@ -3,8 +3,7 @@
 // guardada: fica só a transcrição da questão, para a conversa continuar em texto.
 import express, { type NextFunction, type Request, type Response } from 'express'
 import { z } from 'zod'
-import { ai } from '../../lib/gemini'
-import { env } from '../../lib/env'
+import { aiAvailable, generate } from '../../lib/ai'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../middleware/requireAuth'
 import { sabiaRateLimit } from '../../middleware/sabiaRateLimit'
@@ -31,12 +30,11 @@ export function parsePhotoReply(text: string): { question: string | null; reply:
 }
 
 async function readPhoto(image: { mimeType: string; data: string }, note: string | undefined) {
-  const response = await ai.models.generateContent({
-    model: env.SABIA_MODEL,
-    config: { systemInstruction: SYSTEM_PROMPT, maxOutputTokens: 1800, httpOptions: { timeout: 40_000 } },
-    contents: [{ role: 'user', parts: [{ inlineData: image }, { text: `${PHOTO_PROMPT}${note ? `\nComentário do estudante: ${note}` : ''}` }] }],
+  const text = await generate({
+    task: 'chat', system: SYSTEM_PROMPT, maxOutputTokens: 1800, timeoutMs: 40_000,
+    input: [{ role: 'user', images: [image], text: `${PHOTO_PROMPT}${note ? `\nComentário do estudante: ${note}` : ''}` }],
   })
-  return parsePhotoReply(response.text ?? '')
+  return parsePhotoReply(text)
 }
 
 async function askByPhoto(req: Request, res: Response, next: NextFunction) {
@@ -54,7 +52,7 @@ async function askByPhoto(req: Request, res: Response, next: NextFunction) {
     if (Buffer.byteLength(data, 'base64') > MAX_BYTES) throw makeError('Foto grande demais (máximo 4 MB).', 413, 'IMAGE_TOO_LARGE')
     const today = await prisma.sabiaMessage.count({ where: { userId, kind: 'photo', createdAt: { gte: periodStart('day') } } })
     if (today >= PHOTOS_PER_DAY) throw makeError(`Você já mandou as ${PHOTOS_PER_DAY} fotos de hoje. Amanhã libera de novo.`, 429, 'QUOTA_EXCEEDED')
-    if (!env.GEMINI_API_KEY?.trim()) throw makeError('O Sabiá está indisponível no momento. Tente novamente em instantes.', 503, 'AI_UNAVAILABLE')
+    if (!aiAvailable()) throw makeError('O Sabiá está indisponível no momento. Tente novamente em instantes.', 503, 'AI_UNAVAILABLE')
     const conversation = await resolveConversation(userId, input.conversationId === undefined ? null : input.conversationId)
     let read: { question: string | null; reply: string }
     try {

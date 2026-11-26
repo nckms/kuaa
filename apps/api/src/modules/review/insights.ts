@@ -3,8 +3,7 @@
 // concretas para a semana, escritas pela IA a partir desses números.
 import { Router, type NextFunction, type Request, type Response } from 'express'
 import { z } from 'zod'
-import { ai } from '../../lib/gemini'
-import { env } from '../../lib/env'
+import { aiAvailable, generate } from '../../lib/ai'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../middleware/requireAuth'
 import { makeError } from '../../utils/errors'
@@ -83,18 +82,17 @@ async function weeklyActions(userId: string, report: MistakeReport): Promise<str
   const key = `${userId}:${report.wrong}:${report.dominant}`
   const cached = planCache.get(key)
   if (cached && Date.now() - cached.at < 6 * 3600_000) return cached.actions
-  if (!env.GEMINI_API_KEY?.trim() || report.wrong < 5) return []
+  if (!aiAvailable() || report.wrong < 5) return []
   try {
-    const response = await ai.models.generateContent({
-      model: env.SABIA_MODEL,
-      config: { responseMimeType: 'application/json', maxOutputTokens: 600, httpOptions: { timeout: 20_000 } },
-      contents: `Você é um orientador de estudos para o ENEM. Com base nos erros dos últimos ${report.windowDays} dias de um aluno, escreva de 1 a 3 ações concretas para esta semana (cada uma com o que fazer, quanto e quando; sem prometer nota).
+    const text = await generate({
+      task: 'chat', json: true, maxOutputTokens: 600, timeoutMs: 20_000,
+      input: `Você é um orientador de estudos para o ENEM. Com base nos erros dos últimos ${report.windowDays} dias de um aluno, escreva de 1 a 3 ações concretas para esta semana (cada uma com o que fazer, quanto e quando; sem prometer nota).
 Erros por motivo: ${report.reasons.map((r) => `${r.label}: ${r.count}`).join('; ')}.
 Erros por matéria e motivo mais comum: ${report.bySubject.map((s) => `${s.subject}: ${s.wrong} (${s.topReasonLabel})`).join('; ')}.
 Tempo médio nas questões erradas: ${report.avgWrongSeconds ?? '?'} s; erros respondidos em menos de 15 s: ${report.fastWrong}.
 Responda SOMENTE JSON: {"actions": ["...", "..."]}`,
     })
-    const actions = planSchema.parse(JSON.parse(response.text ?? '{}')).actions
+    const actions = planSchema.parse(JSON.parse(text || '{}')).actions
     planCache.set(key, { at: Date.now(), actions })
     return actions
   } catch (error) {

@@ -2,7 +2,7 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '../../lib/prisma'
 import { initialDifficulty } from '../diagnostic/diagnostic.engine'
 import { redis } from '../../lib/redis'
-import { ai } from '../../lib/gemini'
+import { aiAvailable, generate } from '../../lib/ai'
 import { env } from '../../lib/env'
 import { makeError } from '../../utils/errors'
 import { assessPerformance, readPerformance } from '../../services/adaptive/PerformanceEngine'
@@ -65,7 +65,7 @@ export function resetAiCooldown(): void { aiCooldownUntil = 0 }
 
 async function generateQuestions(data: GenerationJobData): Promise<GenerationResult> {
   const startedAt = Date.now()
-  const hasApiKey = !!env.GEMINI_API_KEY?.trim()
+  const hasApiKey = aiAvailable()
   const references = selectReferences(data)
   const optionCount = data.vestibularSlug === 'unicamp' ? 4 : 5
   const requiresChart = getCuratedQuestions(data.topicName).some((question) => question.visual)
@@ -147,15 +147,14 @@ Crie uma NOVA situacao que avalie o mesmo raciocinio, sem copiar numeros, enunci
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       const response = await Promise.race([
-        ai.models.generateContent({
-          model: env.GEMINI_MODEL,
-          contents: `${systemPrompt}\n\n${buildFewShotContext(data, references)}\n\n${userPrompt}`,
-          config: { responseMimeType: 'application/json', responseJsonSchema: generationResponseSchema(optionCount) },
+        generate({
+          task: 'bulk', json: true, jsonSchema: generationResponseSchema(optionCount),
+          input: `${systemPrompt}\n\n${buildFewShotContext(data, references)}\n\n${userPrompt}`,
         }),
         absoluteDeadline,
       ])
 
-      const content = response.text
+      const content = response
       if (!content) throw new Error('Gemini retornou resposta vazia')
 
       const parsed = JSON.parse(content) as unknown
