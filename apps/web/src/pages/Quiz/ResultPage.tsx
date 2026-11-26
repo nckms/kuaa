@@ -104,7 +104,6 @@ export default function ResultPage() {
         </div>
 
         {summary.skipped > 0 && <p className="qz-result-sub" style={{ fontSize: 13 }}>{summary.skipped} questão(ões) em branco. O percentual considera todas as questões da sessão.</p>}
-        {summary.generation?.targetSatisfied === false && <p className="qz-result-sub" style={{ fontSize: 13 }}>A dificuldade das questões disponíveis nesta sessão ficou fora da faixa planejada.</p>}
         {levelUp && <div className="qz-panel" style={{ border: '1px solid #531A61' }}><h2>Você subiu para o Nível {newLevel}!</h2></div>}
         {newAchievements.map((achievement) => (
           <div key={achievement.slug} className="qz-panel" style={{ borderLeft: '3px solid var(--k-amarelo)' }}>
@@ -116,7 +115,7 @@ export default function ResultPage() {
           <section className="qz-panel" aria-label="Evolução neste tópico">
             <h2>{summary.performance.decision === 'advance' ? 'Você avançou neste tópico' : summary.performance.decision === 'reinforce' ? 'Próximo passo: reforçar' : summary.performance.decision === 'collect' ? 'Construindo seu diagnóstico' : 'Consolidando seu domínio'}</h2>
             <p>{summary.performance.reason}</p>
-            <p style={{ marginTop: 8, color: '#A797AE', fontSize: 13 }}>Domínio: {summary.performance.previousLevel}/5 → {summary.performance.newLevel}/5 · {summary.correct + summary.wrong} resposta(s) registradas nesta sessão · {summary.performance.evidenceCount} usadas no cálculo de domínio (últimos 30 dias; respostas em menos de 1 segundo ficam registradas, mas não contam para o domínio).</p>
+            <p style={{ marginTop: 8, color: '#A797AE', fontSize: 13 }}>Domínio: {summary.performance.previousLevel}/5 → {summary.performance.newLevel}/5, calculado com suas respostas dos últimos 30 dias.</p>
           </section>
         )}
 
