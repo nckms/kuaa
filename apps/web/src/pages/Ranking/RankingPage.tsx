@@ -46,7 +46,7 @@ export default function RankingPage() {
             {myRank && (
               <div className="rk-me">
                 <i className="bi bi-graph-up-arrow" aria-hidden="true" />
-                <div>{myRank.rank === 1 ? 'Você está em #1. Continue assim!' : <>Você está em <strong>#{myRank.rank}</strong>{above ? <>. Faltam {Math.max(1, above.xp - myRank.xp)} XP pra passar {above.displayName}.</> : '.'}</>}</div>
+                <div>{myRank.rank === 1 ? 'Você está em #1. Continue assim!' : <>Você está em <strong>#{myRank.rank}</strong>{above ? <>. {Math.max(1, above.xp - myRank.xp) === 1 ? 'Falta 1 XP' : `Faltam ${above.xp - myRank.xp} XP`} pra passar {above.displayName}.</> : '.'}</>}</div>
                 <Link to={firstVestibularSlug ? `/trilha/${firstVestibularSlug}` : '/trilha'} className="k-btn is-sm" style={{ background: 'var(--k-roxo-deep)', color: '#fff' }}><i className="bi bi-play-fill" aria-hidden="true" />Praticar</Link>
               </div>
             )}

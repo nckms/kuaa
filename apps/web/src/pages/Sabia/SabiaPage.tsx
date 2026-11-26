@@ -44,6 +44,8 @@ function SabiaConversation() {
       : 'Não foi possível confirmar o envio. Confira sua conexão e recarregue o histórico antes de tentar novamente.'
 
   useEffect(() => {
+    // Sem mensagens, a tela vazia (mascote + sugestões) fica no topo; rolar para o fim cortava o mascote.
+    if (!messages.length && !isPending) return
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, isPending])
 

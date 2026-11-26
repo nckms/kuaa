@@ -51,6 +51,8 @@
 @media (max-width: 819px) {
   .sabia { height: calc(100dvh - 57px - 84px - env(safe-area-inset-bottom)); }
   .sabia-head, .sabia-scroll, .sabia-compose { padding-left: 16px; padding-right: 16px; }
+  .sabia-empty { padding-top: 8px; }
+  .sabia-empty img { width: 88px; }
   .sabia-foot > span:first-child { display: none; }
 }
 .sabia-input { flex-wrap: wrap; padding-left: 8px; }
