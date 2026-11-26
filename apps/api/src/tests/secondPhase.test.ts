@@ -4,7 +4,7 @@ import { ai } from '../lib/gemini'
 import { env } from '../lib/env'
 import { api, registerAndLogin } from './helpers/api'
 import { testPrisma, truncateUserData } from './helpers/truncate'
-import { normalizeResult, secondPhaseQuestions } from '../modules/secondPhase/secondPhase'
+import { normalizeResult, normalizeVerdict, secondPhaseQuestions } from '../modules/secondPhase/secondPhase'
 
 const generate = vi.mocked(ai.models.generateContent)
 type GenResponse = Awaited<ReturnType<typeof ai.models.generateContent>>
@@ -14,6 +14,16 @@ afterAll(async () => { env.GEMINI_API_KEY = originalKey; await testPrisma.$disco
 beforeEach(async () => { await truncateUserData(); generate.mockReset() })
 
 describe('2ª fase dissertativa', () => {
+  it('aceita as variações de veredito que a IA escreve', () => {
+    expect(normalizeVerdict('correto')).toBe('correta')
+    expect(normalizeVerdict('Incorreto')).toBe('incorreta')
+    expect(normalizeVerdict('parcialmente correta')).toBe('parcial')
+    expect(normalizeVerdict('Em branco')).toBe('em branco')
+    expect(normalizeVerdict('???', 0, 2)).toBe('incorreta')
+    const r = normalizeResult({ items: [{ item: 'a', score: 1, max: 1, verdict: 'correto', feedback: 'Unidade certa.' }], summary: 'Ok, boa.' })
+    expect(r.items[0]!.verdict).toBe('correta')
+  })
+
   it('banco da Fuvest 2025 carregado com enunciado em imagem, resposta esperada e critérios', () => {
     const qs = secondPhaseQuestions()
     expect(qs.length).toBeGreaterThanOrEqual(40)
