@@ -68,7 +68,8 @@
 .qz-result-sub { font-family: var(--k-read); color: #BFAFC5; font-size: 16px; margin: 12px 0 0; }
 .qz-tiles { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 36px; }
 .qz-tiles > div, .qz-panel { background: #1F1424; border-radius: 18px; padding: 18px; }
-.qz-tiles strong { display: block; font-family: var(--k-display); font-weight: 600; font-size: 26px; }
+.qz-tiles strong { display: block; font-family: var(--k-display); font-weight: 600; font-size: 26px; white-space: nowrap; }
+@media (max-width: 420px) { .qz-tiles > div { padding: 14px 8px; } .qz-tiles strong { font-size: 22px; } }
 .qz-tiles small { display: block; font-size: 13px; color: #BFAFC5; margin-top: 4px; }
 .qz-panel { width: 100%; margin-top: 10px; text-align: left; }
 .qz-xp-row { display: flex; align-items: center; gap: 16px; }
