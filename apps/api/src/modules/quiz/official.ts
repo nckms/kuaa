@@ -1,7 +1,7 @@
 // Banco de questões oficiais (ENEM 2009–2023, importadas por scripts/import-official.mjs).
 // A prática usa primeiro questões reais ainda não vistas pelo aluno; a
 // explicação, que a prova não traz, é escrita por IA uma única vez e guardada.
-import { ai } from '../../lib/gemini'
+import { aiAvailable, generate } from '../../lib/ai'
 import { env } from '../../lib/env'
 import { prisma } from '../../lib/prisma'
 import type { GeneratedQuestion, QuestionOption } from './quiz.types'
@@ -111,16 +111,16 @@ export function ensureOfficialExplanation(officialId: string): Promise<string> {
     const q = await prisma.question.findUnique({ where: { id: officialId }, select: { body: true, options: true, explanation: true, imageUrl: true } })
     if (!q) return ''
     if (q.explanation.trim()) return q.explanation
-    if (!env.GEMINI_API_KEY?.trim()) return ''
+    if (!aiAvailable()) return ''
     const prompt = explanationPrompt(q.body, q.options as unknown as QuestionOption[])
     // Questão com figura: a IA precisa ver a imagem; sem ela, não arrisca explicação.
     const image = q.imageUrl ? await loadImage(q.imageUrl) : null
     if (q.imageUrl && !image) return ''
-    const response = await ai.models.generateContent({
-      model: env.GEMINI_MODEL,
-      contents: image ? [{ role: 'user', parts: [{ inlineData: image }, { text: `${prompt}\n\nA figura da questao esta anexada.` }] }] : prompt,
+    const raw = await generate({
+      task: 'bulk',
+      input: image ? [{ role: 'user', images: [image], text: `${prompt}\n\nA figura da questao esta anexada.` }] : prompt,
     })
-    const text = stripGreeting((response.text ?? '').replace(/\*\*/g, '').trim())
+    const text = stripGreeting(raw.replace(/\*\*/g, '').trim())
     if (text.length < 40) return ''
     await prisma.question.updateMany({ where: { OR: [{ id: officialId }, { officialRefId: officialId }], explanation: '' }, data: { explanation: text, explanationByAi: true } })
     return text

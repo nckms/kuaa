@@ -1,5 +1,4 @@
-import { ai } from '../../lib/gemini'
-import { env } from '../../lib/env'
+import { aiAvailable, aiModel, generate } from '../../lib/ai'
 import { makeError } from '../../utils/errors'
 
 export interface ChatMessage {
@@ -32,36 +31,27 @@ function unavailable() {
 }
 
 export async function askSabia(message: string, history: ChatMessage[]): Promise<string> {
-  if (!env.GEMINI_API_KEY?.trim()) throw unavailable()
+  if (!aiAvailable()) throw unavailable()
   for (let attempt = 0; attempt < 2; attempt++) {
     let timer: ReturnType<typeof setTimeout> | undefined
     const controller = new AbortController()
     try {
     const response = await Promise.race([
-      ai.models.generateContent({
-        model: env.SABIA_MODEL,
-        config: {
-          systemInstruction: SYSTEM_PROMPT,
-          maxOutputTokens: 1200,
-          abortSignal: controller.signal,
-          httpOptions: { timeout: 25_000 },
-        },
-        contents: [...history, { role: 'user', content: message }].map((entry) => ({
-          role: entry.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: entry.content }],
-        })),
+      generate({
+        task: 'chat', system: SYSTEM_PROMPT, maxOutputTokens: 1200, signal: controller.signal, timeoutMs: 25_000,
+        input: [...history, { role: 'user' as const, content: message }].map((entry) => ({ role: entry.role, text: entry.content })),
       }),
       new Promise<never>((_, reject) => {
         timer = setTimeout(() => { controller.abort(); reject(unavailable()) }, 25_000)
       }),
     ])
-    const text = response.text?.trim()
+    const text = response.trim()
     if (!text) throw unavailable()
     return text
     } catch (error) {
       const status = typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : undefined
       // Record only provider metadata; prompts, credentials and replies stay out of logs.
-      console.warn('[Sabia] generation failed', { model: env.SABIA_MODEL, attempt: attempt + 1, status: status ?? 'timeout-or-empty' })
+      console.warn('[Sabia] generation failed', { model: aiModel('chat'), attempt: attempt + 1, status: status ?? 'timeout-or-empty' })
       if (attempt === 1 || (status && status >= 400 && status < 500 && status !== 429)) throw unavailable()
     } finally {
       if (timer) clearTimeout(timer)

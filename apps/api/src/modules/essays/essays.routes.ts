@@ -7,7 +7,7 @@ import { makeError } from '../../utils/errors'
 import { essayThemes, getEssayTheme } from './themes'
 import { generateEssayFeedback } from './essayFeedback'
 import { essayCorrectionRouter } from './essayCorrection'
-import { env } from '../../lib/env'
+import { aiAvailable } from '../../lib/ai'
 
 export const essaysRouter = Router()
 essaysRouter.use(requireAuth)
@@ -105,7 +105,7 @@ essaysRouter.post('/:id/feedback', requireQuota('essayFeedback'), async (req, re
     const essay = await ownEssay(req.userId!, String(req.params.id))
     if (essay.status !== 'SUBMITTED') throw makeError('Envie sua redação antes de solicitar análise.', 409, 'ESSAY_DRAFT')
     if (essay.feedback) { res.json(essay); return }
-    if (!env.GEMINI_API_KEY?.trim()) throw makeError('Análise por IA indisponível no momento.', 503, 'AI_UNAVAILABLE')
+    if (!aiAvailable()) throw makeError('Análise por IA indisponível no momento.', 503, 'AI_UNAVAILABLE')
     const now = new Date()
     const claimed = await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "EssayDraft" WHERE id = ${essay.id} FOR UPDATE`

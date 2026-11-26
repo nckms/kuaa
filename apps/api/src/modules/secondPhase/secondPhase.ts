@@ -5,8 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { Router, type NextFunction, type Request, type Response } from 'express'
 import { z } from 'zod'
-import { ai } from '../../lib/gemini'
-import { env } from '../../lib/env'
+import { aiAvailable, generate } from '../../lib/ai'
 import { prisma } from '../../lib/prisma'
 import { requireAuth } from '../../middleware/requireAuth'
 import { makeError } from '../../utils/errors'
@@ -109,13 +108,12 @@ Responda SOMENTE JSON: {"items": [{"item": "a", "score": 1, "max": 2, "verdict":
 async function correct(q: SecondPhaseQuestion, answer: string) {
   const [image, expectedImage] = await Promise.all([loadImage(q.imageUrl), loadImage(expectedImageUrl(q))])
   const prompt = correctionPrompt(q, answer)
-  const parts = [image, expectedImage].filter((i): i is NonNullable<typeof i> => !!i).map((inlineData) => ({ inlineData }))
-  const response = await ai.models.generateContent({
-    model: env.SABIA_MODEL,
-    config: { responseMimeType: 'application/json', maxOutputTokens: 2500, httpOptions: { timeout: 45_000 } },
-    contents: parts.length ? [{ role: 'user', parts: [...parts, { text: prompt }] }] : prompt,
+  const images = [image, expectedImage].filter((i): i is NonNullable<typeof i> => !!i)
+  const text = await generate({
+    task: 'chat', json: true, maxOutputTokens: 2500, timeoutMs: 45_000,
+    input: images.length ? [{ role: 'user', images, text: prompt }] : prompt,
   })
-  return normalizeResult(JSON.parse(response.text ?? '{}'), itemScale(q))
+  return normalizeResult(JSON.parse(text || '{}'), itemScale(q))
 }
 
 const publicQuestion = (q: SecondPhaseQuestion) => ({ id: q.id, exam: q.exam, year: q.year, subject: q.subject, number: q.number, title: q.title,
@@ -158,7 +156,7 @@ async function answer(req: Request, res: Response, next: NextFunction) {
     const { answer: text } = z.object({ answer: z.string().trim().min(10, 'Escreva sua resposta antes de pedir a correção.').max(6000) }).strict().parse(req.body)
     const today = await prisma.secondPhaseAnswer.count({ where: { userId, createdAt: { gte: periodStart('day') } } })
     if (today >= CORRECTIONS_PER_DAY) throw makeError(`Você já usou as ${CORRECTIONS_PER_DAY} correções de hoje. Amanhã libera de novo.`, 429, 'QUOTA_EXCEEDED')
-    if (!env.GEMINI_API_KEY?.trim()) throw makeError('Correção indisponível no momento.', 503, 'AI_UNAVAILABLE')
+    if (!aiAvailable()) throw makeError('Correção indisponível no momento.', 503, 'AI_UNAVAILABLE')
     let result: Awaited<ReturnType<typeof correct>>
     try { result = await correct(q, text) } catch (error) {
       console.warn('[SecondPhase] correção falhou', (error as Error).message?.slice(0, 160))

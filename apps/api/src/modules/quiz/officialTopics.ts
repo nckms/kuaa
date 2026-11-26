@@ -1,7 +1,7 @@
 // Classificação das questões oficiais por tópico com IA, em segundo plano.
 // A IA só ESCOLHE um tópico de uma lista fechada (os da área da questão);
 // não cria nem altera questões. Uma questão por vez, devagar, uma única vez.
-import { ai } from '../../lib/gemini'
+import { aiAvailable, generate } from '../../lib/ai'
 import { env } from '../../lib/env'
 import { prisma } from '../../lib/prisma'
 import type { QuestionOption } from './quiz.types'
@@ -65,8 +65,8 @@ ${q.body.slice(0, 3500)}
 ALTERNATIVAS:
 ${options.map((o) => `${o.id}) ${o.text}`).join('\n').slice(0, 1500)}`
   try {
-    const response = await ai.models.generateContent({ model: env.GEMINI_MODEL, contents: prompt, config: { responseMimeType: 'application/json' } })
-    const parsed = JSON.parse(response.text ?? '{}') as { topic?: string; difficulty?: unknown }
+    const text = await generate({ task: 'bulk', json: true, input: prompt })
+    const parsed = JSON.parse(text || '{}') as { topic?: string; difficulty?: unknown }
     await saveDifficulty(q.id, parsed.difficulty)
     if (!needsTopic) return 'classified'
     const name = String(parsed.topic ?? '').trim()
@@ -95,7 +95,7 @@ export const CLASSIFY_INTERVAL_MS = 30_000
 /** Cota da conta esgotada (429): para por 1 hora para não tirar cota do Sabiá e das explicações dos alunos. */
 export const QUOTA_PAUSE_MS = 60 * 60_000
 export function startOfficialClassifier(): void {
-  if (!env.GEMINI_API_KEY?.trim() || env.NODE_ENV === 'test') return
+  if (!aiAvailable() || env.NODE_ENV === 'test') return
   let classified = 0
   let failures = 0
   const loop = async () => {
