@@ -135,7 +135,7 @@ function SabiaConversation() {
               </div>}
               {history.isSuccess && messages.length === 0 && !isPending && (
                 <div className="sabia-empty">
-                  <img src="/brand/owl-light.png" alt="" />
+                  <img src="/brand/owl-light.webp" alt="" />
                   <h2>O que vamos estudar hoje?</h2>
                   <p>Pergunte qualquer coisa — eu explico passo a passo.</p>
                 </div>
