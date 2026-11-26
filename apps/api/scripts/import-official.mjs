@@ -10,9 +10,12 @@ const dir = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../pr
 const prisma = new PrismaClient()
 
 async function main() {
-  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.json')) : []
+  // tri.json (parâmetros da TRI) e segunda-fase.json (dissertativas) são lidos pela API, não vão para Question.
+  const NOT_QUESTIONS = new Set(['tri.json', 'segunda-fase.json'])
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.json') && !NOT_QUESTIONS.has(f)) : []
   for (const file of files) {
     const { questions } = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'))
+    if (!Array.isArray(questions)) { console.warn(`[official] ${file}: sem lista de questões, ignorado`); continue }
     const slug = path.basename(file, '.json')
     const topics = await prisma.topic.findMany({ where: { subject: { vestibular: { slug } } }, select: { id: true, name: true } })
     const topicId = new Map(topics.map((t) => [t.name, t.id]))
