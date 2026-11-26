@@ -4,7 +4,7 @@ import { ai } from '../lib/gemini'
 import { env } from '../lib/env'
 import { api, registerAndLogin } from './helpers/api'
 import { testPrisma, truncateUserData } from './helpers/truncate'
-import { normalizeResult, normalizeVerdict, secondPhaseQuestions } from '../modules/secondPhase/secondPhase'
+import { itemScale, normalizeResult, normalizeVerdict, secondPhaseQuestions } from '../modules/secondPhase/secondPhase'
 
 const generate = vi.mocked(ai.models.generateContent)
 type GenResponse = Awaited<ReturnType<typeof ai.models.generateContent>>
@@ -14,6 +14,20 @@ afterAll(async () => { env.GEMINI_API_KEY = originalKey; await testPrisma.$disco
 beforeEach(async () => { await truncateUserData(); generate.mockReset() })
 
 describe('2ª fase dissertativa', () => {
+  it('escala fixa: pontos da banca, ou 2 por item da resposta esperada; a nota da IA é reescalada', () => {
+    expect(itemScale({ criteria: '- item a: 1 ponto.\n - item b: 2 pontos.\n - item c: 2 pontos.', expected: '' })).toEqual([{ item: 'a', max: 1 }, { item: 'b', max: 2 }, { item: 'c', max: 2 }])
+    expect(itemScale({ criteria: '', expected: 'a. Primeiro.\nb) Segundo.\nd. solto' })).toEqual([{ item: 'a', max: 2 }, { item: 'b', max: 2 }])
+    const scale = [{ item: 'a', max: 1 }, { item: 'b', max: 2 }, { item: 'c', max: 2 }]
+    const r = normalizeResult({ items: [
+      { item: 'a', score: 1, max: 2, verdict: 'parcial', feedback: 'Metade certa.' },
+      { item: 'b)', score: 2, max: 2, verdict: 'correta', feedback: 'Tudo certo.' },
+      { item: 'd', score: 2, max: 2, verdict: 'correta', feedback: 'Item que não existe.' },
+    ], summary: 'Boa resposta.' }, scale)
+    expect(r.items.map((i) => [i.item, i.score, i.max, i.verdict])).toEqual([['a', 0.5, 1, 'parcial'], ['b', 2, 2, 'correta'], ['c', 0, 2, 'em branco']])
+    expect([r.score, r.maxScore]).toEqual([2.5, 5])
+    for (const q of secondPhaseQuestions()) expect(itemScale(q).length, q.id).toBeGreaterThanOrEqual(2)
+  })
+
   it('aceita as variações de veredito que a IA escreve', () => {
     expect(normalizeVerdict('correto')).toBe('correta')
     expect(normalizeVerdict('Incorreto')).toBe('incorreta')
