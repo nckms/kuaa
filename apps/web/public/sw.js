@@ -3,7 +3,7 @@
 // - /api/* NUNCA passa por aqui (dados do aluno, sessão e pagamentos ficam só na rede).
 // - Navegação: rede primeiro; sem rede, a última versão do app ou a página offline.
 // - /assets/* (arquivos com hash do Vite): cache primeiro, são imutáveis.
-const VERSION = 'kuaa-v2'
+const VERSION = 'kuaa-v3'
 const SHELL = ['/', '/offline.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/brand/wordmark-t.png']
 
 self.addEventListener('install', (event) => {
@@ -36,7 +36,8 @@ self.addEventListener('fetch', (event) => {
 
   if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/') || url.pathname.startsWith('/brand/')) {
     event.respondWith(caches.match(request).then((cached) => cached || fetch(request).then((response) => {
-      if (response.ok) {
+      // Arquivo de versão antiga some depois do deploy e o Vercel devolve o index.html (200): não guardar.
+      if (response.ok && !(response.headers.get('content-type') || '').includes('text/html')) {
         const copy = response.clone()
         caches.open(VERSION).then((cache) => cache.put(request, copy))
       }

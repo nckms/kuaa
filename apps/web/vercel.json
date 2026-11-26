@@ -3,6 +3,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
+  "git": {
+    "deploymentEnabled": { "fix/*": false, "perf/*": false, "feat/*": false, "docs/*": false, "calib/*": false }
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
